@@ -1,9 +1,22 @@
-# Implementation Status & Sonnet Tickets
-## Verified done (2026-11-08)
-- Next.js scaffold; `npm run build` passes.
-- Public pages: `/`, `/pricing`, `/learn`, `/legal/{terms,privacy,disclaimer}` (legal = drafts).
-- `src/lib/metrics.ts` + 16 tests; `src/lib/csv-import.ts` + 3 tests (`npm test`).
-- Migration SQL written (not applied).
+# Implementation Status
+Labels: NOT STARTED · IN PROGRESS · IMPLEMENTED (code exists) · TESTED · PRODUCTION VERIFIED · BLOCKED
+
+| Feature | Status | Tested how | Prod-ready? | Remaining / blockers |
+|---|---|---|---|---|
+| Metrics engine | TESTED | 16 unit tests | needs UI exposure review | per-group R, timezone |
+| CSV parser + dedupe | TESTED (lib only) | 3 unit tests | no | **IMP-1 UI + insert not built** |
+| DB schema + RLS | TESTED (local PG16) | 15 isolation checks | no — not applied to Supabase | **BLOCKED: Supabase project (founder)** |
+| Auth (signup/login/logout/reset) | IMPLEMENTED | typecheck/build/redirect smoke only | no | needs Supabase to verify |
+| Onboarding | IMPLEMENTED | build only | no | needs Supabase |
+| Manual trade entry (partial exits, forex lots, FX, risk) | IMPLEMENTED | 19 validation tests | no | needs Supabase for e2e |
+| Journal list (search, filter, paginate, delete) | IMPLEMENTED | build only | no | edit/detail page (JRNL-2) |
+| Dashboard (KPIs, equity curve, breakdowns, empty state) | IMPLEMENTED | metrics unit-tested; UI build only | no | needs Supabase |
+| Plan limits / entitlements | IMPLEMENTED (logic TESTED) | 5 tests | no | no source of paid plans yet |
+| Landing/pricing/learn/legal | IMPLEMENTED | HTTP 200 locally | no — not deployed; legal unreviewed | |
+| Payments (Handypay) | BLOCKED | — | — | **need Handypay API docs: recurring billing support, webhook signature scheme, test mode** |
+| Deployment | BLOCKED | — | — | Vercel project exists, no env/Supabase |
+| Backtesting / replay | NOT STARTED | — | — | data licence; founder trades forex → pick forex-capable provider |
+| Admin, internal ops app | NOT STARTED | — | — | |
 
 ## Tickets (in order). Each: `npm test && npm run build && npm run lint` must pass.
 **INFRA-1 (Opus/founder):** create Supabase project `tradenotes`, apply migration, run security advisors; create Vercel project linked to repo; set env vars.

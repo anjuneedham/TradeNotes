@@ -9,3 +9,7 @@
 | 2026-11-08 | Backtesting held until licensed data provider signed; no synthetic data shown as real | Directive §5 |
 | 2026-11-08 | Internal ops = separate app/project, not built yet | Avoid leaking admin into customer app |
 | pending | Payment processor (Stripe vs Paddle/Lemon Squeezy) | Depends on founder's entity/country — see LEGAL |
+| 2026-11-08 | Founder's primary market is forex → defaults: forex asset class, lots×100,000, quote-currency FX conversion, London/NY sessions | Founder input |
+| 2026-11-08 | Start on a free Supabase project (separate account), migrate to paid org later | Founder input; see DEPLOYMENT.md cautions |
+| 2026-11-08 | Payment provider = Handypay (founder says fully set up). Not implemented until API docs/keys supplied; entitlements model is provider-agnostic (`subscriptions` table, service-role writes only) | Never invent integrations |
+| 2026-11-08 | Domain: .dev | Founder input |
