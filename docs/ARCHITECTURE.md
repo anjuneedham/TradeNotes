@@ -9,10 +9,17 @@
 
 Route map: `/` `/pricing` `/learn` `/legal/*` (public, done) · `/signup` `/login` · `/app` dashboard · `/app/journal` `/app/journal/[id]` `/app/import` `/app/analytics` `/app/strategies` `/app/accounts` `/app/backtest` `/app/replay` `/app/settings` `/app/billing` · `/admin` (is_admin, server-checked).
 
-## Historical data strategy
-Need: licence that allows displaying candles to paying end users in a SaaS (not just internal use). Candidates to evaluate (pricing/terms must be confirmed in writing before signing):
-- **Databento** — futures (CME) + equities, minute bars, pay-per-use; check display/redistribution licence.
-- **Polygon.io (Massive)** — US stocks/options/forex/crypto; business plans required for commercial display.
-- **Crypto exchange public APIs (e.g. Binance, Coinbase)** — free OHLCV, but terms vary on commercial redistribution; check each.
-- **Dukascopy / FX** — check terms before any commercial use.
-MVP path: launch backtesting on **one licensed asset class** (likely crypto or US equities minute bars), behind the provider interface, labelled with source. No synthetic data presented as real; a clearly labelled "practice / sample data" mode is acceptable only if it's generated and marked as such.
+## Historical data strategy (research 2026-11-08; web-search level only — NOT contract-verified)
+Need: a licence that lets us **display** forex candles to paying end users in a commercial SaaS. Personal-use API access is not enough.
+
+| Provider | What was found | Commercial display? |
+|---|---|---|
+| Massive (ex-Polygon.io) | Forex minute aggregates start on the Currencies Starter tier; **Currencies Business $999/mo** lists 10+ yrs history and business use. Older third-party pages cite ~$29/mo for Starter (individual use). | Unconfirmed for forex — ask sales@massive.com |
+| Tiingo | Forex to 1-minute, ~3+ yrs of history. Plan table marks even the Commercial tier "Internal use only"; "Display redistribution" is a separate priced row. | Needs a separate display licence — ask Tiingo |
+| OANDA | v20 API historical candles back to 2005, needs an OANDA account and accepting the API licence; paid data-service plans from ~$4,850/yr. | Unconfirmed; practice-account data generally not licensed for redistribution — ask api@oanda.com |
+| Twelve Data, TraderMade | Search returned no usable pricing/licence pages. | Unknown — check their sites / sales |
+| Dukascopy (free tick downloads) | Not researched this session. Licence is believed to restrict commercial redistribution — verify before any use. | Do not use for the product without written permission |
+
+**Honest conclusion:** I found no forex source with a confirmed, cheap, display-licensed tier. Real licensed data likely costs hundreds of dollars/month, which 3–10 Pro subscribers would cover — not worth buying before there are paying users.
+
+**Recommended path ("bring your own data", ships first):** the trader uploads historical candle CSVs they already have rights to (e.g. exported from their own broker/MT5/TradingView). TradeNotes replays them with the no-lookahead engine. We store/serve only that user's own uploads (RLS-isolated), so we are not redistributing market data. Terms state the user is responsible for the right to use their data. **Licensed provider integration** sits behind the `MarketDataProvider` interface and is added once revenue justifies it; send each vendor this question: *"May a paid SaaS display your historical forex M1–D1 candles to its logged-in subscribers for backtesting, what tier is required, what are the caching rules, and what is the price?"*

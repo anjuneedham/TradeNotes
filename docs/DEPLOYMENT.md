@@ -17,3 +17,14 @@ Supabase free projects pause after 7 days of inactivity and have no automatic ba
 
 ## Env vars
 See `.env.example`. Server-only secrets are not yet used by any code.
+
+## Payments (Handypay) — current process
+- Two hosted subscription links are in `src/lib/plans.ts` (`CHECKOUT_URLS`): Starter $12/mo, Pro $24/mo. IDs inside them look Stripe-style (`acct_`, `prod_`, `price_`). They do not carry our user id, so a payment cannot be tied to an account automatically.
+- **Entitlements are NOT activated from the browser or from the redirect.** Until a verified webhook exists, the owner activates plans manually after seeing the payment in the Handypay dashboard, matching the **payer email = signup email**:
+```sql
+update public.subscriptions set plan='pro' /* or 'starter' */, status='active',
+  current_period_end = now() + interval '35 days'
+where user_id = (select id from auth.users where email = 'customer@example.com');
+```
+  (Run in Supabase SQL editor. Re-run each month until webhooks are built; set `status='canceled'` on cancellation. `effectivePlan()` drops to free after `current_period_end`, so a forgotten renewal fails safe.)
+- **Needed for automation:** Handypay webhook docs (event names, signature header/secret, subscription id/email fields) and whether it exposes a customer-portal link for cancellations.

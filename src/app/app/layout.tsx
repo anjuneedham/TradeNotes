@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { logout } from "../(auth)/actions";
 
-const links = [["Dashboard", "/app"], ["Journal", "/app/journal"], ["Learn", "/learn"]] as const;
+const links = [["Dashboard", "/app"], ["Journal", "/app/journal"], ["Billing", "/app/billing"], ["Learn", "/learn"]] as const;
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

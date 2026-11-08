@@ -13,7 +13,7 @@ Labels: NOT STARTED · IN PROGRESS · IMPLEMENTED (code exists) · TESTED · PRO
 | Dashboard (KPIs, equity curve, breakdowns, empty state) | IMPLEMENTED | metrics unit-tested; UI build only | no | needs Supabase |
 | Plan limits / entitlements | IMPLEMENTED (logic TESTED) | 5 tests | no | no source of paid plans yet |
 | Landing/pricing/learn/legal | IMPLEMENTED | HTTP 200 locally | no — not deployed; legal unreviewed | |
-| Payments (Handypay) | BLOCKED | — | — | **need Handypay API docs: recurring billing support, webhook signature scheme, test mode** |
+| Payments (Handypay) | IMPLEMENTED (checkout links + /app/billing); activation MANUAL | build only | no | webhook docs needed for automation; no founding coupon; no annual link |
 | Deployment | BLOCKED | — | — | Vercel project exists, no env/Supabase |
 | Backtesting / replay | NOT STARTED | — | — | data licence; founder trades forex → pick forex-capable provider |
 | Admin, internal ops app | NOT STARTED | — | — | |

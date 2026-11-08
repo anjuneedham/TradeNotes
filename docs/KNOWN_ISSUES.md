@@ -9,3 +9,4 @@
 8. No error monitoring (Sentry) yet.
 9. Legal pages are drafts, unreviewed.
 10. Dashboard fetches all trades (≤10,000) per load; fine for launch, needs SQL aggregation later.
+11. Billing is manual: plan activation is done by the owner via SQL after confirming payment (see DEPLOYMENT.md). No webhook, no automatic renewal/cancel handling, no founding-member coupon mechanism, no annual plan link.
