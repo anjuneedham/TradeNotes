@@ -1,0 +1,21 @@
+export interface Term { slug: string; term: string; short: string; formula?: string; body: string }
+export const GLOSSARY: Term[] = [
+  { slug: "win-rate", term: "Win rate", short: "Share of closed trades that made money after fees.", formula: "winning trades ÷ all closed trades",
+    body: "Win rate alone says little. A 30% win rate can be profitable if winners are much bigger than losers; a 70% win rate can lose money if a few losses are huge. Always read it next to average win, average loss and expectancy." },
+  { slug: "expectancy", term: "Expectancy", short: "Average net result per trade.", formula: "net P&L ÷ number of closed trades",
+    body: "Expectancy is what one more trade of this kind has been worth, on average, in your history. Positive expectancy over a large sample is the closest thing to evidence that a process has an edge — but it describes the past, not a promise about the future." },
+  { slug: "profit-factor", term: "Profit factor", short: "Money won for every unit of money lost.", formula: "sum of winning trades ÷ |sum of losing trades| (both net of fees)",
+    body: "Above 1.0 means winners outweighed losers. TradeNotes shows “—” instead of infinity when you have no losing trades yet, because that number would be meaningless." },
+  { slug: "r-multiple", term: "R-multiple", short: "A trade's result measured in units of what you planned to risk.", formula: "net P&L ÷ initial risk",
+    body: "If you risked $100 and made $250, that's +2.5R. R lets you compare trades of different sizes and instruments. It only exists for trades where you recorded a stop or planned risk, so TradeNotes always shows how many of your trades it is based on." },
+  { slug: "drawdown", term: "Maximum drawdown", short: "The largest drop from a high point in your cumulative P&L.", formula: "max over time of (running peak − current cumulative P&L)",
+    body: "Drawdown tells you how painful the worst stretch was. A strategy you can't psychologically sit through is a strategy you won't follow." },
+  { slug: "risk-reward", term: "Risk/reward", short: "Planned profit versus planned loss on a trade.", formula: "|target − entry| ÷ |entry − stop|",
+    body: "Planned risk/reward is a hypothesis. Your realised average R shows what actually happened." },
+  { slug: "why-journal-losses", term: "Why journal losing trades?", short: "Losses carry the most information about your process.",
+    body: "It's tempting to only review winners. But repeated mistakes — moving stops, revenge trading, oversizing — show up in losses. Tagging mistakes turns vague regret into a number you can track down." },
+  { slug: "sample-size", term: "How many trades are enough?", short: "Fewer than ~30 trades is too few to conclude much.",
+    body: "Small samples are dominated by luck. TradeNotes flags statistics based on fewer than 30 trades. Even with hundreds of trades, market conditions change; treat results as evidence, not proof." },
+  { slug: "why-backtest", term: "Why backtest?", short: "Practise and measure a strategy before risking money on it.",
+    body: "Backtesting on historical data lets you collect many samples of a setup quickly. It also has blind spots: no slippage or emotions, and you may unconsciously fit rules to the past. That's why historical results can fail in live markets — use backtests to filter ideas, then confirm with small live size." },
+];
