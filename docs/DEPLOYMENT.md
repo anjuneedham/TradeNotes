@@ -6,7 +6,7 @@
 
 ## Founder steps to go live (≈15 min)
 1. Supabase (free account) → New project `tradenotes` → Settings → API: copy **Project URL**, **anon key**.
-2. SQL Editor → run, in order: `supabase/migrations/20261108000000_init.sql`, then `20261108010000_onboarding_fields.sql`. (Safe on an empty project; do NOT run on YardScale-Digital.)
+2. SQL Editor → run, in order: `supabase/migrations/20261108000000_init.sql`, then `20261108010000_onboarding_fields.sql`. They only create the `tradenotes` schema and never touch `public`. Then Settings → API → Exposed schemas → add `tradenotes`.
 3. Authentication → URL Configuration: Site URL = production URL; add `<prod-url>/auth/callback` to Redirect URLs. Authentication → Providers → Email: keep "Confirm email" ON.
 4. Vercel → project `tradenotes` → Settings → Environment Variables (Production + Preview): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`. **Never** put the service-role key in `NEXT_PUBLIC_*`.
 5. Redeploy. Smoke test: sign up → confirm email → onboarding → log trade → dashboard.

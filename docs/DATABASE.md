@@ -1,5 +1,8 @@
 # Database
-Migration: `supabase/migrations/20261108000000_init.sql` (**written, not yet applied** — no TradeNotes Supabase project exists).
+**Isolation model:** everything lives in its own Postgres schema `tradenotes`. Nothing is created in `public`, no trigger touches the shared `auth.users`, and no extension is installed — so TradeNotes can share a Supabase project with another app (Agriloop) without interfering. New users are bootstrapped lazily by `tradenotes.ensure_user()` (called from `getContext`).
+**Extraction later:** `pg_dump -n tradenotes` gives all TradeNotes data. Auth users live in the shared `auth` schema and must be moved separately (export the relevant `auth.users`/`auth.identities` rows by user id — password hashes carry over). Only users who ever opened TradeNotes have a `tradenotes.profiles` row; use that list to select them.
+**Required project setting:** add `tradenotes` to Settings → API → Exposed schemas. Project-wide settings shared with the other app: Auth Site URL / Redirect URLs / email templates (add TradeNotes URLs, don't replace), email-confirmation toggle, SMTP, and the free-tier pause/backups.
+Migrations: `20261108000000_init.sql`, `20261108010000_onboarding_fields.sql` (**written and tested locally, not yet applied to any Supabase project**).
 
 Tables: `profiles`, `subscriptions` (service-role writes only), `accounts`, `strategies`, `imports`, `trades`, `trade_exits`, `trade_screenshots`, `reviews`, `audit_log`.
 - RLS on every table; user tables `user_id = auth.uid()` for all ops.

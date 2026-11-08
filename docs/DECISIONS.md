@@ -13,3 +13,4 @@
 | 2026-11-08 | Start on a free Supabase project (separate account), migrate to paid org later | Founder input; see DEPLOYMENT.md cautions |
 | 2026-11-08 | Payment provider = Handypay (founder says fully set up). Not implemented until API docs/keys supplied; entitlements model is provider-agnostic (`subscriptions` table, service-role writes only) | Never invent integrations |
 | 2026-11-08 | Domain: .dev | Founder input |
+| 2026-11-08 | Reuse the existing (Agriloop) Supabase project, isolated in schema `tradenotes`; no auth trigger, lazy `ensure_user()` | Founder input; avoids collisions and keeps `pg_dump -n tradenotes` extraction simple |

@@ -7,6 +7,7 @@ export async function createClient() {
   const store = await cookies();
   const { url, key } = supabaseEnv();
   return createServerClient(url, key, {
+    db: { schema: "tradenotes" }, // TradeNotes lives in its own schema; the project may host other apps in `public`
     cookies: {
       getAll: () => store.getAll(),
       setAll: (list) => {
