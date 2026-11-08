@@ -178,6 +178,32 @@ end $$;
 create trigger exits_owner before insert or update on public.trade_exits for each row execute function public.check_trade_owner();
 create trigger shots_owner before insert or update on public.trade_screenshots for each row execute function public.check_trade_owner();
 
+
+-- A trade may only reference the owner's own account / strategy / import (RLS alone checks only user_id).
+create or replace function public.check_trade_refs() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.accounts where id = new.account_id and user_id = new.user_id) then
+    raise exception 'account does not belong to user';
+  end if;
+  if new.strategy_id is not null and not exists (select 1 from public.strategies where id = new.strategy_id and user_id = new.user_id) then
+    raise exception 'strategy does not belong to user';
+  end if;
+  if new.import_id is not null and not exists (select 1 from public.imports where id = new.import_id and user_id = new.user_id) then
+    raise exception 'import does not belong to user';
+  end if;
+  return new;
+end $$;
+create trigger trades_refs before insert or update on public.trades for each row execute function public.check_trade_refs();
+
+create or replace function public.check_import_refs() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.accounts where id = new.account_id and user_id = new.user_id) then
+    raise exception 'account does not belong to user';
+  end if;
+  return new;
+end $$;
+create trigger imports_refs before insert or update on public.imports for each row execute function public.check_import_refs();
+
 -- New user bootstrap: profile + free subscription + default account.
 create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path = public as $$
 begin
