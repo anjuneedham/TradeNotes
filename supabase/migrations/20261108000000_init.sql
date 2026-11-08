@@ -93,6 +93,9 @@ create table tradenotes.trades (
   unique (account_id, fingerprint)  -- cross-import duplicate prevention
 );
 create index trades_user_opened on tradenotes.trades (user_id, opened_at desc);
+create index trades_account_idx on tradenotes.trades (account_id);
+create index trades_strategy_idx on tradenotes.trades (strategy_id);
+create index trades_import_idx on tradenotes.trades (import_id);
 
 create table tradenotes.trade_exits (
   id uuid primary key default gen_random_uuid(),
@@ -102,6 +105,7 @@ create table tradenotes.trade_exits (
   price numeric(20,8) not null check (price > 0),
   exited_at timestamptz
 );
+create index trade_exits_trade_idx on tradenotes.trade_exits (trade_id);
 
 create table tradenotes.trade_screenshots (
   id uuid primary key default gen_random_uuid(),
@@ -111,6 +115,7 @@ create table tradenotes.trade_screenshots (
   caption text,
   created_at timestamptz not null default now()
 );
+create index trade_screenshots_trade_idx on tradenotes.trade_screenshots (trade_id);
 
 create table tradenotes.reviews (
   id uuid primary key default gen_random_uuid(),
@@ -142,23 +147,23 @@ alter table tradenotes.trade_screenshots enable row level security;
 alter table tradenotes.reviews enable row level security;
 alter table tradenotes.audit_log enable row level security;
 
-create policy own_profile_select on tradenotes.profiles for select using (id = auth.uid());
+create policy own_profile_select on tradenotes.profiles for select using (id = (select auth.uid()));
 -- users may update their profile but not is_admin (enforced by trigger below)
-create policy own_profile_update on tradenotes.profiles for update using (id = auth.uid()) with check (id = auth.uid());
+create policy own_profile_update on tradenotes.profiles for update using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
-create policy own_sub_select on tradenotes.subscriptions for select using (user_id = auth.uid());
+create policy own_sub_select on tradenotes.subscriptions for select using (user_id = (select auth.uid()));
 -- no insert/update/delete policy: only service role (webhook) writes subscriptions.
 
 do $$
 declare t text;
 begin
   foreach t in array array['accounts','strategies','imports','trades','trade_exits','trade_screenshots','reviews'] loop
-    execute format('create policy own_rows on tradenotes.%I for all using (user_id = auth.uid()) with check (user_id = auth.uid())', t);
+    execute format('create policy own_rows on tradenotes.%I for all using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()))', t);
   end loop;
 end $$;
 -- audit_log: no client policies (service role only).
 
-create or replace function tradenotes.protect_admin_flag() returns trigger language plpgsql as $$
+create or replace function tradenotes.protect_admin_flag() returns trigger language plpgsql set search_path = '' as $$
 begin
   if new.is_admin is distinct from old.is_admin and current_user in ('authenticated', 'anon') then
     raise exception 'is_admin cannot be changed by clients';
@@ -168,7 +173,7 @@ end $$;
 create trigger profiles_protect_admin before update on tradenotes.profiles for each row execute function tradenotes.protect_admin_flag();
 
 -- Child rows must belong to the same user as their parent trade.
-create or replace function tradenotes.check_trade_owner() returns trigger language plpgsql security definer set search_path = tradenotes as $$
+create or replace function tradenotes.check_trade_owner() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if not exists (select 1 from tradenotes.trades where id = new.trade_id and user_id = new.user_id) then
     raise exception 'trade does not belong to user';
@@ -180,7 +185,7 @@ create trigger shots_owner before insert or update on tradenotes.trade_screensho
 
 
 -- A trade may only reference the owner's own account / strategy / import (RLS alone checks only user_id).
-create or replace function tradenotes.check_trade_refs() returns trigger language plpgsql security definer set search_path = tradenotes as $$
+create or replace function tradenotes.check_trade_refs() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if not exists (select 1 from tradenotes.accounts where id = new.account_id and user_id = new.user_id) then
     raise exception 'account does not belong to user';
@@ -195,7 +200,7 @@ begin
 end $$;
 create trigger trades_refs before insert or update on tradenotes.trades for each row execute function tradenotes.check_trade_refs();
 
-create or replace function tradenotes.check_import_refs() returns trigger language plpgsql security definer set search_path = tradenotes as $$
+create or replace function tradenotes.check_import_refs() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if not exists (select 1 from tradenotes.accounts where id = new.account_id and user_id = new.user_id) then
     raise exception 'account does not belong to user';
@@ -205,7 +210,7 @@ end $$;
 create trigger imports_refs before insert or update on tradenotes.imports for each row execute function tradenotes.check_import_refs();
 
 -- Lazy bootstrap (NO trigger on shared auth.users, so other apps' signups are unaffected).
-create or replace function tradenotes.ensure_user() returns void language plpgsql security definer set search_path = tradenotes as $$
+create or replace function tradenotes.ensure_user() returns void language plpgsql security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
   insert into tradenotes.profiles (id) values (auth.uid()) on conflict do nothing;
@@ -216,6 +221,7 @@ begin
 end $$;
 revoke all on function tradenotes.ensure_user() from public, anon;
 grant execute on function tradenotes.ensure_user() to authenticated;
+revoke all on function tradenotes.protect_admin_flag(), tradenotes.check_trade_owner(), tradenotes.check_trade_refs(), tradenotes.check_import_refs() from public, anon, authenticated;
 
 -- Privileges (custom schemas get no default grants). RLS still restricts rows.
 grant usage on schema tradenotes to authenticated, service_role;
