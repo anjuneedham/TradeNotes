@@ -4,7 +4,7 @@
 - **Payments: Handypay** hosted subscription links; entitlements in `tradenotes.subscriptions`, written only by the owner/admin path (manual now, webhook later).
 - **Pure domain libs** — `src/lib/metrics.ts`, `src/lib/csv-import.ts`, `src/lib/plans.ts`, `src/lib/trade-schema.ts`, `src/lib/entitlements.ts`: no I/O, unit-tested.
 - **Market data** — `MarketDataProvider` interface (`getCandles(symbol, tf, from, to)`), server-side only, cached in `candles` table per licence terms.
-- **Internal ops** — separate Next.js app in `/ops` (own Vercel project, own Supabase project, owner-only auth). Until built: none — do *not* ship admin into customer app beyond `is_admin` read-only views.
+- **Internal ops** — separate Next.js app in `/ops` (own Vercel project, own database, owner-only auth). Until built: none — do *not* ship admin into customer app beyond `is_admin` read-only views.
 - **Monitoring** — Sentry (errors), Vercel Analytics. **Email** — Resend.
 
 Route map: `/` `/pricing` `/learn` `/legal/*` (public, done) · `/signup` `/login` · `/app` dashboard · `/app/journal` `/app/journal/[id]` `/app/import` `/app/analytics` `/app/strategies` `/app/accounts` `/app/backtest` `/app/replay` `/app/settings` `/app/billing` · `/admin` (is_admin, server-checked).

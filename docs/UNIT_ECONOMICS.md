@@ -6,15 +6,15 @@ Domain $15 · business registration (Jamaica, sole trader/company — confirm wi
 | Item | Launch | At ~100 users |
 |---|---|---|
 | Vercel Pro | $20 | $20 |
-| Supabase Pro | $25 | $25 |
+| Neon database (free tier at launch; paid tier price to verify on neon.com) | $0 | ~$20 (estimate) |
 | Email (Resend) | $0 | $20 |
 | Sentry | $0 | $26 |
 | Market data (e.g. Polygon/Massive starter, or Databento usage) | $0–30 | $50–200 |
 | AI API (P2) | $0 | $10–30 |
 | **Fixed total** | **~$45–75** | **~$150–320** |
-Stripe: 2.9% + $0.30/charge (+1.5% international cards, +0.5–1% for FX — Jamaican-founder payout country needs confirming, see LEGAL).
+Payment fees: **Handypay's rates are not yet known** — assume ~3–6% of revenue until confirmed (also confirm payout currency/fees, see LEGAL).
 
-## Break-even (blended ARPU after Stripe ≈ $15)
+## Break-even (blended ARPU after payment fees ≈ $15, assumed)
 - Launch ($75/mo): **5 paying users**.
 - Growth ($320/mo): **~22 paying users**.
 

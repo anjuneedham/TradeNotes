@@ -5,7 +5,7 @@
 4. Screenshots, daily/weekly reviews, calendar view not built.
 5. Fees is a single number in the trade's quote currency (commission + swap combined); converted with the same FX rate as P&L when the quote currency differs from the account currency.
 6. Forex lots assume standard 100,000 units; mini/micro lots must be entered as 0.1/0.01.
-7. No rate limiting beyond Supabase Auth's built-ins.
+7. Rate limiting exists only on auth endpoints (Better Auth, DB-backed: 30 requests/60s). App actions (trade creation etc.) are not rate limited.
 8. No error monitoring (Sentry) yet.
 9. Legal pages are drafts, unreviewed.
 10. Dashboard fetches all trades (≤10,000) per load; fine for launch, needs SQL aggregation later.
@@ -13,3 +13,4 @@
 12. **Email is not configured**: until `RESEND_API_KEY` is set, email confirmation is OFF (anyone can register any address) and password reset is unavailable (UI says so). Because payments are matched by email, set up email BEFORE taking payment.
 13. `.npmrc` uses legacy-peer-deps (optional peer conflict, see DECISIONS).
 14. Not yet reviewed: Better Auth cookie/CSRF settings behind a custom domain; Neon pooled-connection behaviour under load.
+15. `next build` with `BETTER_AUTH_SECRET` unset logs a Better Auth "default secret" error during static generation but exits 0. With the env var set the build is clean. In production, auth refuses to run without the secret (fails closed) — set it BEFORE the first deploy.
