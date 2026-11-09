@@ -1,34 +1,20 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { supabaseConfigured, supabaseEnv } from "@/lib/supabase/env";
 
-export async function middleware(req: NextRequest) {
-  const needsAuth = req.nextUrl.pathname.startsWith("/app");
-  if (!supabaseConfigured()) {
-    // Public pages keep working before Supabase is configured; the app area says so explicitly.
-    if (needsAuth) return NextResponse.redirect(new URL("/login?error=not_configured", req.url));
-    return NextResponse.next();
-  }
-  let res = NextResponse.next({ request: req });
-  const { url, key } = supabaseEnv();
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll: () => req.cookies.getAll(),
-      setAll: (list) => {
-        list.forEach(({ name, value }) => req.cookies.set(name, value));
-        res = NextResponse.next({ request: req });
-        list.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
-      },
-    },
-  });
-  const { data: { user } } = await supabase.auth.getUser(); // validates JWT with Supabase Auth
-  if (needsAuth && !user) {
+/**
+ * Optimistic gate only (cookie present). The real session check happens server-side in getContext(),
+ * which every /app page calls before touching data.
+ */
+export function middleware(req: NextRequest) {
+  // Better Auth session cookie: "better-auth.session_token", prefixed "__Secure-" over HTTPS.
+  const hasCookie = req.cookies.getAll().some((c) => c.name.endsWith("better-auth.session_token") && c.value.length > 0);
+  const { pathname } = req.nextUrl;
+  if (pathname.startsWith("/app") && !hasCookie) {
     const to = new URL("/login", req.url);
-    to.searchParams.set("next", req.nextUrl.pathname);
+    to.searchParams.set("next", pathname);
     return NextResponse.redirect(to);
   }
-  if (user && ["/login", "/signup"].includes(req.nextUrl.pathname)) return NextResponse.redirect(new URL("/app", req.url));
-  return res;
+  if (hasCookie && (pathname === "/login" || pathname === "/signup")) return NextResponse.redirect(new URL("/app", req.url));
+  return NextResponse.next();
 }
 
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|ico)$).*)"] };
+export const config = { matcher: ["/app/:path*", "/login", "/signup"] };

@@ -14,3 +14,6 @@
 | 2026-11-08 | Payment provider = Handypay (founder says fully set up). Not implemented until API docs/keys supplied; entitlements model is provider-agnostic (`subscriptions` table, service-role writes only) | Never invent integrations |
 | 2026-11-08 | Domain: .dev | Founder input |
 | 2026-11-08 | Reuse the existing (Agriloop) Supabase project, isolated in schema `tradenotes`; no auth trigger, lazy `ensure_user()` | Founder input; avoids collisions and keeps `pg_dump -n tradenotes` extraction simple |
+| 2026-11-09 | **Neon replaces Supabase/Agriloop DB.** Auth = Better Auth (in-app); data access = `pg` + RLS via `app_user` + `app.user_id`; no Supabase dependencies | Founder input; removes shared-project/trigger/pause risks; enables full local e2e testing |
+| 2026-11-09 | Email confirmation/password reset gated on `RESEND_API_KEY`; until set, verification is off and reset is unavailable (UI says so) | No mail provider yet; never claim an email was sent when none can be |
+| 2026-11-09 | `.npmrc legacy-peer-deps=true` | better-auth's optional SvelteKit peer wants vite 8; vitest wants 7; neither used |

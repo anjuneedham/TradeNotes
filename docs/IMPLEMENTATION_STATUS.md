@@ -5,23 +5,23 @@ Labels: NOT STARTED · IN PROGRESS · IMPLEMENTED (code exists) · TESTED · PRO
 |---|---|---|---|---|
 | Metrics engine | TESTED | 16 unit tests | needs UI exposure review | per-group R, timezone |
 | CSV parser + dedupe | TESTED (lib only) | 3 unit tests | no | **IMP-1 UI + insert not built** |
-| DB schema + RLS | TESTED (local PG16) | 15 isolation checks | no — not applied to Supabase | **BLOCKED: Supabase project (founder)** |
-| Auth (signup/login/logout/reset) | IMPLEMENTED | typecheck/build/redirect smoke only | no | needs Supabase to verify |
-| Onboarding | IMPLEMENTED | build only | no | needs Supabase |
-| Manual trade entry (partial exits, forex lots, FX, risk) | IMPLEMENTED | 19 validation tests | no | needs Supabase for e2e |
-| Journal list (search, filter, paginate, delete) | IMPLEMENTED | build only | no | edit/detail page (JRNL-2) |
-| Dashboard (KPIs, equity curve, breakdowns, empty state) | IMPLEMENTED | metrics unit-tested; UI build only | no | needs Supabase |
+| DB schema + RLS (Neon/Postgres) | TESTED (local PG16) | 23 isolation checks | no — not applied to Neon | **BLOCKED: Neon project (founder)** |
+| Auth (signup/login/logout; Better Auth) | TESTED (local e2e) | browser e2e | no | password reset + email confirm need Resend; untested on live |
+| Onboarding | TESTED (local e2e) | browser e2e | no | |
+| Manual trade entry (partial exits, forex lots, FX, risk) | TESTED (local e2e) | 19 unit + browser e2e | no | edit page |
+| Journal list (search, filter, paginate, delete) | TESTED (local e2e: list, delete) | browser e2e | no | edit/detail page (JRNL-2); filters/pagination only lightly tested |
+| Dashboard (KPIs, equity curve, breakdowns, empty state) | TESTED (local e2e) | browser e2e, hand-calculated numbers | no | |
 | Plan limits / entitlements | IMPLEMENTED (logic TESTED) | 5 tests | no | no source of paid plans yet |
 | Landing/pricing/learn/legal | IMPLEMENTED | HTTP 200 locally | no — not deployed; legal unreviewed | |
 | Payments (Handypay) | IMPLEMENTED (checkout links + /app/billing); activation MANUAL | build only | no | webhook docs needed for automation; no founding coupon; no annual link |
-| Deployment | BLOCKED | — | — | Vercel project exists, no env/Supabase |
+| Deployment | BLOCKED | — | — | Vercel project exists; needs Neon + env vars |
 | Backtesting / replay | NOT STARTED | — | — | data licence; founder trades forex → pick forex-capable provider |
 | Admin, internal ops app | NOT STARTED | — | — | |
 
 ## Tickets (in order). Each: `npm test && npm run build && npm run lint` must pass.
-**INFRA-1 (Opus/founder):** create Supabase project `tradenotes`, apply migration, run security advisors; create Vercel project linked to repo; set env vars.
+**INFRA-1 (founder + Opus):** create Neon project, run `db/migrations/0001_init.sql`, set Vercel env vars (see DEPLOYMENT.md). Vercel project already exists.
 
-**AUTH-1** `src/lib/supabase/{server,client}.ts`, `src/middleware.ts`, `src/app/(auth)/{login,signup}/page.tsx`. @supabase/ssr cookie sessions; `/app/*` redirects to `/login` when no session. AC: signup creates profile+free sub+account (trigger); logout works; `?plan=` preserved through signup to billing.
+**AUTH-1 — DONE (Better Auth).** See TEST_RESULTS.md. Remaining: Resend email for confirmation/reset.
 
 **ONB-1** `/app/onboarding`: experience level, markets, account name/currency/starting balance, explanation toggle → sets `onboarding_completed_at`. `/app` redirects here until complete. AC: beginner sees 3-step "log your first trade" checklist on dashboard.
 
@@ -33,9 +33,9 @@ Labels: NOT STARTED · IN PROGRESS · IMPLEMENTED (code exists) · TESTED · PRO
 
 **ANL-1** `/app` dashboard + `/app/analytics`: map DB rows → `TradeInput`, call `summarize`/`groupSummary` (strategy, session, weekday of closed_at in user tz, symbol, side). Each stat has a "?" linking `/learn#slug`. Show exclusion notice and small-sample badge. Equity curve as inline SVG (no chart lib needed).
 
-**BILL-1** (after processor decision) Checkout session route, Portal route, webhook (verify signature, idempotent, upsert `subscriptions` via service role), `/app/billing`. Founding coupon. Tests: webhook handler unit tests with fixture events.
+**BILL-1** Handypay webhook endpoint (verify signature, idempotent on event id, owner-connection upsert into `tradenotes.subscriptions`, set `current_period_end` from event). Blocked on Handypay docs.
 
-**SEC-1** Two-user RLS test script (`scripts/rls-test.ts`): user B cannot read/update/delete A's trades, exits, accounts, imports, subscriptions; cannot set is_admin.
+**SEC-1 — DONE locally** (`npm run test:db`, 23 checks); re-run against Neon after migration.
 
 **ADM-1** `/admin` (server-checked `is_admin`): user count, plan counts, recent signups. Read-only.
 

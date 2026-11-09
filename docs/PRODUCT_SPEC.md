@@ -13,7 +13,7 @@
 | Backtesting | **Pro, P1-day-3:** bar replay on licensed data, no future bars, sim orders w/ SL/TP, sizing, session notes, report, CSV export | Session comparison, saved strategies | Multi-chart, drawing tools, tick |
 | Trade replay | — | Replay imported trade on candles with entry/exit markers | Annotations |
 | Education | Glossary (/learn), inline "?" tooltips, small-sample warnings, guided onboarding | Contextual nudges | Courses |
-| Commerce | Signup/login, Stripe Checkout, Customer Portal, webhook entitlements, plan limits server-side | Founding coupon automation | Teams/coach |
+| Commerce | Signup/login, Handypay hosted checkout, entitlements (manual → webhook), plan limits server-side | Founding coupon automation | Teams/coach |
 
 ## Metrics (implemented in `src/lib/metrics.ts`, tested in `metrics.test.ts`)
 Universal rules: money in account currency; fees always subtracted; a trade counts only when **exited qty == entry qty** (open/partial → excluded, listed); foreign-currency trades with no fx rate → excluded, listed; breakeven (net = 0) is neither win nor loss; ordered by `closed_at`.

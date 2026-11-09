@@ -1,5 +1,5 @@
 # Daily Operations
-**Morning:** check Sentry errors, Stripe/Paddle failed payments, reconcile subscriptions, support inbox.
+**Morning:** check Sentry errors, Handypay failed/cancelled payments, reconcile subscriptions, support inbox.
 **Content:** record 3 VOs, publish 3 TikTok + 2 Shorts.
 **Sales:** 20–30 personalised DMs, follow-ups, ≥1 demo.
 **Evening daily report:** signups, activations (≥1 trade logged), paying users, MRR, DMs sent / replies / demos, posts + views, bugs/feedback logged, blockers.

@@ -5,7 +5,7 @@ import { Card, Field, inputCls, btnCls } from "@/components/ui";
 
 async function complete(formData: FormData) {
   "use server";
-  const { supabase, user, accounts } = await getContext({ requireOnboarded: false });
+  const { db, user, accounts } = await getContext({ requireOnboarded: false });
   const p = z.object({
     experience_level: z.enum(["beginner", "intermediate", "experienced"]),
     primary_market: z.enum(["forex", "futures", "stocks", "options", "crypto"]),
@@ -19,8 +19,14 @@ async function complete(formData: FormData) {
   }).safeParse(Object.fromEntries(formData));
   if (!p.success) redirect("/app/onboarding?error=1");
   const { account_name, currency, starting_balance, show_explanations, ...profile } = p.data;
-  await supabase.from("profiles").update({ ...profile, markets: [profile.primary_market], show_explanations, onboarding_completed_at: new Date().toISOString() }).eq("id", user.id);
-  if (accounts[0]) await supabase.from("accounts").update({ name: account_name, currency, starting_balance }).eq("id", accounts[0].id);
+  await db(async (q) => {
+    await q(
+      `update tradenotes.profiles set experience_level=$1, primary_market=$2, markets=$3, trading_style=$4, preferred_timeframe=$5,
+         main_goal=$6, show_explanations=$7, onboarding_completed_at=now() where id=$8`,
+      [profile.experience_level, profile.primary_market, [profile.primary_market], profile.trading_style, profile.preferred_timeframe, profile.main_goal, show_explanations, user.id],
+    );
+    if (accounts[0]) await q("update tradenotes.accounts set name=$1, currency=$2, starting_balance=$3 where id=$4", [account_name, currency, starting_balance, accounts[0].id]);
+  });
   redirect("/app");
 }
 

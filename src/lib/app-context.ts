@@ -1,22 +1,33 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { effectivePlan } from "@/lib/entitlements";
+import { getAuth } from "./auth";
+import { withUser, type Q } from "./db";
+import { effectivePlan } from "./entitlements";
 
-/** Loads the signed-in user's context. Redirects to login/onboarding as needed. All queries run under RLS. */
+export interface Profile {
+  id: string; experience_level: string | null; primary_market: string | null; show_explanations: boolean;
+  onboarding_completed_at: string | null; is_admin: boolean;
+}
+export interface Account { id: string; name: string; currency: string; starting_balance: string }
+
+/** Validates the session, loads the user's context (under row-level security) and returns a `db` helper bound to that user. */
 export async function getContext({ requireOnboarded = true } = {}) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  // First visit: create profile/subscription/default account (idempotent; replaces a trigger on the shared auth.users table).
-  let { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  if (!profile) {
-    await supabase.rpc("ensure_user");
-    ({ data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle());
-  }
-  const [{ data: accounts }, { data: sub }] = await Promise.all([
-    supabase.from("accounts").select("id,name,currency,starting_balance").order("created_at"),
-    supabase.from("subscriptions").select("plan,status,current_period_end").eq("user_id", user.id).maybeSingle(),
-  ]);
+  const session = await getAuth().api.getSession({ headers: await headers() });
+  if (!session) redirect("/login");
+  const user = { id: session.user.id, email: session.user.email };
+  const db = <T>(fn: (q: Q) => Promise<T>) => withUser(user.id, fn);
+
+  const { profile, accounts, sub } = await db(async (q) => {
+    let [profile] = await q<Profile>("select * from tradenotes.profiles where id = $1", [user.id]);
+    if (!profile) { // first visit: create profile / free subscription / default account (idempotent)
+      await q("select tradenotes.ensure_user()");
+      [profile] = await q<Profile>("select * from tradenotes.profiles where id = $1", [user.id]);
+    }
+    const accounts = await q<Account>("select id, name, currency, starting_balance from tradenotes.accounts order by created_at");
+    const [sub] = await q<{ plan: string; status: string; current_period_end: string | null }>(
+      "select plan, status, current_period_end from tradenotes.subscriptions where user_id = $1", [user.id]);
+    return { profile, accounts, sub: sub ?? null };
+  });
   if (requireOnboarded && !profile?.onboarding_completed_at) redirect("/app/onboarding");
-  return { supabase, user, profile, accounts: accounts ?? [], plan: effectivePlan(sub) };
+  return { db, user, profile, accounts, plan: effectivePlan(sub), sub };
 }

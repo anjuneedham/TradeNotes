@@ -3,14 +3,13 @@ import { login } from "../actions";
 import { Field, Notice, inputCls, btnCls } from "@/components/ui";
 
 export const metadata = { title: "Log in — TradeNotes" };
-export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
-  const { error, next } = await searchParams;
+export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; reset?: string }> }) {
+  const { error, next, reset } = await searchParams;
   return (
     <form action={login} className="space-y-4">
       <h1 className="text-2xl font-semibold">Log in</h1>
-      {error === "not_configured" ? <Notice kind="error">The app database isn&apos;t connected yet. Please check back soon.</Notice>
-        : error === "auth_callback" ? <Notice kind="error">That link has expired. Please try again.</Notice>
-        : error && <Notice kind="error">{error}</Notice>}
+      {reset && <Notice kind="ok">Password updated. Please log in.</Notice>}
+      {error && <Notice kind="error">{error}</Notice>}
       <input type="hidden" name="next" value={next ?? "/app"} />
       <Field label="Email"><input name="email" type="email" autoComplete="email" required className={inputCls} /></Field>
       <Field label="Password"><input name="password" type="password" autoComplete="current-password" required className={inputCls} /></Field>

@@ -5,9 +5,8 @@ import { Card, Notice, btnCls } from "@/components/ui";
 export const metadata = { title: "Billing — TradeNotes" };
 
 export default async function Billing({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
-  const { supabase, user, plan } = await getContext({ requireOnboarded: false });
+  const { user, plan, sub } = await getContext({ requireOnboarded: false });
   const { plan: want } = await searchParams;
-  const { data: sub } = await supabase.from("subscriptions").select("plan,status,current_period_end").eq("user_id", user.id).maybeSingle();
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <h1 className="text-2xl font-semibold">Billing</h1>

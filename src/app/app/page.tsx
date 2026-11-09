@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
-import { fetchAll } from "@/lib/fetch-all";
 import { summarize, groupSummary, type TradeInput, type Summary } from "@/lib/metrics";
-import { toTradeInputs } from "@/lib/trade-schema";
+import { toTradeInputs, type TradeRow, type ExitRow } from "@/lib/trade-schema";
 import { money, pct, num, pnlClass } from "@/lib/format";
 import { Card, Notice, btnCls } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
 
 export const metadata = { title: "Dashboard — TradeNotes" };
-const strategyName = (s: { name: string } | { name: string }[] | null): string | null => (Array.isArray(s) ? s[0]?.name : s?.name) ?? null;
+interface DashRow extends TradeRow { symbol: string; session: string | null; strategy_name: string | null; exits: ExitRow[] }
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function Kpi({ label, value, hint, slug, cls = "", show }: { label: string; value: string; hint: string; slug: string; cls?: string; show: boolean }) {
@@ -40,14 +39,21 @@ function Breakdown({ title, groups, cur }: { title: string; groups: Record<strin
 }
 
 export default async function Dashboard() {
-  const { supabase, accounts, profile } = await getContext();
+  const { db, accounts, profile } = await getContext();
   const cur = accounts[0]?.currency ?? "USD";
   const showHelp = profile?.show_explanations ?? true;
 
-  const { rows, truncated, failed } = await fetchAll((from, to) =>
-    supabase.from("trades")
-      .select("id,side,quantity,entry_price,fees,multiplier,initial_risk,currency,fx_to_account,closed_at,symbol,session,strategies(name),trade_exits(trade_id,quantity,price)")
-      .order("opened_at").range(from, to));
+  const LIMIT = 10000;
+  let all: DashRow[] = [];
+  let failed = false;
+  try {
+    all = await db((q) => q<DashRow>(
+      `select t.id, t.side, t.quantity, t.entry_price, t.fees, t.multiplier, t.initial_risk, t.currency, t.fx_to_account, t.closed_at, t.symbol, t.session, s.name as strategy_name,
+         coalesce((select json_agg(json_build_object('trade_id', e.trade_id, 'quantity', e.quantity, 'price', e.price)) from tradenotes.trade_exits e where e.trade_id = t.id), '[]'::json) as exits
+       from tradenotes.trades t left join tradenotes.strategies s on s.id = t.strategy_id order by t.opened_at limit ${LIMIT + 1}`));
+  } catch (e) { console.error("dashboard load failed", e); failed = true; }
+  const truncated = all.length > LIMIT;
+  const rows = truncated ? all.slice(0, LIMIT) : all;
 
   if (failed) return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>;
 
@@ -74,11 +80,11 @@ export default async function Dashboard() {
     );
   }
 
-  const exits = rows.flatMap((r) => r.trade_exits ?? []);
+  const exits = rows.flatMap((r) => r.exits);
   const inputs = toTradeInputs(rows, exits, cur);
   const s = summarize(inputs);
   type Ext = TradeInput & { symbol: string; session: string | null; strategy: string | null };
-  const ext: Ext[] = inputs.map((t, i) => ({ ...t, symbol: rows[i].symbol, session: rows[i].session, strategy: strategyName(rows[i].strategies) }));
+  const ext: Ext[] = inputs.map((t, i) => ({ ...t, symbol: rows[i].symbol, session: rows[i].session, strategy: rows[i].strategy_name }));
   const excludedN = s.excluded.open_or_partial.length + s.excluded.missing_fx.length + s.excluded.invalid.length;
 
   return (

@@ -1,15 +1,13 @@
-# Test Results (2026-11-08, local)
+# Test Results (2026-11-09, local: Node 22, Postgres 16, production build)
 | Suite | Command | Result |
 |---|---|---|
 | Unit: metrics, CSV, trade validation, entitlements | `npm test` | **38 passed** |
-| DB: migrations apply on Postgres 16 + 15 two-user isolation checks | `npm run test:db` | **all PASS** |
-| Lint | `npm run lint` | clean |
-| Production build (with and without Supabase env) | `npx next build` | passes |
-| HTTP smoke (local `next start`) | curl | public pages 200; `/app`, `/app/journal` → 307 to `/login` |
+| DB: migration applies + 23 two-user isolation checks | `npm run test:db` | **all PASS** |
+| Browser e2e (real app + real DB, Chromium, 2 users) | `node scripts/e2e.js` | **28/28 passed** |
+| Lint / typecheck / production build | `npm run lint`, `tsc`, `next build` | clean, 0 warnings |
 
-## Bug found by testing
-RLS checked only `user_id`, so a user could create a trade pointing at another user's account/strategy. Fixed with ownership triggers; regression tests added.
+**E2E covers:** signed-out gate; signup; onboarding gate; empty-state with labelled example; trade validation (wrong-side stop rejected and not saved); forex trade EURUSD 1 lot 1.0850→1.0910, fee $7 ⇒ **net $593.00, 1.98R** (hand-calculated); open trade shown as Open and disclosed as excluded; dashboard net $293.00 / win 50% / PF 1.98 / avg R 0.49 / small-sample warning / by-strategy; mobile (390px) no horizontal scroll on dashboard and trade form; user B sees none of user A's data; delete; logout gate; wrong-password generic error; login restores data.
+**Test-harness lessons:** early failures were my test asserting before server actions finished (fixed by waiting on outcomes), and one run hit a stale server (`EADDRINUSE`) — re-run on a verified-fresh server.
 
-## NOT tested (no Supabase project / browser run yet)
-Real signup/login/logout/password-reset against Supabase Auth; server actions end-to-end (createTrade, deleteTrade, onboarding); mobile/tablet layout visually; anything on a deployed URL. The DB-side shape of the trade insert was checked in SQL only.
-The local RLS harness uses a shim of Supabase's `auth` schema — re-run `scripts/rls-test.sql` against the real project after migrating.
+## NOT tested
+Anything against Neon or a deployed URL; email confirmation / password-reset flow (no mail provider); tablet layout; real payments; session expiry; concurrent-load behaviour; the CSV import UI (not built).

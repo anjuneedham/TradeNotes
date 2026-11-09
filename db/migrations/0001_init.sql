@@ -1,23 +1,91 @@
+-- TradeNotes schema for Neon (plain Postgres).
+-- Part 1: Better Auth tables (public). Names match better-auth 1.7; ids are uuid (advanced.database.generateId = "uuid").
+create table public."user" (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null unique,
+  "emailVerified" boolean not null default false,
+  image text,
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now()
+);
+create table public.session (
+  id uuid primary key default gen_random_uuid(),
+  "expiresAt" timestamptz not null,
+  token text not null unique,
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now(),
+  "ipAddress" text,
+  "userAgent" text,
+  "userId" uuid not null references public."user"(id) on delete cascade
+);
+create index session_user_idx on public.session ("userId");
+create table public.account (
+  id uuid primary key default gen_random_uuid(),
+  "accountId" text not null,
+  "providerId" text not null,
+  "userId" uuid not null references public."user"(id) on delete cascade,
+  "accessToken" text, "refreshToken" text, "idToken" text,
+  "accessTokenExpiresAt" timestamptz, "refreshTokenExpiresAt" timestamptz,
+  scope text, password text,
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now()
+);
+create index account_user_idx on public.account ("userId");
+create table public.verification (
+  id uuid primary key default gen_random_uuid(),
+  identifier text not null,
+  value text not null,
+  "expiresAt" timestamptz not null,
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now()
+);
+create index verification_identifier_idx on public.verification (identifier);
+
+-- Shared rate-limit counters for auth endpoints (works across serverless instances).
+create table public."rateLimit" (
+  id uuid primary key default gen_random_uuid(),
+  key text not null unique,
+  count integer not null,
+  "lastRequest" bigint not null
+);
+
+-- Part 2: restricted role + per-request identity.
+do $$ begin
+  if not exists (select 1 from pg_roles where rolname = 'app_user') then create role app_user nologin; end if;
+end $$;
+grant app_user to current_user;  -- lets the connection run: SET LOCAL ROLE app_user
+grant usage on schema public to app_user;
+
 create schema if not exists tradenotes;
--- TradeNotes initial schema (own schema: coexists with other apps in the same project). Every user-owned table has RLS: user_id = auth.uid().
--- Entitlements/subscriptions are written ONLY by the service role (Stripe webhook).
+grant usage on schema tradenotes to app_user;
+-- Signed-in user for this transaction, set by the app via set_config('app.user_id', $1, true). Unset => no rows visible.
+create or replace function tradenotes.uid() returns uuid language sql stable as $$ select nullif(current_setting('app.user_id', true), '')::uuid $$;
+grant execute on function tradenotes.uid() to app_user;
+
+-- TradeNotes initial schema (own schema: coexists with other apps in the same project). Every user-owned table has RLS: user_id = tradenotes.uid().
+-- Entitlements/subscriptions are written ONLY by the owner connection (payment webhook / admin), never by app_user.
 
 
 create table tradenotes.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id uuid primary key references public."user"(id) on delete cascade,
   display_name text,
   experience_level text check (experience_level in ('beginner','intermediate','experienced')),
   markets text[] default '{}',
   onboarding_completed_at timestamptz,
   show_explanations boolean not null default true,
   is_admin boolean not null default false,       -- set manually by owner only
+  trading_style text check (trading_style in ('scalping','day','swing','position')),
+  preferred_timeframe text,
+  main_goal text check (main_goal in ('consistency','risk','strategy','psychology','track')),
+  primary_market text,
   created_at timestamptz not null default now()
 );
 
 create table tradenotes.subscriptions (
-  user_id uuid primary key references auth.users(id) on delete cascade,
+  user_id uuid primary key references public."user"(id) on delete cascade,
   plan text not null default 'free' check (plan in ('free','starter','pro')),
-  status text not null default 'active',         -- mirrors Stripe status
+  status text not null default 'active',         -- mirrors payment-provider status
   stripe_customer_id text unique,
   stripe_subscription_id text unique,
   current_period_end timestamptz,
@@ -27,7 +95,7 @@ create table tradenotes.subscriptions (
 
 create table tradenotes.accounts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   name text not null,
   broker text,
   currency char(3) not null default 'USD',
@@ -37,7 +105,7 @@ create table tradenotes.accounts (
 
 create table tradenotes.strategies (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   name text not null,
   description text,
   rules text,
@@ -47,7 +115,7 @@ create table tradenotes.strategies (
 
 create table tradenotes.imports (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   account_id uuid not null references tradenotes.accounts(id) on delete cascade,
   file_name text,
   rows_total int not null default 0,
@@ -60,7 +128,7 @@ create table tradenotes.imports (
 
 create table tradenotes.trades (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   account_id uuid not null references tradenotes.accounts(id) on delete cascade,
   strategy_id uuid references tradenotes.strategies(id) on delete set null,
   import_id uuid references tradenotes.imports(id) on delete cascade, -- rollback = delete import
@@ -100,7 +168,7 @@ create index trades_import_idx on tradenotes.trades (import_id);
 create table tradenotes.trade_exits (
   id uuid primary key default gen_random_uuid(),
   trade_id uuid not null references tradenotes.trades(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   quantity numeric(20,8) not null check (quantity > 0),
   price numeric(20,8) not null check (price > 0),
   exited_at timestamptz
@@ -110,7 +178,7 @@ create index trade_exits_trade_idx on tradenotes.trade_exits (trade_id);
 create table tradenotes.trade_screenshots (
   id uuid primary key default gen_random_uuid(),
   trade_id uuid not null references tradenotes.trades(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   storage_path text not null,  -- private bucket "screenshots/{user_id}/..."
   caption text,
   created_at timestamptz not null default now()
@@ -119,7 +187,7 @@ create index trade_screenshots_trade_idx on tradenotes.trade_screenshots (trade_
 
 create table tradenotes.reviews (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public."user"(id) on delete cascade,
   period text not null check (period in ('day','week')),
   period_start date not null,
   went_well text, to_improve text, focus_next text,
@@ -129,7 +197,7 @@ create table tradenotes.reviews (
 
 create table tradenotes.audit_log (
   id bigint generated always as identity primary key,
-  user_id uuid references auth.users(id) on delete set null,
+  user_id uuid references public."user"(id) on delete set null,
   action text not null,
   detail jsonb,
   created_at timestamptz not null default now()
@@ -147,25 +215,25 @@ alter table tradenotes.trade_screenshots enable row level security;
 alter table tradenotes.reviews enable row level security;
 alter table tradenotes.audit_log enable row level security;
 
-create policy own_profile_select on tradenotes.profiles for select using (id = (select auth.uid()));
+create policy own_profile_select on tradenotes.profiles for select using (id = (select tradenotes.uid()));
 -- users may update their profile but not is_admin (enforced by trigger below)
-create policy own_profile_update on tradenotes.profiles for update using (id = (select auth.uid())) with check (id = (select auth.uid()));
+create policy own_profile_update on tradenotes.profiles for update using (id = (select tradenotes.uid())) with check (id = (select tradenotes.uid()));
 
-create policy own_sub_select on tradenotes.subscriptions for select using (user_id = (select auth.uid()));
+create policy own_sub_select on tradenotes.subscriptions for select using (user_id = (select tradenotes.uid()));
 -- no insert/update/delete policy: only service role (webhook) writes subscriptions.
 
 do $$
 declare t text;
 begin
   foreach t in array array['accounts','strategies','imports','trades','trade_exits','trade_screenshots','reviews'] loop
-    execute format('create policy own_rows on tradenotes.%I for all using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()))', t);
+    execute format('create policy own_rows on tradenotes.%I for all using (user_id = (select tradenotes.uid())) with check (user_id = (select tradenotes.uid()))', t);
   end loop;
 end $$;
 -- audit_log: no client policies (service role only).
 
 create or replace function tradenotes.protect_admin_flag() returns trigger language plpgsql set search_path = '' as $$
 begin
-  if new.is_admin is distinct from old.is_admin and current_user in ('authenticated', 'anon') then
+  if new.is_admin is distinct from old.is_admin and current_user = 'app_user' then
     raise exception 'is_admin cannot be changed by clients';
   end if;
   return new;
@@ -209,24 +277,21 @@ begin
 end $$;
 create trigger imports_refs before insert or update on tradenotes.imports for each row execute function tradenotes.check_import_refs();
 
--- Lazy bootstrap (NO trigger on shared auth.users, so other apps' signups are unaffected).
+-- Lazy bootstrap on first visit (no trigger on the auth tables).
 create or replace function tradenotes.ensure_user() returns void language plpgsql security definer set search_path = '' as $$
 begin
-  if auth.uid() is null then raise exception 'not authenticated'; end if;
-  insert into tradenotes.profiles (id) values (auth.uid()) on conflict do nothing;
-  insert into tradenotes.subscriptions (user_id) values (auth.uid()) on conflict do nothing;
-  if not exists (select 1 from tradenotes.accounts where user_id = auth.uid()) then
-    insert into tradenotes.accounts (user_id, name) values (auth.uid(), 'My Account');
+  if tradenotes.uid() is null then raise exception 'not authenticated'; end if;
+  insert into tradenotes.profiles (id) values (tradenotes.uid()) on conflict do nothing;
+  insert into tradenotes.subscriptions (user_id) values (tradenotes.uid()) on conflict do nothing;
+  if not exists (select 1 from tradenotes.accounts where user_id = tradenotes.uid()) then
+    insert into tradenotes.accounts (user_id, name) values (tradenotes.uid(), 'My Account');
   end if;
 end $$;
-revoke all on function tradenotes.ensure_user() from public, anon;
-grant execute on function tradenotes.ensure_user() to authenticated;
-revoke all on function tradenotes.protect_admin_flag(), tradenotes.check_trade_owner(), tradenotes.check_trade_refs(), tradenotes.check_import_refs() from public, anon, authenticated;
+revoke all on function tradenotes.ensure_user() from public;
+grant execute on function tradenotes.ensure_user() to app_user;
+revoke all on function tradenotes.protect_admin_flag(), tradenotes.check_trade_owner(), tradenotes.check_trade_refs(), tradenotes.check_import_refs() from public;
 
--- Privileges (custom schemas get no default grants). RLS still restricts rows.
-grant usage on schema tradenotes to authenticated, service_role;
-grant select, insert, update, delete on all tables in schema tradenotes to authenticated;
-grant all on all tables in schema tradenotes to service_role;
-revoke all on tradenotes.subscriptions, tradenotes.audit_log from authenticated;
-grant select on tradenotes.subscriptions to authenticated;
-grant usage, select on all sequences in schema tradenotes to service_role;
+-- Privileges. app_user = what request handlers run as (RLS applies). The owner connection (webhooks/admin) bypasses RLS.
+grant select, insert, update, delete on all tables in schema tradenotes to app_user;
+revoke all on tradenotes.subscriptions, tradenotes.audit_log from app_user;
+grant select on tradenotes.subscriptions to app_user;
