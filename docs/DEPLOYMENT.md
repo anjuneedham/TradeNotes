@@ -31,3 +31,10 @@ where user_id = (select id from public."user" where email = 'customer@example.co
 - **Vercel env vars set (via connector, 2026-11-10):** `BETTER_AUTH_SECRET` (Sensitive, prod+preview), `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` = `https://tradenotes.dev` (prod). **Still missing: `DATABASE_URL`** (needs the new project's pooler string + the DB password, which only you should handle).
 - On a NEW project skip `0000_reset_old_tradenotes_schema.sql`; run only `0001_init.sql`. The earlier schema in the Agriloop project stays untouched there (empty) — drop it later with approval, it is harmless.
 - Live smoke test needs the custom domain attached: `*.vercel.app` is behind Vercel login protection.
+
+## Status update 2026-11-10 (late) — LIVE ON THE NEW DATABASE
+- **Schema is applied automatically on every Vercel build:** `npm run build` = `node scripts/migrate.mjs && next build`. It runs the idempotent chunks in `db/paste/` against `DATABASE_URL`, prints `[migrate] ok …` per chunk and `TradeNotes tables present: 15 (expected 15)`, and FAILS the build on any error. It never touches `db/migrations/`. Skips silently if `DATABASE_URL` is unset (local/CI). Hand-pasting SQL into the Supabase editor is no longer needed — that editor auto-closes brackets on paste and corrupted the manual attempt.
+- **Verified in production (commit 6cfcf96, READY):** build log shows all 6 chunks ok + 15 tables; live smoke test 13/13 (signup, onboarding, EURUSD trade = $593.00 / 1.98R, dashboard, billing page + both Handypay links, logout gate). Test user `smoke1794314363696@e2e.test` was created in the real DB — delete it (see below).
+- **Cleanup SQL (single line, editor-safe):** `delete from public.tn_user where email like '%@e2e.test';` (cascades to all of that user's TradeNotes rows).
+- **Not yet verified in production:** two-user isolation (verified locally, 40 checks), Supabase Security Advisor on the new project (I have no access to that account), email, payments end-to-end.
+- **Still open:** `tradenotes.dev` not bought/attached (available, $9.99); `*.vercel.app` is behind Vercel login, so customers cannot use it; support email + business name for legal pages.
