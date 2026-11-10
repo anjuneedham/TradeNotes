@@ -14,6 +14,7 @@ const eslintConfig = [
   {
     ignores: [
       "node_modules/**",
+      "scripts/**", // standalone Node test/ops scripts (CommonJS on purpose)
       ".next/**",
       "out/**",
       "build/**",

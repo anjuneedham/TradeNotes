@@ -11,3 +11,13 @@
 
 ## NOT tested
 Anything against Neon or a deployed URL; email confirmation / password-reset flow (no mail provider); tablet layout; real payments; session expiry; concurrent-load behaviour; the CSV import UI (not built).
+
+## Update 2026-11-10 (email + legal prep)
+| Suite | Result |
+|---|---|
+| Unit | **50 passed** (adds legal-config tests) |
+| Email flows with a fake Resend server (`scripts/e2e-email.js`) | **15/15**: signup→check email; unconfirmed login refused + fresh link; link lands on onboarding; forgot-password; reset link→form→new password; old password dead; unknown email = same message, **no email sent**; bad token handled |
+| Main browser e2e | 30/30 |
+| Lint / tsc | exit code 0 / 0 (lint now excludes `scripts/**`) |
+Bugs found by the email tests and fixed: confirmation link sent on an unconfirmed login landed on the home page (now onboarding/app); password reset did not revoke existing sessions (now it does).
+Not tested: real Resend delivery/deliverability, DNS records, spam placement.

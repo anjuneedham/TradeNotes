@@ -1,11 +1,22 @@
 import Link from "next/link";
 import { signup } from "../actions";
 import { Field, Notice, inputCls, btnCls } from "@/components/ui";
+import { LEGAL, isFilled } from "@/lib/legal";
 
 export const metadata = { title: "Create account — TradeNotes" };
 export default async function Signup({ searchParams }: { searchParams: Promise<{ error?: string; check_email?: string }> }) {
   const { error, check_email } = await searchParams;
-  if (check_email) return <Notice kind="ok">Check your email for a confirmation link to finish creating your account.</Notice>;
+  if (check_email) {
+    return (
+      <div className="space-y-3">
+        <Notice kind="ok">Check your email for a confirmation link to finish creating your account.</Notice>
+        <p className="text-sm text-muted">
+          Nothing after a few minutes? Check your spam folder, then try <Link href="/login" className="underline">logging in</Link> — we&apos;ll send a fresh link.
+          {isFilled(LEGAL.supportEmail) && <> Still stuck? Email {LEGAL.supportEmail}.</>}
+        </p>
+      </div>
+    );
+  }
   return (
     <form action={signup} className="space-y-4">
       <h1 className="text-2xl font-semibold">Create your free account</h1>

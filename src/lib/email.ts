@@ -1,13 +1,16 @@
+import { LEGAL, isFilled } from "./legal";
+
 /** Transactional email via Resend's HTTP API (no SDK). Disabled until RESEND_API_KEY is set. */
 export const emailEnabled = () => Boolean(process.env.RESEND_API_KEY);
 
 export async function sendEmail(to: string, subject: string, text: string): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("Email is not configured");
-  const res = await fetch("https://api.resend.com/emails", {
+  const replyTo = process.env.EMAIL_REPLY_TO ?? (isFilled(LEGAL.supportEmail) ? LEGAL.supportEmail : undefined);
+  const res = await fetch(process.env.RESEND_API_URL ?? "https://api.resend.com/emails", {  // RESEND_API_URL: test hook only
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM ?? "TradeNotes <onboarding@resend.dev>", to, subject, text }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM ?? "TradeNotes <onboarding@resend.dev>", to, subject, text, ...(replyTo ? { reply_to: replyTo } : {}) }),
   });
   if (!res.ok) throw new Error(`Email provider error ${res.status}`);
 }

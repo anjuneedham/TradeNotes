@@ -27,7 +27,7 @@ export async function login(formData: FormData) {
   const p = creds.safeParse(Object.fromEntries(formData));
   if (!p.success) redirect(`/login?error=${q(p.error.issues[0].message)}`);
   const err = await attempt(
-    async () => getAuth().api.signInEmail({ body: p.data, headers: await headers() }),
+    async () => getAuth().api.signInEmail({ body: { ...p.data, callbackURL: "/app" }, headers: await headers() }), // callbackURL: where an emailed confirmation link lands
     { EMAIL_NOT_VERIFIED: "Please confirm your email first — check your inbox.", "*": "Incorrect email or password" }, // no user enumeration
   );
   if (err) redirect(`/login?error=${q(err)}`);
@@ -39,7 +39,7 @@ export async function signup(formData: FormData) {
   const p = creds.safeParse(Object.fromEntries(formData));
   if (!p.success) redirect(`/signup?error=${q(p.error.issues[0].message)}`);
   const err = await attempt(
-    async () => getAuth().api.signUpEmail({ body: { ...p.data, name: p.data.email.split("@")[0] }, headers: await headers() }),
+    async () => getAuth().api.signUpEmail({ body: { ...p.data, name: p.data.email.split("@")[0], callbackURL: "/app/onboarding" }, headers: await headers() }),
     { USER_ALREADY_EXISTS: "An account with that email already exists. Try logging in.", USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: "An account with that email already exists. Try logging in." },
   );
   if (err) redirect(`/signup?error=${q(err)}`);

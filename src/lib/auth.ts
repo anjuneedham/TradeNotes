@@ -24,12 +24,14 @@ function create() {
       // Verified email matters: payments are matched to accounts by email. Enforced as soon as email sending exists.
       requireEmailVerification: mail,
       resetPasswordTokenExpiresIn: 3600,
+      revokeSessionsOnPasswordReset: true, // a reset signs the account out everywhere
       sendResetPassword: async ({ user, url }) => {
         await sendEmail(user.email, "Reset your TradeNotes password", `Use this link to choose a new password (valid for 1 hour):\n\n${url}\n\nIf you didn't ask for this, ignore this email.`);
       },
     },
     emailVerification: {
       sendOnSignUp: mail,
+      sendOnSignIn: mail, // unverified user tries to log in => send a fresh confirmation link
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
         await sendEmail(user.email, "Confirm your TradeNotes email", `Confirm your email to finish creating your account:\n\n${url}`);

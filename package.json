@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:db": "bash scripts/test-db.sh",
     "e2e": "node scripts/e2e.js",
-    "verify:db": "node scripts/verify-db.mjs"
+    "verify:db": "node scripts/verify-db.mjs",
+    "check:legal": "node scripts/check-legal.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.18",
