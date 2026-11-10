@@ -18,3 +18,5 @@
 17. TradeNotes shares a Supabase project with Agriloop (blast radius, plan limits, backups). Intentional; see DEPLOYMENT.md.
 18. Attribution cookie `tn_src` is first-party, `httpOnly`, 30 days; the privacy policy doesn't mention it yet — add before launch.
 19. The live-site legal pages carry a visible DRAFT banner until counsel reviews them.
+20. Vercel blocks deployments of known-vulnerable Next.js versions (happened on 15.5.4). Keep `next` current within 15.5.x and re-check `npm audit --omit=dev`; two `sharp` advisories remain (image optimisation only; we don't use next/image).
+21. Vercel Deployment Protection is on for `*.vercel.app`; preview/branch URLs need a Vercel login. Custom domains are public.
