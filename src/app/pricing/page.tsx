@@ -2,9 +2,15 @@ import Link from "next/link";
 import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
 
 const features: Record<string, string[]> = {
-  free: ["Up to 50 trades", "Manual trade entry", "Core metrics with explanations", "Beginner guides"],
-  starter: ["Up to 2,000 trades", "CSV import with duplicate detection", "Full journal: notes, emotions, mistakes, screenshots", "Calendar, daily & weekly reviews", "Strategy / session / weekday breakdowns"],
-  pro: ["Unlimited trades", "Everything in Starter", "Backtesting with candle replay", "Strategy comparison", "Up to 10 accounts"],
+  free: ["Up to 50 trades", "Manual trade entry, incl. partial exits and forex lots", "Dashboard with plain-English explanations", "Breakdowns by strategy, session, instrument and weekday", "Beginner guides"],
+  starter: ["Up to 2,000 trades", "Everything in Free"],
+  pro: ["Unlimited trades", "Everything in Starter"],
+};
+
+const soon: Record<string, string[]> = {
+  free: [],
+  starter: ["CSV import", "Trade screenshots", "Calendar view and weekly reviews"],
+  pro: ["Backtesting with historical replay", "Strategy comparison", "Multiple accounts"],
 };
 
 export const metadata = { title: "Pricing — TradeNotes" };
@@ -28,6 +34,12 @@ export default function Pricing() {
               <ul className="mt-6 space-y-2 text-sm">
                 {features[id].map((f) => <li key={f}>✓ {f}</li>)}
               </ul>
+              {soon[id].length > 0 && (
+                <div className="mt-4 border-t border-border pt-3 text-xs text-muted">
+                  <p className="font-medium">In development — not available yet:</p>
+                  <ul className="mt-1 space-y-1">{soon[id].map((f) => <li key={f}>○ {f}</li>)}</ul>
+                </div>
+              )}
               <Link href={id === "free" ? "/signup" : `/app/billing?plan=${id}`} className="mt-6 block rounded-md bg-accent py-2 text-center font-medium text-white">
                 {id === "free" ? "Start free" : `Choose ${p.name}`}
               </Link>
@@ -35,7 +47,8 @@ export default function Pricing() {
           );
         })}
       </div>
-      <p className="mt-8 text-center text-xs text-muted">Prices in USD. Taxes may apply. See <Link href="/legal/terms" className="underline">Terms</Link> for cancellation and refunds.</p>
+      <p className="mx-auto mt-8 max-w-2xl text-center text-xs text-muted">Today the paid plans mainly raise your trade limit. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date. </p>
+      <p className="mt-3 text-center text-xs text-muted">Prices in USD. Taxes may apply. See <Link href="/legal/terms" className="underline">Terms</Link> for cancellation and refunds.</p>
     </div>
   );
 }

@@ -1,17 +1,17 @@
 import Link from "next/link";
 
 const pillars = [
-  ["Journal every trade", "Log entries, exits, fees, setup, emotions and mistakes in under a minute — or import a CSV from your broker."],
+  ["Journal every trade", "Log entries, partial exits, fees, setup, emotions and mistakes in about a minute. Built for forex lots and other markets. (CSV import is coming soon.)"],
   ["See what actually works", "Win rate, expectancy, profit factor, R-multiples and drawdown — each with a plain-English explanation."],
-  ["Find your repeat mistakes", "Tag mistakes and see exactly what they cost you, by setup, session and day of week."],
-  ["Practise before you risk", "Replay historical candles bar-by-bar with no future peeking, and measure a strategy before trading it live."],
+  ["Find your repeat mistakes", "Tag your emotions and mistakes on every trade, and see your results by setup, session, instrument and day of the week."],
+  ["Practise before you risk — coming soon", "Backtesting with bar-by-bar historical replay is in development. It is not available yet, and we will say so plainly until it is."],
 ];
 
 export default function Home() {
   return (
     <div className="mx-auto max-w-6xl px-4">
       <section className="py-20 text-center">
-        <p className="mb-4 text-sm uppercase tracking-widest text-accent">Trading journal · Analytics · Backtesting</p>
+        <p className="mb-4 text-sm uppercase tracking-widest text-accent">Trading journal · Performance analytics</p>
         <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">
           Know your trades. Understand your patterns. Improve your process.
         </h1>

@@ -22,7 +22,7 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
         {(["starter", "pro"] as const).map((id) => (
           <Card key={id} className={want === id ? "border-accent" : ""}>
             <h2 className="font-semibold">{PLANS[id].name} — ${PLANS[id].monthly}/mo</h2>
-            <p className="mt-1 text-xs text-muted">{id === "starter" ? "Up to 2,000 trades, CSV import." : "Unlimited trades, backtesting when released."}</p>
+            <p className="mt-1 text-xs text-muted">{id === "starter" ? "Up to 2,000 trades." : "Unlimited trades. Backtesting is in development and not available yet."}</p>
             {plan === id ? <p className="mt-4 text-sm text-win">Your current plan</p>
               : <a href={CHECKOUT_URLS[id]} target="_blank" rel="noopener noreferrer" className={`${btnCls} mt-4 inline-block`}>Subscribe to {PLANS[id].name}</a>}
           </Card>
