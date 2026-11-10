@@ -25,3 +25,9 @@ where user_id = (select id from public."user" where email = 'customer@example.co
 ```
 - Handypay renews monthly by itself; **extend active subscribers monthly** or they fall back to Free when `current_period_end` passes (fails safe). Details and options in the monthly routine (see DAILY_OPERATIONS).
 - **Needed for automation:** Handypay webhook docs (events, signature scheme, payer email, subscription id) and whether a customer-portal link exists.
+
+## Status update 2026-11-10 (evening) — new dedicated database
+- **Decision:** use a NEW Supabase project `tradenotes` (us-east-1) instead of sharing Agriloop's. Creation via the connector **timed out waiting for the cost confirmation** → project does NOT exist yet (checked: only the Agriloop project is listed). Create it in the Supabase dashboard (or ask me to retry and approve the cost prompt within ~60 s).
+- **Vercel env vars set (via connector, 2026-11-10):** `BETTER_AUTH_SECRET` (Sensitive, prod+preview), `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` = `https://tradenotes.dev` (prod). **Still missing: `DATABASE_URL`** (needs the new project's pooler string + the DB password, which only you should handle).
+- On a NEW project skip `0000_reset_old_tradenotes_schema.sql`; run only `0001_init.sql`. The earlier schema in the Agriloop project stays untouched there (empty) — drop it later with approval, it is harmless.
+- Live smoke test needs the custom domain attached: `*.vercel.app` is behind Vercel login protection.
