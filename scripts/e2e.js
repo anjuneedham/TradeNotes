@@ -1,6 +1,7 @@
 // Browser end-to-end test (Playwright). Run against a running app + migrated DB: BASE_URL=http://localhost:3111 node scripts/e2e.js
 // Creates two throwaway users; uses an email-disabled setup (no RESEND_API_KEY) so signup needs no confirmation.
 const { chromium } = require('playwright');
+const { Client } = require('pg');
 const SP = process.env.SHOT_DIR || '/tmp';
 const BASE = process.env.BASE_URL || 'http://localhost:3111';
 const results = [];
@@ -39,6 +40,9 @@ async function logTrade(page, o) {
   const stamp = Date.now();
   const emailA = `a${stamp}@e2e.test`, emailB = `b${stamp}@e2e.test`;
 
+  // --- attribution: ?src= tag is remembered, junk is ignored
+  await A.goto(BASE + '/?src=ig-ad');
+  await A.goto(BASE + '/pricing?src=tt-organic'); // first tag wins
   // --- auth gate + signup + onboarding
   await A.goto(BASE + '/app');
   check('signed-out /app redirects to login', A.url().includes('/login'));
@@ -48,6 +52,12 @@ async function logTrade(page, o) {
   check('un-onboarded user is sent to onboarding', A.url().endsWith('/app/onboarding'));
   await onboard(A);
   check('onboarding completes to dashboard', await A.getByText('Start in 3 steps').isVisible());
+  if (process.env.DATABASE_URL) {
+    const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+    const q = async (e) => (await c.query('select p.signup_source from tradenotes.profiles p join public.tn_user u on u.id = p.id where u.email = $1', [e])).rows[0]?.signup_source ?? null;
+    check('signup source recorded (first tag wins): ig-ad', (await q(emailA)) === 'ig-ad', String(await q(emailA)));
+    globalThis.__q = q; globalThis.__c = c;
+  }
   check('empty dashboard shows labelled EXAMPLE', await A.getByText('EXAMPLE — not your data').isVisible());
 
   // --- validation
@@ -98,7 +108,9 @@ async function logTrade(page, o) {
 
   // --- user B isolation
   const ctxB = await browser.newContext(); const B = await ctxB.newPage();
+  await B.goto(BASE + "/?src=x%27%3B%20drop%20table");
   await signup(B, emailB); await onboard(B);
+  if (globalThis.__q) { check('junk src is ignored (stored as null)', (await globalThis.__q(emailB)) === null, String(await globalThis.__q(emailB))); await globalThis.__c.end(); }
   await B.goto(BASE + '/app/journal');
   check('user B journal is empty (cannot see A trades)', await B.getByText('No trades yet').isVisible());
   await B.goto(BASE + '/app');

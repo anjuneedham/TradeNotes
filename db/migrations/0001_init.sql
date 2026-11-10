@@ -1,6 +1,6 @@
--- TradeNotes schema for Neon (plain Postgres).
--- Part 1: Better Auth tables (public). Names match better-auth 1.7; ids are uuid (advanced.database.generateId = "uuid").
-create table public."user" (
+-- TradeNotes schema for plain Postgres (Supabase or Neon).
+-- Part 1: Better Auth tables (public, prefixed tn_ so they cannot collide with another app sharing the database). Columns match better-auth 1.7; ids are uuid (advanced.database.generateId = "uuid").
+create table public.tn_user (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   email text not null unique,
@@ -9,7 +9,7 @@ create table public."user" (
   "createdAt" timestamptz not null default now(),
   "updatedAt" timestamptz not null default now()
 );
-create table public.session (
+create table public.tn_session (
   id uuid primary key default gen_random_uuid(),
   "expiresAt" timestamptz not null,
   token text not null unique,
@@ -17,22 +17,22 @@ create table public.session (
   "updatedAt" timestamptz not null default now(),
   "ipAddress" text,
   "userAgent" text,
-  "userId" uuid not null references public."user"(id) on delete cascade
+  "userId" uuid not null references public.tn_user(id) on delete cascade
 );
-create index session_user_idx on public.session ("userId");
-create table public.account (
+create index tn_session_user_idx on public.tn_session ("userId");
+create table public.tn_account (
   id uuid primary key default gen_random_uuid(),
   "accountId" text not null,
   "providerId" text not null,
-  "userId" uuid not null references public."user"(id) on delete cascade,
+  "userId" uuid not null references public.tn_user(id) on delete cascade,
   "accessToken" text, "refreshToken" text, "idToken" text,
   "accessTokenExpiresAt" timestamptz, "refreshTokenExpiresAt" timestamptz,
   scope text, password text,
   "createdAt" timestamptz not null default now(),
   "updatedAt" timestamptz not null default now()
 );
-create index account_user_idx on public.account ("userId");
-create table public.verification (
+create index tn_account_user_idx on public.tn_account ("userId");
+create table public.tn_verification (
   id uuid primary key default gen_random_uuid(),
   identifier text not null,
   value text not null,
@@ -40,15 +40,30 @@ create table public.verification (
   "createdAt" timestamptz not null default now(),
   "updatedAt" timestamptz not null default now()
 );
-create index verification_identifier_idx on public.verification (identifier);
+create index tn_verification_identifier_idx on public.tn_verification (identifier);
 
 -- Shared rate-limit counters for auth endpoints (works across serverless instances).
-create table public."rateLimit" (
+create table public.tn_rate_limit (
   id uuid primary key default gen_random_uuid(),
   key text not null unique,
   count integer not null,
   "lastRequest" bigint not null
 );
+
+-- Supabase exposes `public` through its REST API (PostgREST) to the public anon key. Auth tables hold password hashes and session
+-- tokens, so lock them: RLS on with NO policies + no grants to API roles. (Guarded: these roles only exist on Supabase.)
+alter table public.tn_user enable row level security;
+alter table public.tn_session enable row level security;
+alter table public.tn_account enable row level security;
+alter table public.tn_verification enable row level security;
+alter table public.tn_rate_limit enable row level security;
+do $$ declare r text; begin
+  foreach r in array array['anon','authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = r) then
+      execute format('revoke all on public.tn_user, public.tn_session, public.tn_account, public.tn_verification, public.tn_rate_limit from %I', r);
+    end if;
+  end loop;
+end $$;
 
 -- Part 2: restricted role + per-request identity.
 do $$ begin
@@ -58,6 +73,11 @@ grant app_user to current_user;  -- lets the connection run: SET LOCAL ROLE app_
 grant usage on schema public to app_user;
 
 create schema if not exists tradenotes;
+do $$ declare r text; begin
+  foreach r in array array['anon','authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = r) then execute format('revoke all on schema tradenotes from %I', r); end if;
+  end loop;
+end $$;
 grant usage on schema tradenotes to app_user;
 -- Signed-in user for this transaction, set by the app via set_config('app.user_id', $1, true). Unset => no rows visible.
 create or replace function tradenotes.uid() returns uuid language sql stable as $$ select nullif(current_setting('app.user_id', true), '')::uuid $$;
@@ -68,7 +88,7 @@ grant execute on function tradenotes.uid() to app_user;
 
 
 create table tradenotes.profiles (
-  id uuid primary key references public."user"(id) on delete cascade,
+  id uuid primary key references public.tn_user(id) on delete cascade,
   display_name text,
   experience_level text check (experience_level in ('beginner','intermediate','experienced')),
   markets text[] default '{}',
@@ -79,11 +99,12 @@ create table tradenotes.profiles (
   preferred_timeframe text,
   main_goal text check (main_goal in ('consistency','risk','strategy','psychology','track')),
   primary_market text,
+  signup_source text check (signup_source is null or signup_source ~ '^[a-z0-9-]{1,24}$'),
   created_at timestamptz not null default now()
 );
 
 create table tradenotes.subscriptions (
-  user_id uuid primary key references public."user"(id) on delete cascade,
+  user_id uuid primary key references public.tn_user(id) on delete cascade,
   plan text not null default 'free' check (plan in ('free','starter','pro')),
   status text not null default 'active',         -- mirrors payment-provider status
   stripe_customer_id text unique,
@@ -95,7 +116,7 @@ create table tradenotes.subscriptions (
 
 create table tradenotes.accounts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   name text not null,
   broker text,
   currency char(3) not null default 'USD',
@@ -105,7 +126,7 @@ create table tradenotes.accounts (
 
 create table tradenotes.strategies (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   name text not null,
   description text,
   rules text,
@@ -115,7 +136,7 @@ create table tradenotes.strategies (
 
 create table tradenotes.imports (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   account_id uuid not null references tradenotes.accounts(id) on delete cascade,
   file_name text,
   rows_total int not null default 0,
@@ -128,7 +149,7 @@ create table tradenotes.imports (
 
 create table tradenotes.trades (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   account_id uuid not null references tradenotes.accounts(id) on delete cascade,
   strategy_id uuid references tradenotes.strategies(id) on delete set null,
   import_id uuid references tradenotes.imports(id) on delete cascade, -- rollback = delete import
@@ -168,7 +189,7 @@ create index trades_import_idx on tradenotes.trades (import_id);
 create table tradenotes.trade_exits (
   id uuid primary key default gen_random_uuid(),
   trade_id uuid not null references tradenotes.trades(id) on delete cascade,
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   quantity numeric(20,8) not null check (quantity > 0),
   price numeric(20,8) not null check (price > 0),
   exited_at timestamptz
@@ -178,7 +199,7 @@ create index trade_exits_trade_idx on tradenotes.trade_exits (trade_id);
 create table tradenotes.trade_screenshots (
   id uuid primary key default gen_random_uuid(),
   trade_id uuid not null references tradenotes.trades(id) on delete cascade,
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   storage_path text not null,  -- private bucket "screenshots/{user_id}/..."
   caption text,
   created_at timestamptz not null default now()
@@ -187,7 +208,7 @@ create index trade_screenshots_trade_idx on tradenotes.trade_screenshots (trade_
 
 create table tradenotes.reviews (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public."user"(id) on delete cascade,
+  user_id uuid not null references public.tn_user(id) on delete cascade,
   period text not null check (period in ('day','week')),
   period_start date not null,
   went_well text, to_improve text, focus_next text,
@@ -197,7 +218,7 @@ create table tradenotes.reviews (
 
 create table tradenotes.audit_log (
   id bigint generated always as identity primary key,
-  user_id uuid references public."user"(id) on delete set null,
+  user_id uuid references public.tn_user(id) on delete set null,
   action text not null,
   detail jsonb,
   created_at timestamptz not null default now()
@@ -295,3 +316,14 @@ revoke all on function tradenotes.protect_admin_flag(), tradenotes.check_trade_o
 grant select, insert, update, delete on all tables in schema tradenotes to app_user;
 revoke all on tradenotes.subscriptions, tradenotes.audit_log from app_user;
 grant select on tradenotes.subscriptions to app_user;
+
+-- Belt and braces on Supabase: new objects can inherit default grants to the API roles. Strip them (guarded; no-op elsewhere).
+do $$ declare r text; begin
+  foreach r in array array['anon','authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = r) then
+      execute format('revoke all on all tables in schema tradenotes from %I', r);
+      execute format('revoke all on all functions in schema tradenotes from %I', r);
+      execute format('revoke all on all sequences in schema tradenotes from %I', r);
+    end if;
+  end loop;
+end $$;

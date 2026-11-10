@@ -14,3 +14,7 @@
 13. `.npmrc` uses legacy-peer-deps (optional peer conflict, see DECISIONS).
 14. Not yet reviewed: Better Auth cookie/CSRF settings behind a custom domain; Neon pooled-connection behaviour under load.
 15. `next build` with `BETTER_AUTH_SECRET` unset logs a Better Auth "default secret" error during static generation but exits 0. With the env var set the build is clean. In production, auth refuses to run without the secret (fails closed) — set it BEFORE the first deploy.
+16. **Supabase TLS is encrypted but not certificate-verified** unless `DATABASE_SSL_CA` is set (Supabase's pooler uses a private CA). Set the CA PEM to close this.
+17. TradeNotes shares a Supabase project with Agriloop (blast radius, plan limits, backups). Intentional; see DEPLOYMENT.md.
+18. Attribution cookie `tn_src` is first-party, `httpOnly`, 30 days; the privacy policy doesn't mention it yet — add before launch.
+19. The live-site legal pages carry a visible DRAFT banner until counsel reviews them.

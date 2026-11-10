@@ -7,22 +7,26 @@
 - **No profit claims, no "this will make you profitable", no fake results/testimonials/user counts.** Every screen recording shows either the founder's own real data or data clearly labelled **SAMPLE DATA**.
 - On-screen small text on every video: **"Not financial advice."** Backtest/hypothetical numbers are labelled as such.
 - Only show features that exist today (see `IMPLEMENTATION_STATUS.md`). Backtesting is "coming", not shown as working.
-- Don't copy other creators' scripts, footage, music, branding or exact visual identity. Use platform-licensed sounds only.
+- Don't copy other creators' scripts, footage, music, branding or exact visual identity (the Andrew Builds look is your own channel's). Use platform-licensed sounds only.
 - Educational market facts: only things you can cite or demonstrate with your own data.
 
-## 1. Visual system (original, built from the app's own look)
-> You asked for something like "Andrew Builds". I couldn't find that creator through search, so I can't describe their style and won't guess. **Send me 2–3 links or screenshots of the look you mean** and I'll adapt this system; it stays original either way (no copying their identity).
+## 1. Visual system — taken from the Andrew Builds repo (`anjuneedham/Andrew-Builds-`, `production/*/video_style_config.json` + `THUMBNAIL_BRIEF.md`)
+TradeNotes content publishes on the **Andrew Builds** channel, so it uses that channel's existing look. Those values are reproduced here from the repo; the repo notes they are placeholder brand values you may still replace.
 
-| Element | Spec |
+| Element | Spec (from the repo config) |
 |---|---|
-| Frame | 9:16, 1080×1920. Top 60% = screen recording (app, dark UI). Bottom 40% = caption zone + progress strip |
-| Palette | Background `#0b0f14`, panel `#121821`, accent blue `#3b82f6`, win green `#22c55e`, loss red `#ef4444`, text `#e6edf3` (same tokens as the app → every video looks like the product) |
-| Captions | Burned-in, bold sans, max 2 lines, 1–3 keywords highlighted in accent/green/red. Word-by-word timing. Never below the bottom 15% (UI overlap) |
-| Numbers | Any key stat (win rate, R, drawdown) gets a **big on-screen number** that pops in (scale 90→100%) with the label under it |
-| Progress strip | Thin bar + text "Day 12 · 41 trades logged · journal 6 weeks" — builds the serial/build-in-public feel |
-| Pacing | New visual or cut every 2–3 s; zoom-in on the UI element being discussed; no dead air |
-| Intro/outro | None. Hook in first 2 s. Final 2 s = CTA text card |
-| Thumbnail/cover | Dark background, one big number or phrase (≤4 words), accent underline |
+| Frame | 9:16, 1080×1920, 30 fps, H.264 CRF 20, narration −16 LUFS, true peak −1.5 dB |
+| Palette | Background `#0A0F1A` · panel/slate `#141B2B` · text `#F5F7FA` · **one accent: amber `#F2B01E`** · muted `#8A97AD` |
+| Type | Inter Display Bold headings (96 px vertical), Inter Medium captions |
+| Captions | Burned in, **58 px**, lower-middle (keep between 18% and 70% of frame height), dark rounded box at 62% opacity, **≤24 characters per line, ≤2 lines**, highlight the key word in amber |
+| Motion | Quick "dip" transition (0.22 s), **no zoom, no intro, no outro**; end on a 2 s text card |
+| Content on screen | The real app inside the frame. Demo footage always carries a burned-in label — for TradeNotes: **"SAMPLE DATA · NOT REAL TRADES"**. Hide any real names |
+| Thumbnails/covers | ≤4 words, off-white first line + amber second line, one UI card, photo slot of you; one accent colour, no gradients on text, no shocked faces/arrows, no money/results |
+| Pacing | One idea per short; hook in the first 1–2 s; 20–45 s total |
+
+**Rules carried over from that repo (they match ours):** never show revenue you have not confirmed arrived; nothing from a private conversation without permission; no invented activity to hit a number (**if only one real thing happened today, post one**).
+**Tooling you already own:** `production/tools/produce.py` (FFmpeg assembly from JSON), `qa.py` (checks), `make_thumbnails.py`, `capture_demo.js` (records the app on demo data), `suggest_content.py` (ideas from real activity), templates in `production/templates/`. Recommended: add TradeNotes as a series inside that repo rather than rebuilding any of it (needs push access to that repo — say the word).
+**The app inside the frame:** TradeNotes itself is dark with blue accents; that is fine — the frame, captions and thumbnails stay Andrew Builds (navy + amber).
 
 ## 2. The five repeatable formats
 Each is a template: the structure stays fixed, only the topic/numbers change.
@@ -110,8 +114,11 @@ Status: idea → scripted → approved → recorded → edited → posted → me
 | 28 | F5 | "Should beginners backtest first?" |
 | 29 | F4 | "What I'd tell my 1-year-in self about journaling (7 years in)" |
 | 30 | F5 | "Weekly review in 10 minutes: the 3 questions" |
+| 31 | F4 | "I'm going all-in on one business" *(story is yours; claims must be true and approved by you)* |
+| 32 | F4 | "Why a two-sided marketplace is brutal to market — and what I'm doing instead" *(only your own facts)* |
+| 33 | F4 | "Day 1 of outreach: 25 DMs on TikTok, 25 on Instagram — what I'll measure" |
 
 ## 7. Next steps (owner)
-1. Send reference links/screens for the visual style you want.
+1. Confirm the Andrew Builds palette above is the look you want (the repo says it is placeholder).
 2. I draft scripts for ideas 1–10 in the skeleton above → you approve → record the first batch.
 3. Create the tracking sheet (columns = section 4) — I can generate a CSV on request.

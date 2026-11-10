@@ -1,7 +1,7 @@
 -- Two-user isolation test for the Neon/Postgres setup. Requires db/migrations applied.
 -- Handlers run as app_user with app.user_id set per transaction; the owner connection (this script's default role) bypasses RLS.
 \set ON_ERROR_STOP off
-insert into public."user"(id, name, email) values
+insert into public.tn_user(id, name, email) values
  ('aaaaaaaa-0000-0000-0000-000000000001','A','a@x.test'),
  ('bbbbbbbb-0000-0000-0000-000000000002','B','b@x.test');
 create temp table results(name text, ok boolean);
@@ -61,11 +61,11 @@ do $$ declare ok boolean := false; begin
   insert into results values ('B cannot write audit_log', ok);
 end $$;
 do $$ declare ok boolean := false; begin
-  begin perform 1 from public.session; exception when others then ok := true; end;
+  begin perform 1 from public.tn_session; exception when others then ok := true; end;
   insert into results values ('app_user cannot read auth sessions', ok);
 end $$;
 do $$ declare ok boolean := false; begin
-  begin perform 1 from public."user"; exception when others then ok := true; end;
+  begin perform 1 from public.tn_user; exception when others then ok := true; end;
   insert into results values ('app_user cannot read auth users', ok);
 end $$;
 
@@ -76,6 +76,27 @@ insert into results select 'no identity sees 0 accounts', count(*)=0 from traden
 do $$ declare ok boolean := false; begin
   begin perform tradenotes.ensure_user(); exception when others then ok := true; end;
   insert into results values ('ensure_user refuses without identity', ok);
+end $$;
+
+
+-- Supabase API roles (simulated by test-db.sh): the public anon key / signed-in API users must see NOTHING of ours.
+reset role;
+do $$ declare r text; t text; ok boolean; begin
+  foreach r in array array['anon','authenticated'] loop
+    foreach t in array array['public.tn_user','public.tn_session','public.tn_account','public.tn_verification','public.tn_rate_limit','tradenotes.trades','tradenotes.profiles','tradenotes.subscriptions'] loop
+      ok := false;
+      execute format('set local role %I', r);
+      begin execute format('select 1 from %s limit 1', t); exception when others then ok := true; end;
+      reset role;
+      insert into results values (format('%s cannot read %s', r, t), ok);
+    end loop;
+  end loop;
+end $$;
+do $$ declare ok boolean := false; begin
+  set local role anon;
+  begin perform tradenotes.ensure_user(); exception when others then ok := true; end;
+  reset role;
+  insert into results values ('anon cannot call ensure_user', ok);
 end $$;
 
 reset role;

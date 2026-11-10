@@ -12,8 +12,11 @@ function create() {
     secret: process.env.BETTER_AUTH_SECRET,
     trustedOrigins: [site, ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])],
     advanced: { database: { generateId: "uuid" } },
-    rateLimit: { enabled: true, storage: "database", window: 60, max: 30 },
-    session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
+    user: { modelName: "tn_user" },
+    session: { modelName: "tn_session", expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
+    account: { modelName: "tn_account" },
+    verification: { modelName: "tn_verification" },
+    rateLimit: { enabled: true, storage: "database", modelName: "tn_rate_limit", window: 60, max: 30 },
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 8,

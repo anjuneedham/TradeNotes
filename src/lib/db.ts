@@ -1,15 +1,12 @@
 import { Pool, types } from "pg";
+import { poolConfig } from "./db-config";
 
 // timestamptz -> ISO string (instead of Date) so values serialise consistently.
 types.setTypeParser(1184, (v) => new Date(v).toISOString());
 
 const g = globalThis as unknown as { __tnPool?: Pool };
 /** Owner connection. Bypasses row-level security: ONLY for auth library, webhooks and admin jobs. */
-export const pool = (g.__tnPool ??= new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 5,
-  ssl: process.env.DATABASE_URL?.includes("sslmode=") || /neon\.tech/.test(process.env.DATABASE_URL ?? "") ? { rejectUnauthorized: true } : undefined,
-}));
+export const pool = (g.__tnPool ??= new Pool({ ...poolConfig(process.env.DATABASE_URL, process.env.DATABASE_SSL_CA), max: 5 }));
 
 export type Q = <R = Record<string, unknown>>(text: string, params?: unknown[]) => Promise<R[]>;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

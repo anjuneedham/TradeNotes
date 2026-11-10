@@ -1,4 +1,5 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { cleanSrc } from "./db-config";
 import { redirect } from "next/navigation";
 import { getAuth } from "./auth";
 import { withUser, type Q } from "./db";
@@ -16,11 +17,13 @@ export async function getContext({ requireOnboarded = true } = {}) {
   if (!session) redirect("/login");
   const user = { id: session.user.id, email: session.user.email };
   const db = <T>(fn: (q: Q) => Promise<T>) => withUser(user.id, fn);
+  const srcTag = cleanSrc((await cookies()).get("tn_src")?.value);
 
   const { profile, accounts, sub } = await db(async (q) => {
     let [profile] = await q<Profile>("select * from tradenotes.profiles where id = $1", [user.id]);
     if (!profile) { // first visit: create profile / free subscription / default account (idempotent)
       await q("select tradenotes.ensure_user()");
+      if (srcTag) await q("update tradenotes.profiles set signup_source = $1 where id = $2 and signup_source is null", [srcTag, user.id]);
       [profile] = await q<Profile>("select * from tradenotes.profiles where id = $1", [user.id]);
     }
     const accounts = await q<Account>("select id, name, currency, starting_balance from tradenotes.accounts order by created_at");

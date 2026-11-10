@@ -1,10 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { cleanSrc } from "@/lib/db-config";
 
 /**
  * Optimistic gate only (cookie present). The real session check happens server-side in getContext(),
  * which every /app page calls before touching data.
  */
 export function middleware(req: NextRequest) {
+  const res = handle(req);
+  // Attribution: remember the first ?src= tag (e.g. ig-ad, tt-dm) for 30 days; stored on the profile at first sign-in.
+  const src = cleanSrc(req.nextUrl.searchParams.get("src"));
+  if (src && !req.cookies.get("tn_src")) res.cookies.set("tn_src", src, { maxAge: 60 * 60 * 24 * 30, path: "/", sameSite: "lax", httpOnly: true });
+  return res;
+}
+
+function handle(req: NextRequest) {
   // Better Auth session cookie: "better-auth.session_token", prefixed "__Secure-" over HTTPS.
   const hasCookie = req.cookies.getAll().some((c) => c.name.endsWith("better-auth.session_token") && c.value.length > 0);
   const { pathname } = req.nextUrl;
@@ -17,4 +26,4 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/app/:path*", "/login", "/signup"] };
+export const config = { matcher: ["/", "/pricing", "/learn", "/app/:path*", "/login", "/signup"] };

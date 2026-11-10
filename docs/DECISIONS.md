@@ -17,3 +17,7 @@
 | 2026-11-09 | **Neon replaces Supabase/Agriloop DB.** Auth = Better Auth (in-app); data access = `pg` + RLS via `app_user` + `app.user_id`; no Supabase dependencies | Founder input; removes shared-project/trigger/pause risks; enables full local e2e testing |
 | 2026-11-09 | Email confirmation/password reset gated on `RESEND_API_KEY`; until set, verification is off and reset is unavailable (UI says so) | No mail provider yet; never claim an email was sent when none can be |
 | 2026-11-09 | `.npmrc legacy-peer-deps=true` | better-auth's optional SvelteKit peer wants vite 8; vitest wants 7; neither used |
+| 2026-11-10 | **Database = the existing Agriloop Supabase project** (founder), as plain Postgres: Better Auth + `pg` + RLS via `app_user`; Supabase Auth and Data API unused. Reverses the Neon switch; no rewrite needed | Founder decision; Agriloop not working, DB kept there so it can be transferred |
+| 2026-11-10 | Auth tables renamed `tn_*`, API roles revoked, RLS on | Supabase exposes `public` via REST; avoid collisions with Agriloop |
+| 2026-11-10 | Instagram-only $50 ad; TikTok judged organically | TikTok ads floor $50/campaign/day, $20/ad group/day makes a $50 split impossible |
+| 2026-11-10 | Content visuals = Andrew Builds style config (navy/amber, Inter, 58px captions) | Founder pointed to that repo |
