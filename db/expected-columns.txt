@@ -1,0 +1,138 @@
+public.tn_account.accessTokenExpiresAt|timestamp with time zone|YES|||
+public.tn_account.accessToken|text|YES|||
+public.tn_account.accountId|text|NO|||
+public.tn_account.createdAt|timestamp with time zone|NO|||
+public.tn_account.idToken|text|YES|||
+public.tn_account.id|uuid|NO|||
+public.tn_account.password|text|YES|||
+public.tn_account.providerId|text|NO|||
+public.tn_account.refreshTokenExpiresAt|timestamp with time zone|YES|||
+public.tn_account.refreshToken|text|YES|||
+public.tn_account.scope|text|YES|||
+public.tn_account.updatedAt|timestamp with time zone|NO|||
+public.tn_account.userId|uuid|NO|||
+public.tn_rate_limit.count|integer|NO|32|0|
+public.tn_rate_limit.id|uuid|NO|||
+public.tn_rate_limit.key|text|NO|||
+public.tn_rate_limit.lastRequest|bigint|NO|64|0|
+public.tn_session.createdAt|timestamp with time zone|NO|||
+public.tn_session.expiresAt|timestamp with time zone|NO|||
+public.tn_session.id|uuid|NO|||
+public.tn_session.ipAddress|text|YES|||
+public.tn_session.token|text|NO|||
+public.tn_session.updatedAt|timestamp with time zone|NO|||
+public.tn_session.userAgent|text|YES|||
+public.tn_session.userId|uuid|NO|||
+public.tn_user.createdAt|timestamp with time zone|NO|||
+public.tn_user.emailVerified|boolean|NO|||
+public.tn_user.email|text|NO|||
+public.tn_user.id|uuid|NO|||
+public.tn_user.image|text|YES|||
+public.tn_user.name|text|NO|||
+public.tn_user.updatedAt|timestamp with time zone|NO|||
+public.tn_verification.createdAt|timestamp with time zone|NO|||
+public.tn_verification.expiresAt|timestamp with time zone|NO|||
+public.tn_verification.identifier|text|NO|||
+public.tn_verification.id|uuid|NO|||
+public.tn_verification.updatedAt|timestamp with time zone|NO|||
+public.tn_verification.value|text|NO|||
+tradenotes.accounts.broker|text|YES|||
+tradenotes.accounts.created_at|timestamp with time zone|NO|||
+tradenotes.accounts.currency|character|NO|||3
+tradenotes.accounts.id|uuid|NO|||
+tradenotes.accounts.name|text|NO|||
+tradenotes.accounts.starting_balance|numeric|NO|18|2|
+tradenotes.accounts.user_id|uuid|NO|||
+tradenotes.audit_log.action|text|NO|||
+tradenotes.audit_log.created_at|timestamp with time zone|NO|||
+tradenotes.audit_log.detail|jsonb|YES|||
+tradenotes.audit_log.id|bigint|NO|64|0|
+tradenotes.audit_log.user_id|uuid|YES|||
+tradenotes.imports.account_id|uuid|NO|||
+tradenotes.imports.created_at|timestamp with time zone|NO|||
+tradenotes.imports.file_name|text|YES|||
+tradenotes.imports.id|uuid|NO|||
+tradenotes.imports.rows_failed|integer|NO|32|0|
+tradenotes.imports.rows_imported|integer|NO|32|0|
+tradenotes.imports.rows_skipped_duplicate|integer|NO|32|0|
+tradenotes.imports.rows_total|integer|NO|32|0|
+tradenotes.imports.status|text|NO|||
+tradenotes.imports.user_id|uuid|NO|||
+tradenotes.profiles.created_at|timestamp with time zone|NO|||
+tradenotes.profiles.display_name|text|YES|||
+tradenotes.profiles.experience_level|text|YES|||
+tradenotes.profiles.id|uuid|NO|||
+tradenotes.profiles.is_admin|boolean|NO|||
+tradenotes.profiles.main_goal|text|YES|||
+tradenotes.profiles.markets|ARRAY|YES|||
+tradenotes.profiles.onboarding_completed_at|timestamp with time zone|YES|||
+tradenotes.profiles.preferred_timeframe|text|YES|||
+tradenotes.profiles.primary_market|text|YES|||
+tradenotes.profiles.show_explanations|boolean|NO|||
+tradenotes.profiles.signup_source|text|YES|||
+tradenotes.profiles.trading_style|text|YES|||
+tradenotes.reviews.created_at|timestamp with time zone|NO|||
+tradenotes.reviews.focus_next|text|YES|||
+tradenotes.reviews.id|uuid|NO|||
+tradenotes.reviews.period_start|date|NO|||
+tradenotes.reviews.period|text|NO|||
+tradenotes.reviews.to_improve|text|YES|||
+tradenotes.reviews.user_id|uuid|NO|||
+tradenotes.reviews.went_well|text|YES|||
+tradenotes.strategies.created_at|timestamp with time zone|NO|||
+tradenotes.strategies.description|text|YES|||
+tradenotes.strategies.id|uuid|NO|||
+tradenotes.strategies.name|text|NO|||
+tradenotes.strategies.rules|text|YES|||
+tradenotes.strategies.user_id|uuid|NO|||
+tradenotes.subscriptions.current_period_end|timestamp with time zone|YES|||
+tradenotes.subscriptions.is_founding_member|boolean|NO|||
+tradenotes.subscriptions.plan|text|NO|||
+tradenotes.subscriptions.status|text|NO|||
+tradenotes.subscriptions.stripe_customer_id|text|YES|||
+tradenotes.subscriptions.stripe_subscription_id|text|YES|||
+tradenotes.subscriptions.updated_at|timestamp with time zone|NO|||
+tradenotes.subscriptions.user_id|uuid|NO|||
+tradenotes.trade_exits.exited_at|timestamp with time zone|YES|||
+tradenotes.trade_exits.id|uuid|NO|||
+tradenotes.trade_exits.price|numeric|NO|20|8|
+tradenotes.trade_exits.quantity|numeric|NO|20|8|
+tradenotes.trade_exits.trade_id|uuid|NO|||
+tradenotes.trade_exits.user_id|uuid|NO|||
+tradenotes.trade_screenshots.caption|text|YES|||
+tradenotes.trade_screenshots.created_at|timestamp with time zone|NO|||
+tradenotes.trade_screenshots.id|uuid|NO|||
+tradenotes.trade_screenshots.storage_path|text|NO|||
+tradenotes.trade_screenshots.trade_id|uuid|NO|||
+tradenotes.trade_screenshots.user_id|uuid|NO|||
+tradenotes.trades.account_id|uuid|NO|||
+tradenotes.trades.asset_class|text|YES|||
+tradenotes.trades.closed_at|timestamp with time zone|YES|||
+tradenotes.trades.created_at|timestamp with time zone|NO|||
+tradenotes.trades.currency|character|YES|||3
+tradenotes.trades.discipline_score|smallint|YES|16|0|
+tradenotes.trades.emotions|ARRAY|YES|||
+tradenotes.trades.entry_price|numeric|NO|20|8|
+tradenotes.trades.fees|numeric|NO|18|2|
+tradenotes.trades.fingerprint|text|YES|||
+tradenotes.trades.followed_plan|boolean|YES|||
+tradenotes.trades.fx_to_account|numeric|YES|20|10|
+tradenotes.trades.id|uuid|NO|||
+tradenotes.trades.import_id|uuid|YES|||
+tradenotes.trades.initial_risk|numeric|YES|18|2|
+tradenotes.trades.lessons|text|YES|||
+tradenotes.trades.mistakes|ARRAY|YES|||
+tradenotes.trades.multiplier|numeric|NO|20|8|
+tradenotes.trades.opened_at|timestamp with time zone|NO|||
+tradenotes.trades.post_trade_notes|text|YES|||
+tradenotes.trades.pre_trade_notes|text|YES|||
+tradenotes.trades.quantity|numeric|NO|20|8|
+tradenotes.trades.session|text|YES|||
+tradenotes.trades.side|text|NO|||
+tradenotes.trades.stop_price|numeric|YES|20|8|
+tradenotes.trades.strategy_id|uuid|YES|||
+tradenotes.trades.symbol|text|NO|||
+tradenotes.trades.target_price|numeric|YES|20|8|
+tradenotes.trades.timeframe|text|YES|||
+tradenotes.trades.updated_at|timestamp with time zone|NO|||
+tradenotes.trades.user_id|uuid|NO|||
