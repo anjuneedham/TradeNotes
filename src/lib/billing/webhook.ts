@@ -88,7 +88,7 @@ async function resolveUser(client: Client, e: ProviderEvent): Promise<string | n
   }
   const subId = subscriptionIdOf(e);
   if (subId) {
-    const r = await client.query("select user_id from tradenotes.subscriptions where provider_subscription_id = $1", [subId]);
+    const r = await client.query("select user_id from tradenotes.subscriptions where provider = 'handypay' and provider_subscription_id = $1", [subId]);
     if (r.rowCount) return r.rows[0].user_id;
   }
   const o = objectOf(e);

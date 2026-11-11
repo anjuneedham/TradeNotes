@@ -24,7 +24,7 @@ export default function Terms() {
       </ul>
 
       <h2>4. Your data</h2>
-      <p>You own the data you enter. You give us permission to store and process it only to provide the service to you. We do not sell your data. You are responsible for the accuracy of what you enter; results are only as good as your records. You can ask us to export or delete your data at any time (see our <a href="/legal/privacy" className="underline">Privacy Policy</a>).</p>
+      <p>You own the data you enter. You give us permission to store and process it only to provide the service to you. We do not sell your data. You are responsible for the accuracy of what you enter; results are only as good as your records. You can download your trades and delete your account yourself at any time in Settings, or ask us to (see our <a href="/legal/privacy" className="underline">Privacy Policy</a>).</p>
 
       <h2>5. Plans, billing and renewal</h2>
       <ul>
@@ -51,7 +51,7 @@ export default function Terms() {
       <p>The service is provided “as is”. We are not responsible for trading decisions, trading losses, or reliance on any statistic shown. To the extent the law allows, our total liability to you for any claim is limited to the amount you paid us in the 12 months before the claim, and we are not liable for indirect or consequential loss. Nothing in these terms limits liability that cannot be limited by law.</p>
 
       <h2>10. Ending the agreement</h2>
-      <p>You may stop using {LEGAL.productName} and ask us to delete your account at any time. We may suspend or end your access if you break these terms. Sections that by their nature should continue (for example 9 and 11) survive.</p>
+      <p>You may stop using {LEGAL.productName} and delete your account (in Settings, or by asking us) at any time. We may suspend or end your access if you break these terms. Sections that by their nature should continue (for example 9 and 11) survive.</p>
 
       <h2>11. Governing law</h2>
       <p>These terms are governed by {LEGAL.governingLaw}.</p>

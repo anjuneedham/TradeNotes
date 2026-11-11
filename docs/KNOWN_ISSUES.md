@@ -20,7 +20,7 @@
 19. The live-site legal pages carry a visible DRAFT banner until counsel reviews them.
 20. Vercel blocks deployments of known-vulnerable Next.js versions (happened on 15.5.4). Keep `next` current within 15.5.x and re-check `npm audit --omit=dev`; two `sharp` advisories remain (image optimisation only; we don't use next/image).
 21. Vercel Deployment Protection is on for `*.vercel.app`; preview/branch URLs need a Vercel login. Custom domains are public.
-22. If the email provider rejects a send (unverified domain, bad key), signup still says "Check your email" and nothing is sent; only a Vercel log line records it. Mitigated by on-page guidance; no alerting yet (see RESEND_SETUP.md).
+22. If the email provider rejects a send (unverified domain, bad key), signup still says "Check your email" and nothing is sent; only a Vercel log line records it. Mitigated by on-page guidance; no alerting yet (see email/RESEND_SETUP.md).
 23. Earlier status reports that said "lint clean" were based on the last line of output and were unreliable once `scripts/e2e*.js` existed. Fixed 2026-11-10: `scripts/**` excluded from app lint; verify with the exit code (`npm run lint; echo $?`).
 24. Legal pages still contain unfilled required values until `src/lib/legal.ts` is completed (they display a warning). Not yet reviewed by counsel.
 25. **Futures trades cannot be saved**: the form sends `futures`, the `trades.asset_class` check allows `future`. Found 2026-11-11; see docs/design/OPUS_FABLE_HANDOFF.md H-1.
