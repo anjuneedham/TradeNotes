@@ -5,8 +5,8 @@ import { PLANS } from "@/lib/plans";
 import { emailEnabled } from "@/lib/email";
 import { LEGAL, isFilled } from "@/lib/legal";
 import { logout } from "../../(auth)/actions";
-import { savePreferences } from "./actions";
-import { Card, Notice, Badge, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/ui";
+import { savePreferences, deleteAccount } from "./actions";
+import { Card, Notice, Badge, PageHeader, btnCls, btnGhostCls, linkCls, inputCls } from "@/components/ui";
 import { money } from "@/lib/format";
 
 export const metadata = { title: "Settings — TradeNotes" };
@@ -23,9 +23,16 @@ const Line = ({ k, children }: { k: string; children: React.ReactNode }) => (
   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-border py-2.5 text-sm first:border-t-0 first:pt-0"><dt className="text-muted">{k}</dt><dd className="min-w-0 break-words text-right">{children}</dd></div>
 );
 
-export default async function Settings({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+const DELETE_ERRORS: Record<string, string> = {
+  confirm: "Type DELETE (in capitals) to confirm. Your account was not deleted.",
+  password: "That password didn't match. Your account was not deleted.",
+  subscription: "We couldn't cancel your subscription automatically, so nothing was deleted. Cancel it from Plan & billing first, or contact support.",
+};
+
+export default async function Settings({ searchParams }: { searchParams: Promise<{ saved?: string; delete_error?: string }> }) {
   const { user, profile, accounts, plan, sub } = await getContext();
-  const { saved } = await searchParams;
+  const { saved, delete_error: deleteError } = await searchParams;
+  const paid = plan !== "free";
   const t = (await cookies()).get("tn_theme")?.value;
   const theme = t === "light" || t === "dark" ? t : "system";
   const acct = accounts[0];
@@ -83,9 +90,25 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           : <p className="text-sm text-muted">Changing your password yourself isn&apos;t available yet.{support ? ` Email ${support} from your account email and we'll reset it for you.` : " Contact support from your account email and we'll reset it for you."}</p>}
       </Section>
 
-      <Section title="Your data" sub="You own what you enter.">
-        <p className="text-sm text-muted">You can ask for a copy of your data or for your account to be deleted at any time{support ? <> by emailing {support} from your account email</> : <> by contacting support from your account email</>}. Deletion is completed within {LEGAL.deletionDays} days. Self-service export isn&apos;t available yet. <Link href="/legal/privacy" className={linkCls}>Privacy Policy</Link></p>
-      </Section>
+      <div id="data"><Section title="Your data" sub="You own what you enter.">
+        <div className="space-y-4 text-sm">
+          <div>
+            <a href="/app/export" className={btnGhostCls} download>Download my trades (CSV)</a>
+            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet.</p>
+          </div>
+          <details className="rounded-md border border-border p-3" open={Boolean(deleteError)}>
+            <summary className="cursor-pointer font-medium">Delete my account</summary>
+            <p className="mt-2 text-muted">This permanently deletes your account, every trade, note and statistic. It can&apos;t be undone. Download your trades first if you want a copy.{paid ? " Your subscription is cancelled first so you are not charged again." : ""}</p>
+            {deleteError && <div className="mt-3"><Notice kind="error">{DELETE_ERRORS[deleteError] ?? "Your account was not deleted. Please try again."}</Notice></div>}
+            <form action={deleteAccount} className="mt-3 grid gap-3 sm:max-w-sm">
+              <label className="text-sm">Type DELETE to confirm<input name="confirm" autoComplete="off" required className={`${inputCls} mt-1`} /></label>
+              <label className="text-sm">Current password<input name="password" type="password" autoComplete="current-password" required className={`${inputCls} mt-1`} /></label>
+              <button className="inline-flex min-h-10 items-center justify-center rounded-md border border-loss/60 px-4 text-sm font-medium text-loss hover:bg-loss/10">Delete my account permanently</button>
+            </form>
+          </details>
+          <p className="text-xs text-muted">Questions about your data{support ? <> — email {support}</> : null}. <Link href="/legal/privacy" className={linkCls}>Privacy Policy</Link></p>
+        </div>
+      </Section></div>
 
       <div className="md:hidden"><Section title="Session">
         <form action={logout}><button className={btnGhostCls}>Log out</button></form>

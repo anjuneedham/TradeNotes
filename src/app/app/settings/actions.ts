@@ -2,7 +2,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { getContext } from "@/lib/app-context";
+import { getAuth } from "@/lib/auth";
+import { pool } from "@/lib/db";
+import { handypayEnabled, cancelAtPeriodEnd } from "@/lib/billing/handypay";
 
 /** Preferences: explanation toggle (profiles.show_explanations, own row under RLS) and a per-device appearance cookie. */
 export async function savePreferences(formData: FormData) {
@@ -15,4 +19,31 @@ export async function savePreferences(formData: FormData) {
   else jar.delete("tn_theme");
   revalidatePath("/app", "layout");
   redirect("/app/settings?saved=1");
+}
+
+/**
+ * Permanently delete the signed-in user's account and all their data (every TradeNotes table cascades from tn_user).
+ * Requires typing DELETE and the current password (verified by Better Auth). A live HandyPay subscription is cancelled first,
+ * so a deleted user is never charged again; if that cancellation fails, nothing is deleted.
+ */
+export async function deleteAccount(formData: FormData) {
+  const { user, sub, plan } = await getContext({ requireOnboarded: false });
+  if (String(formData.get("confirm") ?? "").trim() !== "DELETE") redirect("/app/settings?delete_error=confirm#data");
+  const password = String(formData.get("password") ?? "");
+  if (!password) redirect("/app/settings?delete_error=password#data");
+  if (plan !== "free" && sub?.provider_subscription_id && !sub.cancel_at_period_end) {
+    if (!handypayEnabled()) redirect("/app/settings?delete_error=subscription#data");
+    try { await cancelAtPeriodEnd(sub.provider_subscription_id); }
+    catch (e) { console.error("delete: cancel failed", e instanceof Error ? e.message : e); redirect("/app/settings?delete_error=subscription#data"); }
+  }
+  try {
+    await pool.query("insert into tradenotes.audit_log (user_id, action, detail) values (null, 'account_deleted', $1)", [JSON.stringify({ at: new Date().toISOString() })]);
+    await getAuth().api.deleteUser({ body: { password }, headers: await headers() });
+  } catch (e) {
+    console.error("delete account failed", e instanceof Error ? e.message : e);
+    redirect("/app/settings?delete_error=password#data");
+  }
+  const jar = await cookies();
+  for (const c of jar.getAll()) if (c.name.includes("better-auth")) jar.delete(c.name);
+  redirect("/?deleted=1");
 }

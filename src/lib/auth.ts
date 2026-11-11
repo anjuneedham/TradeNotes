@@ -13,7 +13,7 @@ function create() {
     secret: process.env.BETTER_AUTH_SECRET,
     trustedOrigins: [site, ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])],
     advanced: { database: { generateId: "uuid" } },
-    user: { modelName: "tn_user" },
+    user: { modelName: "tn_user", deleteUser: { enabled: true } }, // self-service deletion; requires the current password (settings/actions.ts)
     session: { modelName: "tn_session", expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
     account: { modelName: "tn_account" },
     verification: { modelName: "tn_verification" },

@@ -202,6 +202,30 @@ async function logTrade(page, o) {
   const fd = await B.request.post(BASE + '/app/journal', { form: { id: aId } }).catch(() => null);
   check('raw POST to journal without a server-action id changes nothing', !fd || fd.status() < 500);
 
+  // --- self-service export + account deletion (B)
+  const exB = await B.request.get(BASE + '/app/export');
+  const csvB = await exB.text();
+  check('export: B gets own trades as CSV, none of A\'s', exB.status() === 200 && /text\/csv/.test(exB.headers()['content-type']) && csvB.includes('USDCAD') && !csvB.includes('EURUSD'), csvB.slice(0, 200));
+  const exAnon = await (await browser.newContext()).request.get(BASE + '/app/export', { maxRedirects: 0 });
+  check('export: signed-out request is refused', exAnon.status() === 401 || exAnon.status() === 307, String(exAnon.status()));
+  await B.goto(BASE + '/app/settings');
+  await B.getByText('Delete my account', { exact: true }).click();
+  await B.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await B.getByLabel('Current password').fill('wrong-password-xx');
+  await B.getByRole('button', { name: 'Delete my account permanently' }).click();
+  check('delete: wrong password refuses and keeps the account', await B.getByText("That password didn't match").waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await B.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await B.getByLabel('Current password').fill('correct-horse-battery');
+  await B.getByRole('button', { name: 'Delete my account permanently' }).click();
+  await B.waitForURL(BASE + '/?deleted=1', { timeout: 15000 }).catch(() => {});
+  if (process.env.DATABASE_URL) {
+    const { Client } = require('pg'); const c2 = new Client({ connectionString: process.env.DATABASE_URL }); await c2.connect();
+    const left = (await c2.query(`select (select count(*) from public.tn_user where email = $1)::int u, (select count(*) from tradenotes.trades t where not exists (select 1 from public.tn_user x where x.id = t.user_id))::int orphans`, [emailB])).rows[0];
+    check('delete: user and all their data removed (no orphans)', left.u === 0 && left.orphans === 0, JSON.stringify(left));
+    await c2.end();
+  }
+  await B.goto(BASE + '/app');
+  check('delete: deleted user is signed out', B.url().includes('/login'));
   // --- delete + logout + login
   await A.goto(BASE + '/app/journal');
   await A.locator('tbody tr', { hasText: 'GBPUSD' }).getByRole('button', { name: /Delete/ }).click();
