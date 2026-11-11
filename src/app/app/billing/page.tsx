@@ -65,6 +65,7 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
               <div className="mt-auto pt-4">
                 {plan === id ? <p className="text-xs text-muted">This is your current plan.</p>
                   : id === "free" ? <p className="text-xs text-muted">To move to Free, cancel your subscription (see below). You keep paid access until the period you paid for ends.</p>
+                  : paid ? <p className="text-xs leading-relaxed text-muted">To switch to {PLANS[id].name}, {support ? `email ${support}` : "contact support"} so we can move your existing subscription. Subscribing again here would start a second one.</p>
                   : <a href={CHECKOUT_URLS[id]} target="_blank" rel="noopener noreferrer" className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}<span className="sr-only"> (opens Handypay checkout in a new tab)</span> ↗</a>}
               </div>
             </Card>
