@@ -12,6 +12,9 @@ const BASE = () => process.env.HANDYPAY_API_URL ?? "https://api.handypay.me/api/
 export const handypayEnabled = () => Boolean(process.env.HANDYPAY_API_KEY);
 export const webhookSecretSet = () => Boolean(process.env.HANDYPAY_WEBHOOK_SECRET);
 
+/** Only https URLs are followed (plain http allowed solely when the HANDYPAY_API_URL test hook points at a local fake). */
+export const safeUrl = (u: string) => /^https:\/\//.test(u) || (Boolean(process.env.HANDYPAY_API_URL) && /^http:\/\/(localhost|127\.0\.0\.1)[:/]/.test(u));
+
 export function signPayload(rawBody: string, secret: string): string {
   return "sha256=" + createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
 }
@@ -59,7 +62,7 @@ export async function createSubscriptionCheckout(opts: { plan: Exclude<PlanId, "
     metadata: { user_id: opts.userId, plan: opts.plan },
   });
   const url = urlIn(j);
-  if (!url || !/^https:\/\//.test(url)) throw new Error("HandyPay returned no checkout URL");
+  if (!url || !safeUrl(url)) throw new Error("HandyPay returned no checkout URL");
   return url;
 }
 
