@@ -11,7 +11,7 @@
 | Fonts | Self-hosted IBM Plex (no third-party request) | Fable |
 | Images | No raster images in UI (SVG chart) — `next/image` not used | code |
 | Dashboard query, 10,000 trades (RLS on) | **55 ms** with current planner statistics | `EXPLAIN ANALYZE` as `app_user` |
-| Same, immediately after a bulk insert (stale stats) | 1.7 s | measured; autovacuum ANALYZE fixes it — relevant only after a future CSV import of thousands of rows (run `ANALYZE` after imports) |
+| Same, immediately after a bulk insert (stale stats) | 1.7 s | measured; autovacuum ANALYZE fixes it — relevant right after a large CSV import; autovacuum catches up within minutes |
 | Dashboard compute | All trades evaluated in Node per view (≤10,000 cap with notice) | Acceptable at launch; move to SQL aggregation when any account passes ~5,000 trades |
 | Mobile | No horizontal scroll at 390 px on dashboard and trade form | e2e |
 | Runtime errors | 0 browser JS errors across e2e | e2e "no browser JS errors" |

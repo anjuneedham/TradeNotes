@@ -46,6 +46,7 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
   return (
     <div className="space-y-5">
       <PageHeader title="Journal" sub={count > 0 ? `${count.toLocaleString("en-US")} trade${count === 1 ? "" : "s"}${filtered ? " match your filters" : ""} · newest first` : undefined}>
+        <Link href="/app/import" className={btnGhostCls}>Import CSV</Link>
         <Link href="/app/journal/new" className={`${btnCls} hidden md:inline-flex`}>+ Log trade</Link>
       </PageHeader>
       {sp.saved && <Notice kind="ok">Trade saved.</Notice>}

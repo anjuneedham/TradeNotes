@@ -153,6 +153,41 @@ mock.listen(9998, '127.0.0.1', async () => {
     const late = await hook('customer.subscription.deleted', { id: `sub_A1_${stamp}`, status: 'canceled' });
     check('late event for the OLD subscription does not cancel the new one', (await sub(A.email)).status === 'active', JSON.stringify(late.body));
 
+    // --- CSV import (Premium A; Free B gated)
+    const csvText = 'Symbol,Direction,Qty,Entry Price,Exit Price,Open Time,Close Time,Commission\n' +
+      'AAPL,Buy,10,100,110,2026-10-01T14:30:00Z,2026-10-01T15:00:00Z,1\n' +
+      'TSLA,sell,5,200,190,2026-10-02T14:30:00Z,2026-10-02T15:00:00Z,\n' +
+      'AAPL,Buy,10,100,110,2026-10-01T14:30:00Z,2026-10-01T15:00:00Z,1\n' +
+      'BAD,hold,0,0,1,notadate,,\n';
+    const upload = async () => {
+      await A.p.goto(BASE + '/app/import');
+      await A.p.getByLabel('CSV file').setInputFiles({ name: 'broker.csv', mimeType: 'text/csv', buffer: Buffer.from(csvText) });
+      await A.p.getByText('Ready to import').waitFor({ timeout: 8000 });
+      await A.p.getByLabel('Market').selectOption('stock');
+    };
+    await upload();
+    const pv = await A.p.locator('main').innerText();
+    check('import preview: 2 ready, 1 problem row, 1 duplicate in file', /Ready to import\s*2/.test(pv) && /Rows with problems\s*1/.test(pv) && /Duplicates in file\s*1/.test(pv), pv.slice(0, 400));
+    await A.p.getByRole('button', { name: 'Import 2 trades' }).click();
+    await A.p.waitForURL('**/app/import?done=*', { timeout: 15000 });
+    await A.p.getByText(/^Imported \d+ trade/).waitFor({ timeout: 10000 }).catch(() => {});
+    const it1 = await A.p.locator('main').innerText();
+    check('import saves 2 trades with exits (P&L computed)', it1.includes('Imported 2 trades') &&
+      (await db.query("select count(*)::int n from tradenotes.trades t join tradenotes.trade_exits e on e.trade_id=t.id where t.user_id=$1 and t.import_id is not null", [A.id])).rows[0].n === 2, it1.slice(0, 300));
+    await A.p.goto(BASE + '/app/journal?q=AAPL');
+    check('imported trades appear in journal with result (AAPL +$99.00)', (await A.p.locator('main').innerText()).includes('$99.00'));
+    await upload();
+    await A.p.getByRole('button', { name: 'Import 2 trades' }).click();
+    await A.p.waitForURL('**/app/import?done=*', { timeout: 15000 });
+    await A.p.getByText(/^Imported \d+ trade/).waitFor({ timeout: 10000 }).catch(() => {});
+    check('re-importing the same file adds nothing (duplicates skipped)', /Imported 0 trades, skipped 3 duplicates/.test(await A.p.locator('main').innerText()), (await A.p.locator('main').innerText()).slice(0, 300));
+    await A.p.locator('li', { hasText: '2 trades still in journal' }).getByRole('button', { name: /Delete/ }).click();
+    await A.p.locator('li', { hasText: '2 trades still in journal' }).getByRole('button', { name: /Confirm delete/ }).click();
+    await A.p.waitForURL('**rolledback=1');
+    check('rolling back an import removes its trades', (await db.query("select count(*)::int n from tradenotes.trades where user_id=$1 and import_id is not null", [A.id])).rows[0].n === 0);
+    await B.p.goto(BASE + '/app/import');
+    const bi = await B.p.locator('main').innerText();
+    check('Free user sees the plan gate, no upload form', /CSV import is part of Standard and Premium/.test(bi) && (await B.p.getByLabel('CSV file').count()) === 0);
     // --- isolation: B
     await B.p.goto(BASE + '/app/billing');
     const bb = await B.p.locator('main').innerText();

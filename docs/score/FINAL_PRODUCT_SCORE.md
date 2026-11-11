@@ -1,5 +1,5 @@
-# Final product score (this round): **6.9 / 10** — not yet 8
-Up from 6.1. I did not inflate it: the payment system works against a faithful fake and passes 60 tests, but **it has never processed a real HandyPay event**, and the brief says an unverified payment system is a launch blocker. That single fact caps payments at 5/10.
+# Final product score (this round): **7.0 / 10** — not yet 8
+Up from 6.1 (6.9 before CSV import shipped). I did not inflate it: the payment system works against a faithful fake and passes 60 tests, but **it has never processed a real HandyPay event**, and the brief says an unverified payment system is a launch blocker. That single fact caps payments at 5/10.
 
 ## Readiness
 | Stage | Ready? |

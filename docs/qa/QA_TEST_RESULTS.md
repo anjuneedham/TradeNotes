@@ -12,7 +12,7 @@ Environment: Linux container, Node 22, PostgreSQL 16, Chromium (Playwright), `ne
 | Build: migrate | 17/17 tables |
 | Build: verify-db | **42/42** |
 | e2e.js | **53/53** |
-| e2e-billing.js | **37/37** |
+| e2e-billing.js (incl. CSV import) | **43/43** |
 | e2e-email.js | **15/15** |
 | viewport-check.js | **21/21** (7 public pages × 390/820/1280) |
 | Vercel preview builds of this branch | 3/3 READY |

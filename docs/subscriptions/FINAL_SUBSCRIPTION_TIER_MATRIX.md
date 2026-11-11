@@ -12,7 +12,7 @@ Legend — **Now** = built and tested · **Build** = requires implementation (no
 | CSV export, account deletion | ✓ | ✓ | ✓ | **Now** | ✓ | — | — |
 | Email (verification, reset, billing notices) | ✓ | ✓ | ✓ | **Now** (needs Resend live) | ✓ | — | ~$0.0004/email above free tier |
 | Payment history, self-serve cancel/resume, card update portal | — | ✓ | ✓ | **Now** (needs HandyPay key) | ✓ | — | — |
-| CSV import | — | ✓ | ✓ | **Build** (parser + tests exist) | needs page + insert | counts toward limit; 5 MB | negligible |
+| CSV import | — | ✓ | ✓ | **Now** | Server re-parses; plan gate + limit in insert txn; dup-safe; rollback | counts toward limit; 5 MB | negligible |
 | Trading accounts | 1 | 2 | 10 | **Build** (schema ready) | needs switcher + filters | yes | negligible |
 | Trade screenshots | — | ✓ | ✓ | **Build** | needs object storage | 4/trade, 5 MB/file | storage $0.02–0.03/GB-mo |
 | Calendar + weekly review | — | ✓ | ✓ | **Build** (table exists) | needs UI + timezone | — | negligible |

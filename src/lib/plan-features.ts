@@ -19,9 +19,10 @@ export const FEATURES_NOW: FeatureRow[] = [
   { label: "Dashboard", detail: "Eight core metrics, equity curve, what to review.", cells: all(true) },
   { label: "Analytics breakdowns", detail: "By strategy, instrument, session, direction, weekday, mistake and emotion.", cells: all(true) },
   { label: "Plain-English explanations and metric guide", cells: all(true) },
+  { label: "CSV import", detail: "From any broker or spreadsheet export; duplicates skipped; roll back any import.", cells: { free: false, starter: true, pro: true } },
+  { label: "Export all your trades (CSV)", cells: all(true) },
 ];
 export const FEATURES_DEV: FeatureRow[] = [
-  { label: "CSV import", cells: { free: false, starter: true, pro: true } },
   { label: "Trade screenshots", cells: { free: false, starter: true, pro: true } },
   { label: "Calendar view and weekly reviews", cells: { free: false, starter: true, pro: true } },
   { label: "Multiple trading accounts", cells: { free: false, starter: `Up to ${PLANS.starter.accounts}`, pro: `Up to ${PLANS.pro.accounts}` } },

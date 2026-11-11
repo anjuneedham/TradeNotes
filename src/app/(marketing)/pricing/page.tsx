@@ -7,7 +7,7 @@ import { Badge, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 export const metadata = { title: "Pricing — TradeNotes" };
 
 const FAQ: [string, string][] = [
-  ["What do I get for paying today?", "A higher trade limit. Every journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date."],
+  ["What do I get for paying today?", "A higher trade limit and CSV import from your broker. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date."],
   ["How does upgrading work?", "You subscribe through Handypay's hosted checkout using the same email as your TradeNotes account. We confirm the payment and switch your plan on by hand, usually within a few hours and within one business day."],
   ["When am I charged?", "When you subscribe, then automatically each month on the same date until you cancel. Prices are in US dollars; taxes may apply."],
   ["What happens if I cancel or a payment fails?", "You keep paid access until the end of the period you paid for, then your account returns to Free. Nothing is deleted. If you hold more trades than the Free limit you can still view and analyse all of them — you just can't add new ones."],
@@ -54,7 +54,7 @@ export default function Pricing() {
       </div>
 
       <p className="mt-5 rounded-md border border-border bg-raised px-4 py-3 text-sm leading-relaxed">
-        <strong className="font-medium">Plain terms:</strong> today the paid plans mainly raise your trade limit. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
+        <strong className="font-medium">Plain terms:</strong> today the paid plans add a higher trade limit and CSV import. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
       </p>
       <p className="mt-3 text-sm text-muted">
         <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members can get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months in exchange for honest feedback. Ask for it after signing up.

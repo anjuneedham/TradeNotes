@@ -25,7 +25,7 @@ Status: **Works** = exercised by an automated test this session · **Built, unte
 | Delete account (self-service) | **Works (new)** | e2e: wrong password refused; cascade leaves 0 orphans | All |
 | Preferences (explanations, theme) | Works | e2e | All |
 | Legal pages incl. new Subscription policy | Render | curl | — |
-| CSV import | Not built (parser + tests exist) | — | Planned Standard |
+| CSV import (upload, column mapping, preview, duplicate skip, roll back) | **Works (new)** | e2e-billing: preview counts, save + P&L, re-import adds 0, rollback, Free gated | Standard, Premium |
 | Multiple trading accounts | Not built (schema supports) | — | Planned Standard/Premium |
 | Screenshots | Not built (table exists) | — | Planned |
 | Calendar / weekly review | Not built (table exists) | — | Planned |

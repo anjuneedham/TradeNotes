@@ -5,6 +5,9 @@ import Papa from "papaparse";
  * One CSV row = one round-trip trade (entry + full exit). Broker-specific
  * fill-level presets are P1 (see docs/FEATURE_ROADMAP.md).
  */
+/** Upload cap (also enforced server-side). */
+export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+
 export const IMPORT_FIELDS = [
   "symbol", "side", "quantity", "entryPrice", "exitPrice", "openedAt", "closedAt", "fees",
 ] as const;

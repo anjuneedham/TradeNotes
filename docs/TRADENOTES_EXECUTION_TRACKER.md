@@ -39,8 +39,8 @@ Updated 2026-11-11. Statuses: NOT STARTED · IN PROGRESS · BLOCKED · COMPLETE 
 | Export + delete account (H-6) | P1 | VERIFIED | O | — | e2e | — |
 | Change password signed-in, edit account (H-6) | P2 | NOT STARTED | O | — | — | Next round |
 | Timezone (H-5) | P2 | NOT STARTED | O | — | — | Next round |
-| CSV import UI (H-12) | P1 | NOT STARTED | O | — | parser tested | **Next engineering task** |
-| Multiple accounts (H-12) | P2 | NOT STARTED | O+Fa | — | — | After import |
+| CSV import UI (H-12) | P1 | VERIFIED | O | — | e2e-billing 43/43 (6 import checks) | — |
+| Multiple accounts (H-12) | P1 | NOT STARTED | O+Fa | — | — | **Next engineering task** |
 | Landing screenshots | P2 | NOT STARTED | Fa | live domain | — | — |
 
 ## Phase 6 — Email and legal

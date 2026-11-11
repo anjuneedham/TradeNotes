@@ -28,7 +28,7 @@ const built: [string, string][] = [
   ["A review list", "Open trades, your largest loss and your costliest mistake, surfaced on the dashboard."],
   ["Explanations you can switch off", "Every figure links to a plain-English guide. Experienced traders can hide them."],
 ];
-const dev = ["CSV import", "Trade screenshots", "Calendar view and weekly reviews", "Backtesting with historical replay"];
+const dev = ["Trade screenshots", "Calendar view and weekly reviews", "Backtesting with historical replay"];
 
 export default function Home() {
   const s = summarize(SAMPLE);
@@ -128,7 +128,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-sm text-muted">Today the paid plans mainly raise your trade limit. Start on Free and move up only if you need the room.</p>
+        <p className="mt-4 text-sm text-muted">Today the paid plans add a higher trade limit and CSV import. Start on Free and move up only if you need the room.</p>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border-strong bg-panel px-5 py-6 sm:px-8">
           <p className="text-lg font-medium tracking-tight">Log your most recent trade. See what it tells you.</p>
           <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>
