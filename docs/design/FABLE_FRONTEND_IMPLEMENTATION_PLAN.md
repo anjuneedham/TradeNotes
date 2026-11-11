@@ -8,7 +8,7 @@
 | 3 UX architecture | Layout split, page structures, component list | **Done** |
 | 4 Subscription experience | Tier recommendation, comparison, paywall and billing specs | **Done** (design); automation blocked on H-3 |
 | 5 Implementation — round 1 | Everything below marked Done | **Done** |
-| 6 QA — round 1 | Typecheck, lint, 55 unit tests, 30/30 e2e, production build, screenshots at 390 / 820 / 1280 in both themes, contrast measured | **Done**; gaps listed in `FABLE_DESIGN_QA.md` |
+| 6 QA — round 1 | Typecheck, lint, 55 unit tests, 38/38 e2e on a production build, screenshots at 390 / 820 / 1280 in both themes, contrast measured | **Done**; gaps listed in `FABLE_DESIGN_QA.md` |
 
 ## Round 1 — delivered
 | Step | Change | Risk control |
@@ -19,7 +19,7 @@
 | 4 | Dashboard restructure + `lib/trades-data.ts` | Same query, same engine; all e2e number checks pass unchanged |
 | 5 | Analytics page | Read-only; new helpers unit-tested |
 | 6 | Trade form | Every field `name` and label kept; server action unchanged except one additive field |
-| 7 | Journal: status filter, cards, confirm delete, detail page | One e2e line added for the confirm step |
+| 7 | Journal: status filter, cards, confirm delete, detail page | One e2e line changed for the confirm step; 8 checks added |
 | 8 | Pricing, billing, plan names | Plan ids untouched |
 | 9 | Settings + preferences action | Writes one existing column under RLS; one cookie |
 | 10 | Landing, learn, auth, onboarding restyle | Copy claims checked against what exists |
@@ -28,9 +28,9 @@
 | # | Item | Size |
 |---|---|---|
 | 2.1 | Screen-reader pass (VoiceOver + NVDA) and fixes | S |
-| 2.2 | `error.tsx` and `not-found.tsx` inside `/app` in the design system (today: framework defaults) | S |
+| 2.2 | ~~Styled error and not-found pages~~ — done in round 1 | — |
 | 2.3 | `loading.tsx` skeletons for Dashboard, Analytics, Journal | S |
-| 2.4 | Extend e2e: analytics page, trade detail, settings, status filter, limit panels, light theme | M |
+| 2.4 | e2e for limit panels and the lapsed-subscription panel (the rest was added in round 1) | S |
 | 2.5 | Split the zod schema from the constants so the trade form bundle drops ~30 kB | S |
 | 2.6 | Real screenshots on the landing page once there is a production account worth showing | S |
 | 2.7 | R-multiple distribution chart on Analytics (data exists: per-trade R) | M |

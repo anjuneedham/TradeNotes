@@ -95,6 +95,34 @@ async function logTrade(page, o) {
   check('dashboard: breakdown by strategy present', dash.includes('London breakout'));
   await A.screenshot({ path: SP + '/dashboard-desktop.png', fullPage: true });
 
+  // --- redesigned screens: analytics, trade detail, journal status filter, plan usage, preferences
+  await A.goto(BASE + '/app/analytics');
+  const an = await A.locator('body').innerText();
+  check('analytics: mistake-tag breakdown shows the tagged trade', an.includes('By mistake tag') && an.includes('Moved stop'));
+  check('analytics: by instrument present', an.includes('By instrument') && an.includes('EURUSD'));
+  await A.goto(BASE + '/app?range=30d');
+  check('dashboard: date range keeps valid totals or says none', /\$293\.00|No closed trades in this period/.test(await A.locator('body').innerText()));
+  await A.goto(BASE + '/app/journal?status=open');
+  const openRows = await A.locator('tbody').innerText();
+  check('journal: status=open shows only the open trade', openRows.includes('GBPUSD') && !openRows.includes('EURUSD'), openRows);
+  await A.goto(BASE + '/app/journal');
+  await A.locator('tbody tr', { hasText: '$593.00' }).getByRole('link', { name: 'View' }).click();
+  await A.waitForURL(/\/app\/journal\/[0-9a-f-]{36}$/);
+  const det = await A.locator('body').innerText();
+  check('trade detail: result, risk plan and tags shown', det.includes('$593.00') && det.includes('Planned risk') && det.includes('$300.00') && /MOVED STOP/i.test(det) && det.includes('London breakout'), det.slice(0, 300));
+  const detailUrl = A.url();
+  await A.goto(BASE + '/app/billing');
+  check('billing: shows current plan and usage against the limit', /Free/.test(await A.locator('body').innerText()) && /3\s*of 50/.test(await A.locator('body').innerText()));
+  await A.goto(BASE + '/app/settings');
+  await A.getByLabel('Light', { exact: true }).check();
+  await A.getByRole('button', { name: 'Save preferences' }).click();
+  await A.waitForURL('**/app/settings?saved=1');
+  check('settings: appearance preference is applied', (await A.locator('[data-theme]').first().getAttribute('data-theme')) === 'light');
+  await A.getByLabel('Match device').check();
+  await A.getByRole('button', { name: 'Save preferences' }).click();
+  await A.waitForURL('**/app/settings?saved=1');
+  globalThis.__detailUrl = detailUrl;
+
   // --- mobile layout check (no horizontal scroll)
   await A.setViewportSize({ width: 390, height: 800 });
   await A.goto(BASE + '/app');
@@ -113,6 +141,8 @@ async function logTrade(page, o) {
   if (globalThis.__q) { check('junk src is ignored (stored as null)', (await globalThis.__q(emailB)) === null, String(await globalThis.__q(emailB))); await globalThis.__c.end(); }
   await B.goto(BASE + '/app/journal');
   check('user B journal is empty (cannot see A trades)', await B.getByText('No trades yet').isVisible());
+  const rB = await B.goto(globalThis.__detailUrl);
+  check('user B cannot open user A trade detail (404)', rB.status() === 404, String(rB.status()));
   await B.goto(BASE + '/app');
   check('user B dashboard has no A numbers', !(await B.locator('body').innerText()).includes('$293.00'));
 

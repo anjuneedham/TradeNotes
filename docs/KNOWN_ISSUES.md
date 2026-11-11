@@ -1,7 +1,7 @@
 # Known Issues
 1. Entry/exit times from `datetime-local` are stored as UTC; weekday stats use UTC. Needs per-user timezone (profiles.timezone) — P1.
-2. Journal delete has no confirmation dialog.
-3. No trade detail / edit page yet (JRNL-2). Wrong trades must be deleted and re-entered.
+2. ~~Journal delete has no confirmation dialog.~~ Fixed 2026-11-11 (two-step confirm).
+3. Trade detail page exists (read-only, 2026-11-11). **No edit yet**: wrong trades must be deleted and re-entered (docs/design/OPUS_FABLE_HANDOFF.md H-2).
 4. Screenshots, daily/weekly reviews, calendar view not built.
 5. Fees is a single number in the trade's quote currency (commission + swap combined); converted with the same FX rate as P&L when the quote currency differs from the account currency.
 6. Forex lots assume standard 100,000 units; mini/micro lots must be entered as 0.1/0.01.
@@ -23,3 +23,5 @@
 22. If the email provider rejects a send (unverified domain, bad key), signup still says "Check your email" and nothing is sent; only a Vercel log line records it. Mitigated by on-page guidance; no alerting yet (see RESEND_SETUP.md).
 23. Earlier status reports that said "lint clean" were based on the last line of output and were unreliable once `scripts/e2e*.js` existed. Fixed 2026-11-10: `scripts/**` excluded from app lint; verify with the exit code (`npm run lint; echo $?`).
 24. Legal pages still contain unfilled required values until `src/lib/legal.ts` is completed (they display a warning). Not yet reviewed by counsel.
+25. **Futures trades cannot be saved**: the form sends `futures`, the `trades.asset_class` check allows `future`. Found 2026-11-11; see docs/design/OPUS_FABLE_HANDOFF.md H-1.
+26. Frontend redesign 2026-11-11: open items and backend dependencies are tracked in `docs/design/OPUS_FABLE_HANDOFF.md`; honest scores in `docs/design/FRONTEND_COMPLETION_REPORT.md`.

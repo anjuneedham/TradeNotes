@@ -15,7 +15,7 @@ This file lists (A) what I changed that touches your territory, so nothing is si
 | A4 | Journal list query: joined `strategies` for the name; added `status` filter (`open` = exited quantity < position size, matching the metrics engine) | `journal/page.tsx` | Filter + column | Correlated subquery per row on a 25-row page; fine now, index later if needed |
 | A5 | New server action `savePreferences`: `update tradenotes.profiles set show_explanations = $1 where id = $2`; sets/deletes cookie `tn_theme` (`light`/`dark`, httpOnly, lax, 1 year) | `src/app/app/settings/actions.ts` | Preferences | Same pattern as onboarding. No CSRF handling beyond Next's server-action origin check — same as existing actions |
 | A6 | Privacy policy: added `tn_theme` to the cookie list | `(marketing)/legal/privacy/page.tsx` | Keep the policy true | Wording needs your/counsel's review |
-| A7 | e2e: one line added (delete is now two clicks) | `scripts/e2e.js` | Intentional UI change | 30/30 pass |
+| A7 | e2e: one line changed (delete is now two clicks) and 8 checks added for analytics, trade detail (incl. user B gets 404 on user A's trade), status filter, plan usage, preferences | `scripts/e2e.js` | Intentional UI change + cover new screens | 38/38 pass on a production build |
 | A8 | Pages moved into route groups `(marketing)`; root layout no longer renders header/footer | `src/app/**` | Separate chrome per area | URLs unchanged; marketing/legal still static |
 | A9 | Root `metadata.title` no longer says "Backtesting"; hero no longer says "test changes before you risk money" | layout, landing | Not built | — |
 | A10 | Two font files added (IBM Plex, OFL licence included) | `src/app/fonts/` | Typography without a third-party request | +92 kB in repo; no new npm dependency |
@@ -86,8 +86,8 @@ Dashboard and Analytics load all trades and compute in Node (unchanged). A trunc
 ### H-10 · P1 · Legal review of interface claims
 New user-facing promises live in: pricing FAQ, Plan & billing (activation time, cancellation, data on Free), Settings → Your data (deletion within `LEGAL.deletionDays`). Please check them against the Terms.
 
-### H-11 · P2 · e2e coverage for new screens
-Not covered yet: `/app/analytics`, trade detail, Settings preferences, journal status filter, limit notices, light theme, tablet. I can write these (plan 2.4) if you prefer to own only the harness.
+### H-11 · P3 · Remaining e2e gaps
+Covered now: analytics, trade detail, status filter, plan usage, preferences. Not covered: limit notices (needs 50 seeded trades), lapsed-subscription panel (needs a subscription row), light theme and tablet visuals (checked by screenshot only).
 
 ### H-12 · P2 · Features the plans mention as "in development"
 | Feature | What I need |
@@ -117,7 +117,7 @@ Shown on pricing ("Ask for it after signing up"); no mechanism. Either implement
 
 ### H-20 · P3 · Smaller items
 - `/app/billing` is reachable before onboarding (`requireOnboarded: false`, as before) but the app navigation now shows around it; harmless, links bounce to onboarding.
-- No `error.tsx` / `not-found.tsx` in `/app`: a thrown query shows the framework error page. I will add styled ones (plan 2.2); tell me if you want errors reported somewhere.
+- Added `app/app/error.tsx` and `app/not-found.tsx` (styled, no technical detail shown). Errors are not reported anywhere yet; tell me where to send them when monitoring exists.
 - Starting balance is collected but used by no statistic. Decide: use it (equity curve from balance, % return) or stop asking.
 - Onboarding answers `trading_style`, `preferred_timeframe`, `main_goal` are stored and unused. I could default the trade form's timeframe from `preferred_timeframe` if you expose it in `Profile`.
 
@@ -126,8 +126,8 @@ Shown on pricing ("Ask for it after signing up"); no mechanism. Either implement
 | Screen | Loading | Error | Empty |
 |---|---|---|---|
 | Dashboard / Analytics | Server-rendered (no skeleton yet) | Red notice "We couldn't load your trades just now…" | Guided empty state / "No closed trades in this period" |
-| Journal | Server-rendered | Framework error page (H-20) | "No trades yet" or "No trades match those filters" + clear |
+| Journal | Server-rendered | Styled error page with "Try again" | "No trades yet" or "No trades match those filters" + clear |
 | Trade detail | Server-rendered | Not-found for bad or foreign ids | Per-section "Nothing written" / "None tagged" |
 | Trade form | Button "Saving…", disabled | Summary + per-field; values kept; limit panel | — |
-| Billing | Server-rendered | Framework error page | Free state |
-| Settings | Server-rendered | Framework error page | — |
+| Billing | Server-rendered | Styled error page | Free state |
+| Settings | Server-rendered | Styled error page | — |
