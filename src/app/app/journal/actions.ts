@@ -6,7 +6,8 @@ import { tradeFormSchema, exitsOf, plannedRisk, defaultMultiplier } from "@/lib/
 import { canAddTrade } from "@/lib/entitlements";
 import { PLANS } from "@/lib/plans";
 
-export interface FormState { errors?: Record<string, string>; message?: string; values?: Record<string, string> }
+/** `code: "limit"` marks a plan-limit refusal so the form can show an upgrade path instead of a generic error. */
+export interface FormState { errors?: Record<string, string>; message?: string; values?: Record<string, string>; code?: "limit" }
 
 export async function createTrade(_prev: FormState, formData: FormData): Promise<FormState> {
   const { db, user, accounts, plan } = await getContext();
@@ -59,7 +60,7 @@ export async function createTrade(_prev: FormState, formData: FormData): Promise
       }
       return { limit: false as const };
     });
-    if (result.limit) return { message: `Your ${PLANS[plan].name} plan allows ${PLANS[plan].tradeLimit} trades. Upgrade to log more.`, values: raw };
+    if (result.limit) return { message: `Your ${PLANS[plan].name} plan allows ${PLANS[plan].tradeLimit} trades. Upgrade to log more.`, values: raw, code: "limit" };
   } catch (e) {
     console.error("createTrade failed", e);
     return { message: "Could not save the trade. Nothing was saved — please try again.", values: raw };

@@ -119,6 +119,7 @@ async function logTrade(page, o) {
   // --- delete + logout + login
   await A.goto(BASE + '/app/journal');
   await A.locator('tbody tr', { hasText: 'GBPUSD' }).getByRole('button', { name: /Delete/ }).click();
+  await A.locator('tbody tr', { hasText: 'GBPUSD' }).getByRole('button', { name: /Confirm delete/ }).click(); // delete is two-step: arm, then confirm
   await A.waitForURL('**/app/journal?deleted=1');
   check('delete works', !(await A.locator('tbody').innerText()).includes('GBPUSD'));
   await A.getByRole('button', { name: 'Log out' }).click();

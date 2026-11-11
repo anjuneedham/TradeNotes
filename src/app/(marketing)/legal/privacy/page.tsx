@@ -47,6 +47,7 @@ export default function Privacy() {
       <ul>
         <li><code>better-auth.session_token</code> — keeps you logged in (essential; expires after about 30 days).</li>
         <li><code>tn_src</code> — remembers the source tag of the link you came from (30 days).</li>
+        <li><code>tn_theme</code> — remembers a light or dark appearance if you choose one in Settings (1 year; not set unless you choose).</li>
       </ul>
       <p>We do not use advertising or third-party analytics cookies.</p>
 
