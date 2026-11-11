@@ -19,6 +19,6 @@ for (const f of files) {
   }
 }
 const r = await client.query("select count(*)::int as n from information_schema.tables where table_name like 'tn\\_%' or table_schema = 'tradenotes'");
-console.log(`[migrate] done. TradeNotes tables present: ${r.rows[0].n} (expected 15)`);
+console.log(`[migrate] done. TradeNotes tables present: ${r.rows[0].n} (expected 17)`);
 await client.end();
-if (r.rows[0].n !== 15) { console.error("[migrate] unexpected table count"); process.exit(1); }
+if (r.rows[0].n !== 17) { console.error("[migrate] unexpected table count"); process.exit(1); }

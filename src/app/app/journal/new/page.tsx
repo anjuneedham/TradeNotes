@@ -8,7 +8,7 @@ import { Notice, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/u
 export const metadata = { title: "Log a trade — TradeNotes" };
 export default async function NewTrade() {
   const { db, accounts, profile, plan } = await getContext();
-  const market = profile?.primary_market === "stocks" ? "stock" : profile?.primary_market === "options" ? "option" : profile?.primary_market ?? "forex";
+  const market = profile?.primary_market === "stocks" ? "stock" : profile?.primary_market === "options" ? "option" : profile?.primary_market === "futures" ? "future" : profile?.primary_market ?? "forex";
   // Presentation only: the limit itself is enforced inside the createTrade transaction.
   const limit = PLANS[plan].tradeLimit;
   const used = limit === null ? 0 : (await db((q) => q<{ n: number }>("select count(*)::int as n from tradenotes.trades")))[0].n;

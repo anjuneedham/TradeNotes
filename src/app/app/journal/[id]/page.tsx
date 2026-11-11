@@ -24,8 +24,9 @@ function Note({ title, text }: { title: string; text: string | null }) {
   return <div><h3 className="text-xs text-muted">{title}</h3><p className={`mt-1 whitespace-pre-wrap text-sm leading-relaxed ${text ? "" : "text-muted"}`}>{text || "Nothing written."}</p></div>;
 }
 
-export default async function TradeDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function TradeDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
   const { id } = await params;
+  const { saved } = await searchParams;
   if (!UUID.test(id)) notFound();
   const { db } = await getContext();
   const { t, exits, newer, older } = await db(async (q) => {
@@ -71,6 +72,7 @@ export default async function TradeDetail({ params }: { params: Promise<{ id: st
         </div>
       </header>
 
+      {saved && <Notice kind="ok">Changes saved.</Notice>}
       {res === "open_or_partial" && <Notice>This trade is not fully closed, so it is not counted in your statistics yet.</Notice>}
       {res === "missing_fx" && <Notice kind="warn">This trade is quoted in {t.currency} but has no exchange rate to {cur}, so it cannot be counted in your statistics.</Notice>}
 
@@ -128,7 +130,7 @@ export default async function TradeDetail({ params }: { params: Promise<{ id: st
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <p className="text-xs text-muted">Editing a saved trade isn&apos;t available yet. To correct one, delete it and log it again.</p>
+        <Link href={`/app/journal/${t.id}/edit`} className={btnGhostCls}>Edit trade</Link>
         <form action={deleteTrade}><input type="hidden" name="id" value={t.id} /><ConfirmDelete label={`${t.symbol} trade`} /></form>
       </div>
     </div>

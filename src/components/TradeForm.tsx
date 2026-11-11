@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { createTrade, type FormState } from "@/app/app/journal/actions";
+import { createTrade, updateTrade, type FormState } from "@/app/app/journal/actions";
 import { ASSET_CLASSES, SESSIONS, EMOTIONS, MISTAKES, defaultMultiplier } from "@/lib/trade-schema";
 import { Card, Field, Notice, inputCls, btnCls, btnGhostCls } from "./ui";
 
 type Acct = { id: string; name: string; currency: string };
 const nowLocal = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
-const ASSET_LABEL: Record<string, string> = { forex: "Forex", futures: "Futures", stock: "Stocks", option: "Options", crypto: "Crypto", other: "Other" };
+const ASSET_LABEL: Record<string, string> = { forex: "Forex", future: "Futures", stock: "Stocks", option: "Options", crypto: "Crypto", other: "Other" };
 const n = (v: string | undefined) => { const x = Number(v); return v && Number.isFinite(x) && x > 0 ? x : null; };
 const fmt = (x: number) => x.toLocaleString("en-US", { maximumFractionDigits: 2 });
 
@@ -39,18 +39,20 @@ function Chips({ name, legend, options, picked, toggle }: { name: string; legend
   );
 }
 
-export default function TradeForm({ accounts, defaultAsset }: { accounts: Acct[]; defaultAsset: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(createTrade, {});
-  const [asset, setAsset] = useState(defaultAsset);
-  const [side, setSide] = useState<"long" | "short">("long");
-  const [emotions, setEmotions] = useState<Set<string>>(new Set());
-  const [mistakes, setMistakes] = useState<Set<string>>(new Set());
+/** `edit` pre-fills the form from a saved trade and submits to updateTrade instead of createTrade. */
+export type TradeInitial = { id: string; values: Record<string, string>; emotions: string[]; mistakes: string[] };
+export default function TradeForm({ accounts, defaultAsset, edit }: { accounts: Acct[]; defaultAsset: string; edit?: TradeInitial }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(edit ? updateTrade : createTrade, {});
+  const [asset, setAsset] = useState(edit?.values.asset_class ?? defaultAsset);
+  const [side, setSide] = useState<"long" | "short">(edit?.values.side === "short" ? "short" : "long");
+  const [emotions, setEmotions] = useState<Set<string>>(new Set(edit?.emotions ?? []));
+  const [mistakes, setMistakes] = useState<Set<string>>(new Set(edit?.mistakes ?? []));
   const [live, setLive] = useState<Record<string, string>>({});
   const flip = (set: React.Dispatch<React.SetStateAction<Set<string>>>) => (v: string) => set((s) => { const c = new Set(s); if (c.has(v)) c.delete(v); else c.add(v); return c; });
 
-  const v = state.values ?? {};
+  const v = state.values ?? edit?.values ?? {};
   const e = state.errors ?? {};
-  const sizeLabel = asset === "forex" ? "Size (lots)" : asset === "futures" ? "Contracts" : "Quantity";
+  const sizeLabel = asset === "forex" ? "Size (lots)" : asset === "future" ? "Contracts" : "Quantity";
   const acctCur = accounts[0]?.currency ?? "USD";
   const errorCount = Object.keys(e).length;
   const inv = (k: string) => ({ "aria-invalid": e[k] ? (true as const) : undefined });
@@ -76,6 +78,7 @@ export default function TradeForm({ accounts, defaultAsset }: { accounts: Acct[]
         <Notice kind="error">{state.message}{errorCount > 0 && <> ({errorCount} field{errorCount === 1 ? "" : "s"})</>}</Notice>
       ) : null}
 
+      {edit && <input type="hidden" name="trade_id" value={edit.id} />}
       <Section step={1} title="The trade">
         <fieldset>
           <legend className="mb-1.5 text-sm font-medium">Direction</legend>
@@ -164,8 +167,8 @@ export default function TradeForm({ accounts, defaultAsset }: { accounts: Acct[]
       </Section>
 
       <div className="sticky bottom-[4.5rem] z-20 -mx-4 flex items-center gap-3 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
-        <button disabled={pending} className={`${btnCls} flex-1 sm:flex-none sm:px-8`}>{pending ? "Saving…" : "Save trade"}</button>
-        <Link href="/app/journal" className={btnGhostCls}>Cancel</Link>
+        <button disabled={pending} className={`${btnCls} flex-1 sm:flex-none sm:px-8`}>{pending ? "Saving…" : edit ? "Save changes" : "Save trade"}</button>
+        <Link href={edit ? `/app/journal/${edit.id}` : "/app/journal"} className={btnGhostCls}>Cancel</Link>
         <span className="ml-auto hidden text-xs text-muted sm:block">Only instrument, size, entry price and time are required.</span>
       </div>
     </form>

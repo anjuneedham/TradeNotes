@@ -1,7 +1,8 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { pool } from "./db";
-import { emailEnabled, sendEmail } from "./email";
+import { emailEnabled } from "./email";
+import { sendTemplate } from "./email-templates";
 
 function create() {
   const site = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
@@ -26,7 +27,7 @@ function create() {
       resetPasswordTokenExpiresIn: 3600,
       revokeSessionsOnPasswordReset: true, // a reset signs the account out everywhere
       sendResetPassword: async ({ user, url }) => {
-        await sendEmail(user.email, "Reset your TradeNotes password", `Use this link to choose a new password (valid for 1 hour):\n\n${url}\n\nIf you didn't ask for this, ignore this email.`);
+        await sendTemplate(user.email, "reset_password", { url });
       },
     },
     emailVerification: {
@@ -34,7 +35,7 @@ function create() {
       sendOnSignIn: mail, // unverified user tries to log in => send a fresh confirmation link
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
-        await sendEmail(user.email, "Confirm your TradeNotes email", `Confirm your email to finish creating your account:\n\n${url}`);
+        await sendTemplate(user.email, "verify_email", { url });
       },
     },
     plugins: [nextCookies()], // must be last

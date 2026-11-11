@@ -111,6 +111,36 @@ async function logTrade(page, o) {
   const det = await A.locator('body').innerText();
   check('trade detail: result, risk plan and tags shown', det.includes('$593.00') && det.includes('Planned risk') && det.includes('$300.00') && /MOVED STOP/i.test(det) && det.includes('London breakout'), det.slice(0, 300));
   const detailUrl = A.url();
+  // --- edit (H-2): pre-filled form, change notes, P&L must be unchanged (exits re-created correctly)
+  await A.goto(detailUrl + '/edit');
+  check('edit: form is pre-filled', (await A.getByLabel('Instrument').inputValue()) === 'EURUSD' && (await A.getByLabel('Entry price').inputValue()) === '1.085' && await A.getByLabel('Moved stop').isChecked());
+  await A.getByLabel('Lesson learned').fill('Edited lesson: wait for the retest');
+  await A.getByRole('button', { name: 'Save changes' }).click();
+  await A.waitForURL(/\/app\/journal\/[0-9a-f-]{36}\?saved=1$/);
+  const ed = await A.locator('body').innerText();
+  check('edit: saved, notes changed, P&L unchanged', ed.includes('Changes saved.') && ed.includes('Edited lesson: wait for the retest') && ed.includes('$593.00') && /MOVED STOP/i.test(ed), ed.slice(0, 300));
+  await A.goto(detailUrl + '/edit');
+  await A.getByLabel('Exit 1 price', { exact: true }).fill('1.0950');
+  await A.getByRole('button', { name: 'Save changes' }).click();
+  await A.waitForURL(/\?saved=1$/);
+  check('edit: changing the exit price recalculates P&L ($993.00)', (await A.locator('body').innerText()).includes('$993.00'));
+  await A.goto(detailUrl + '/edit');
+  await A.getByLabel('Exit 1 price', { exact: true }).fill('1.0910');
+  await A.getByRole('button', { name: 'Save changes' }).click();
+  await A.waitForURL(/\?saved=1$/);
+  check('edit: restored to $593.00', (await A.locator('body').innerText()).includes('$593.00'));
+  // --- futures (H-1): previously failed with "Could not save the trade"
+  await A.goto(BASE + '/app/journal/new');
+  await A.getByLabel('Market').selectOption('future');
+  await A.getByLabel('Instrument').fill('ES');
+  await A.getByLabel('Contracts').fill('1');
+  await A.getByLabel('Entry price').fill('5000');
+  await A.getByLabel('Entry time').fill('2026-11-03T14:00');
+  await A.getByRole('button', { name: 'Save trade' }).click();
+  check('futures trade saves (H-1 fixed)', await A.waitForURL('**/app/journal?saved=1', { timeout: 10000 }).then(() => true, () => false) && (await A.locator('tbody').innerText()).includes('ES'));
+  await A.locator('tbody tr', { hasText: 'ES' }).filter({ hasNotText: 'EURUSD' }).getByRole('button', { name: /Delete/ }).click();
+  await A.locator('tbody tr', { hasText: 'ES' }).filter({ hasNotText: 'EURUSD' }).getByRole('button', { name: /Confirm delete/ }).click();
+  await A.waitForURL('**/app/journal?deleted=1');
   await A.goto(BASE + '/app/billing');
   check('billing: shows current plan and usage against the limit', /Free/.test(await A.locator('body').innerText()) && /3\s*of 50/.test(await A.locator('body').innerText()));
   await A.goto(BASE + '/app/settings');
@@ -122,6 +152,8 @@ async function logTrade(page, o) {
   await A.getByRole('button', { name: 'Save preferences' }).click();
   await A.waitForURL('**/app/settings?saved=1');
   globalThis.__detailUrl = detailUrl;
+  await A.goto(BASE + '/app/journal/new');
+  globalThis.__aAccount = await A.locator('input[name=account_id]').getAttribute('value');
 
   // --- mobile layout check (no horizontal scroll)
   await A.setViewportSize({ width: 390, height: 800 });
@@ -145,6 +177,30 @@ async function logTrade(page, o) {
   check('user B cannot open user A trade detail (404)', rB.status() === 404, String(rB.status()));
   await B.goto(BASE + '/app');
   check('user B dashboard has no A numbers', !(await B.locator('body').innerText()).includes('$293.00'));
+  // --- forged requests from B against A's records (server must not trust ids from the browser)
+  const rE = await B.goto(globalThis.__detailUrl + '/edit');
+  check('user B cannot open user A edit page (404)', rE.status() === 404, String(rE.status()));
+  await logTrade(B, { symbol: 'USDCAD', size: '1', entry: '1.3500' });
+  await B.waitForURL('**/app/journal?saved=1');
+  await B.locator('tbody tr', { hasText: 'USDCAD' }).getByRole('link', { name: 'View' }).click();
+  await B.waitForURL(/\/app\/journal\/[0-9a-f-]{36}$/);
+  await B.goto(B.url() + '/edit');
+  const aId = globalThis.__detailUrl.split('/').pop();
+  await B.evaluate((id) => { const old = document.querySelector('input[name=trade_id]'); const f = old.form; old.removeAttribute('name'); const i = document.createElement('input'); i.type = 'hidden'; i.name = 'trade_id'; i.value = id; f.appendChild(i); }, aId);
+  await B.getByLabel('Instrument').fill('HACKED');
+  await B.getByRole('button', { name: 'Save changes' }).click();
+  check('forged update of A trade by B is refused', await B.getByText('Trade not found.').waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await B.goto(BASE + '/app/journal/new');
+  const aAcct = globalThis.__aAccount;
+  if (aAcct) {
+    await B.evaluate((id) => { const old = document.querySelector('input[name=account_id]'); const f = old.form; old.removeAttribute('name'); const i = document.createElement('input'); i.type = 'hidden'; i.name = 'account_id'; i.value = id; f.appendChild(i); }, aAcct);
+    await B.getByLabel('Instrument').fill('HACKED'); await B.getByLabel('Size (lots)').fill('1'); await B.getByLabel('Entry price').fill('1.1');
+    await B.getByRole('button', { name: 'Save trade' }).click();
+    const fc = await B.getByText('Account not found.').waitFor({ timeout: 8000 }).then(() => true, () => false);
+    check('forged create into A account by B is refused', fc, (await B.locator('main').innerText()).slice(0, 300));
+  }
+  const fd = await B.request.post(BASE + '/app/journal', { form: { id: aId } }).catch(() => null);
+  check('raw POST to journal without a server-action id changes nothing', !fd || fd.status() < 500);
 
   // --- delete + logout + login
   await A.goto(BASE + '/app/journal');
@@ -162,7 +218,9 @@ async function logTrade(page, o) {
   await A.getByLabel('Email').fill(emailA); await A.getByLabel('Password').fill('correct-horse-battery');
   await A.getByRole('button', { name: 'Log in' }).click();
   await A.waitForURL('**/app**', { timeout: 15000 });
-  check('login with correct password works; data persisted', (await (async () => { await A.goto(BASE + '/app/journal'); return await A.locator('tbody').innerText(); })()).includes('$593.00'));
+  const finalJ = await (async () => { await A.goto(BASE + '/app/journal'); return await A.locator('tbody').innerText(); })();
+  check('login with correct password works; data persisted', finalJ.includes('$593.00'));
+  check('A trade not modified by B (no HACKED rows)', !finalJ.includes('HACKED'));
   check('no browser JS errors', errors.length === 0, errors.join(' | '));
 
   await browser.close();

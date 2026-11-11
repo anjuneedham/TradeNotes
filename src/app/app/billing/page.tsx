@@ -6,13 +6,30 @@ import { PlanComparison } from "@/components/PlanComparison";
 import { Card, Notice, Badge, Meter, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 import { shortDate } from "@/lib/format";
 import { LEGAL, isFilled } from "@/lib/legal";
+import { handypayEnabled } from "@/lib/billing/handypay";
+import { startCheckout, cancelSubscription, resumeSubscriptionAction, openPortal } from "./actions";
+
+const ERRORS: Record<string, string> = {
+  checkout: "We couldn't start checkout just now. Nothing was charged — please try again.",
+  "already-subscribed": "You already have an active paid plan, so we didn't start a second subscription.",
+  cancel: "We couldn't cancel just now. Nothing changed — please try again.",
+  resume: "We couldn't resume your subscription just now. Please try again.",
+  portal: "We couldn't open the payment page just now. Please try again.",
+  manual: "This subscription was set up by hand, so it is managed by email for now.",
+};
+interface PaymentRow { id: string; amount_cents: number; currency: string; status: "paid" | "failed" | "refunded"; description: string | null; receipt_url: string | null; occurred_at: string }
 
 export const metadata = { title: "Plan & billing — TradeNotes" };
 
-export default async function Billing({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
+export default async function Billing({ searchParams }: { searchParams: Promise<{ plan?: string; checkout?: string; error?: string; cancelled?: string; resumed?: string }> }) {
   const { db, user, plan, sub } = await getContext({ requireOnboarded: false });
-  const { plan: want } = await searchParams;
-  const used = (await db((q) => q<{ n: number }>("select count(*)::int as n from tradenotes.trades")))[0].n;
+  const { plan: want, checkout, error, cancelled, resumed } = await searchParams;
+  const { used, payments } = await db(async (q) => ({
+    used: (await q<{ n: number }>("select count(*)::int as n from tradenotes.trades"))[0].n,
+    payments: await q<PaymentRow>("select id, amount_cents, currency, status, description, receipt_url, occurred_at from tradenotes.payments order by occurred_at desc limit 24"),
+  }));
+  const auto = handypayEnabled();
+  const managed = auto && Boolean(sub?.provider_subscription_id) && sub?.provider === "handypay";
   const limit = PLANS[plan].tradeLimit;
   const over = limit !== null && used >= limit;
   // A paid subscription row that no longer grants access (cancelled, unpaid or past its period).
@@ -25,6 +42,14 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
     <div className="mx-auto max-w-4xl space-y-5">
       <PageHeader title="Plan & billing" sub={<><Link href="/app/settings" className={linkCls}>Settings</Link> / Plan &amp; billing</>} />
 
+      {checkout === "success" && (plan === "free"
+        ? <Notice kind="ok">Payment received by HandyPay. Your plan switches on as soon as they confirm it — usually within a minute. Refresh this page shortly.</Notice>
+        : <Notice kind="ok">You&apos;re on {PLANS[plan].name}. Thank you for subscribing.</Notice>)}
+      {checkout === "cancelled" && <Notice>Checkout was cancelled. Nothing was charged.</Notice>}
+      {error && ERRORS[error] && <Notice kind="error">{ERRORS[error]}</Notice>}
+      {cancelled && <Notice kind="ok">Cancellation confirmed. You keep {PLANS[plan].name}{end ? ` until ${end}` : " until the end of the paid period"}; there are no further charges.</Notice>}
+      {resumed && <Notice kind="ok">Your subscription will continue to renew as normal.</Notice>}
+      {sub?.status === "past_due" && paid && <Notice kind="warn">Your last payment failed. HandyPay will retry your card; you keep {PLANS[plan].name} for a few days while it does. Update your card to avoid moving to Free.</Notice>}
       {lapsed && (
         <Notice kind="warn">
           <p className="font-medium">Your {PLANS[sub.plan as keyof typeof PLANS].name} subscription is no longer active{sub.status && sub.status !== "active" ? ` (${sub.status.replace(/_/g, " ")})` : ""}.</p>
@@ -36,11 +61,11 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs text-muted">Current plan</p>
-            <p className="mt-1 flex items-center gap-2.5 text-2xl font-semibold tracking-tight">{PLANS[plan].name}{paid && <Badge tone="win">{sub?.status === "trialing" ? "Trial" : "Active"}</Badge>}</p>
+            <p className="mt-1 flex items-center gap-2.5 text-2xl font-semibold tracking-tight">{PLANS[plan].name}{paid && (sub?.cancel_at_period_end ? <Badge tone="warn">Ends {end ?? "at period end"}</Badge> : sub?.status === "past_due" ? <Badge tone="warn">Payment failed</Badge> : <Badge tone="win">{sub?.status === "trialing" ? "Trial" : "Active"}</Badge>)}</p>
           </div>
           <div className="text-right">
             <p className="fig text-2xl font-medium">${PLANS[plan].monthly}<span className="font-sans text-sm font-normal text-muted"> / month</span></p>
-            <p className="mt-1 text-xs text-muted">{paid ? (end ? `Paid through ${end}. Renews automatically each month unless cancelled.` : "Renews automatically each month unless cancelled.") : "No charge. No card on file."}</p>
+            <p className="mt-1 text-xs text-muted">{paid ? (sub?.cancel_at_period_end ? `Cancelled. Access until ${end ?? "the end of the paid period"}, then Free.` : end ? `Paid through ${end}. Renews automatically each month unless cancelled.` : "Renews automatically each month unless cancelled.") : "No charge. No card on file."}</p>
           </div>
         </div>
         <div className="mt-5 border-t border-border pt-4">
@@ -66,6 +91,7 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
                 {plan === id ? <p className="text-xs text-muted">This is your current plan.</p>
                   : id === "free" ? <p className="text-xs text-muted">To move to Free, cancel your subscription (see below). You keep paid access until the period you paid for ends.</p>
                   : paid ? <p className="text-xs leading-relaxed text-muted">To switch to {PLANS[id].name}, {support ? `email ${support}` : "contact support"} so we can move your existing subscription. Subscribing again here would start a second one.</p>
+                  : auto ? <form action={startCheckout}><input type="hidden" name="plan" value={id} /><button className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}</button></form>
                   : <a href={CHECKOUT_URLS[id]} target="_blank" rel="noopener noreferrer" className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}<span className="sr-only"> (opens Handypay checkout in a new tab)</span> ↗</a>}
               </div>
             </Card>
@@ -73,7 +99,38 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
         </div>
       </section>
 
-      <Card>
+      {managed && paid && (
+        <Card>
+          <h2 className="font-medium">Manage subscription</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <form action={openPortal}><button className={btnGhostCls}>Update card &amp; invoices ↗</button></form>
+            {sub?.cancel_at_period_end
+              ? <form action={resumeSubscriptionAction}><button className={btnCls}>Resume subscription</button></form>
+              : <form action={cancelSubscription}><button className={btnGhostCls}>Cancel subscription</button></form>}
+          </div>
+          <p className="mt-3 text-xs text-muted">{sub?.cancel_at_period_end ? `No further charges. You keep ${PLANS[plan].name} until ${end ?? "the end of the paid period"}.` : "Cancelling stops the next renewal. You keep your plan until the end of the period you've paid for; nothing is deleted."}</p>
+        </Card>
+      )}
+
+      {payments.length > 0 && (
+        <Card>
+          <h2 className="font-medium">Payment history</h2>
+          <ul className="mt-3 divide-y divide-border text-sm">
+            {payments.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
+                <span>{shortDate(p.occurred_at)} · {p.description ?? "Payment"}</span>
+                <span className="flex items-baseline gap-3">
+                  <span className="fig">{(p.amount_cents / 100).toLocaleString("en-US", { style: "currency", currency: p.currency })}</span>
+                  <Badge tone={p.status === "paid" ? "win" : p.status === "failed" ? "warn" : "neutral"}>{p.status}</Badge>
+                  {p.receipt_url && /^https:\/\//.test(p.receipt_url) ? <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className={linkCls}>Receipt</a> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {!auto && <Card>
         <h2 className="font-medium">How subscribing works</h2>
         <ol className="mt-3 space-y-3 text-sm">
           {[
@@ -85,17 +142,17 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
           ))}
         </ol>
         <p className="mt-4 text-xs text-muted">Paid but not activated after one business day?{support ? ` Email ${support} from your account email with your Handypay receipt.` : " Contact support from your account email with your Handypay receipt."}</p>
-      </Card>
+      </Card>}
 
       <Card>
         <h2 className="font-medium">Cancelling, downgrading and failed payments</h2>
         <dl className="mt-3 space-y-3 text-sm">
-          <div><dt className="font-medium">To cancel or switch plan</dt><dd className="mt-0.5 text-muted">Use the manage link in your Handypay receipt email{support ? `, or email ${support}` : ", or contact support"}. There is no cancellation fee and no questions to answer first.</dd></div>
+          <div><dt className="font-medium">To cancel or switch plan</dt><dd className="mt-0.5 text-muted">{managed ? "Use Cancel subscription above, or the" : "Use the"} manage link in your Handypay receipt email{support ? `, or email ${support}` : ", or contact support"}. There is no cancellation fee and no questions to answer first.</dd></div>
           <div><dt className="font-medium">After you cancel</dt><dd className="mt-0.5 text-muted">No further charges. You keep your paid plan until the end of the period you&apos;ve paid for, then move to Free.</dd></div>
-          <div><dt className="font-medium">If a payment fails</dt><dd className="mt-0.5 text-muted">Your account returns to Free when the paid period ends. Subscribe again to restore it.</dd></div>
+          <div><dt className="font-medium">If a payment fails</dt><dd className="mt-0.5 text-muted">HandyPay retries your card. You keep your plan until the paid period ends plus a 3-day grace period; if payment still fails, your account returns to Free. Subscribe again to restore it.</dd></div>
           <div><dt className="font-medium">Your data on Free</dt><dd className="mt-0.5 text-muted">Nothing is deleted. You can view and analyse every trade you&apos;ve logged; you can only add new ones while you are under the Free limit of {PLANS.free.tradeLimit}.</dd></div>
         </dl>
-        <p className="mt-4 text-xs text-muted">Receipts and payment history are kept by Handypay and sent to your email; they aren&apos;t shown here yet. Full terms: <Link href="/legal/terms" className={linkCls}>Terms of Service</Link>.</p>
+        <p className="mt-4 text-xs text-muted">Receipts are sent to your email by Handypay{auto ? "; payments we've received are listed above" : ""}. Full terms: <Link href="/legal/terms" className={linkCls}>Terms of Service</Link>.</p>
       </Card>
 
       <details className="rounded-lg border border-border bg-panel p-4 sm:p-5" open={Boolean(want)}>
