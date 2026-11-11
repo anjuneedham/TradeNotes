@@ -8,6 +8,7 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
         <Link href="/learn" className="hover:text-fg">Metric guide</Link>
         <Link href="/legal/terms" className="hover:text-fg">Terms</Link>
         <Link href="/legal/privacy" className="hover:text-fg">Privacy</Link>
+        <Link href="/legal/subscription" className="hover:text-fg">Subscriptions</Link>
         <Link href="/legal/disclaimer" className="hover:text-fg">Risk disclaimer</Link>
         <span className="w-full leading-relaxed">TradeNotes is a journaling and analytics tool. It does not provide financial advice. Trading involves substantial risk of loss; past performance does not guarantee future results.</span>
       </div>

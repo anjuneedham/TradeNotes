@@ -30,13 +30,13 @@ export default function Terms() {
       <ul>
         <li>There is a Free plan and paid monthly plans, priced in US dollars as shown on the pricing page. Taxes may apply.</li>
         <li>Paid plans are billed through {LEGAL.paymentProvider} and <strong>renew automatically each month until cancelled</strong>. We do not store your card details.</li>
-        <li>Paid features are switched on after we confirm your payment. This is currently done by hand, so it may take a little time; we aim to do it within one business day. Pay using the same email address you registered with.</li>
+        <li>Paid features are switched on automatically once {LEGAL.paymentProvider} confirms your payment, usually within minutes. If automatic confirmation is ever unavailable, we switch them on by hand, aiming for one business day. If a renewal payment fails, paid features continue for a short grace period (currently 3 days after the paid period ends) while the payment is retried; after that your account moves to the Free plan. Your data is not deleted.</li>
         <li>If a payment fails or a subscription ends, your account returns to the Free plan. Your data is kept, but Free plan limits apply.</li>
         <li>We may change prices with advance notice; the new price applies from your next renewal.</li>
       </ul>
 
       <h2>6. Cancellation and refunds</h2>
-      <p>You can cancel at any time by emailing {mail} or using the cancellation link in your {LEGAL.paymentProvider} receipt. Cancellation stops future charges; access to paid features continues until the end of the period you have paid for.</p>
+      <p>You can cancel at any time from Plan &amp; billing in the app, using the link in your {LEGAL.paymentProvider} receipt, or by emailing {mail}. Cancellation stops future charges; access to paid features continues until the end of the period you have paid for.</p>
       {LEGAL.refundDays > 0
         ? <p>If you are unhappy, email us within <strong>{LEGAL.refundDays} days of your first payment</strong> for a full refund of that payment. After that, payments are not refunded except where the law requires.</p>
         : <p>Payments are not refundable except where the law requires.</p>}

@@ -19,7 +19,7 @@ export default function Privacy() {
         <li><strong>What you enter:</strong> trades, notes, tags, strategies, account names and balances, and your onboarding answers (experience, market, style, goals).</li>
         <li><strong>Sign-in records:</strong> when you log in we store your IP address and browser details with the session, for security.</li>
         <li><strong>Where you came from:</strong> if you arrive through a link tagged with a source (for example from a social post), we remember that tag so we can learn which channels work.</li>
-        <li><strong>Payments:</strong> handled by {LEGAL.paymentProvider}. We never see or store your card number. We see that a payment was made, the payer’s email and the plan.</li>
+        <li><strong>Payments:</strong> handled by {LEGAL.paymentProvider}. We never see or store your card number. We receive and keep a record of each payment (amount, currency, date, status and receipt link), the plan, and {LEGAL.paymentProvider}’s customer and subscription identifiers, so we can switch paid features on and off and show your payment history.</li>
         <li><strong>Emails:</strong> messages we send you (confirmation, password reset) and your replies to support.</li>
       </ul>
 
@@ -52,10 +52,10 @@ export default function Privacy() {
       <p>We do not use advertising or third-party analytics cookies.</p>
 
       <h2>6. How long we keep it</h2>
-      <p>While your account is open. If you ask us to delete your account we will do so within {LEGAL.deletionDays} days, which removes your trades and profile. Copies in provider backups expire on the provider’s normal schedule. We may keep basic payment records as the law requires.</p>
+      <p>While your account is open. You can delete your account yourself at any time in Settings → Your data; this immediately removes your profile, trades, notes, subscription record and payment history from our database. If you ask us by email instead, we will do it within {LEGAL.deletionDays} days. Copies in provider backups expire on the provider’s normal schedule. {LEGAL.paymentProvider} keeps its own payment records as the law requires.</p>
 
       <h2>7. Your rights</h2>
-      <p>You can ask us to give you a copy of your data, correct it, delete it, or stop using it for a purpose. Email {mail} from the address on your account; we may ask you to verify your identity. If you are unhappy with our response you can complain to the data-protection authority where you live — in Jamaica, the Office of the Information Commissioner.</p>
+      <p>You can download your trades yourself (Settings → Your data → Download my trades), correct any trade by editing it, and delete your account yourself. You can also ask us to give you a copy of your data, correct it, delete it, or stop using it for a purpose. Email {mail} from the address on your account; we may ask you to verify your identity. If you are unhappy with our response you can complain to the data-protection authority where you live — in Jamaica, the Office of the Information Commissioner.</p>
 
       <h2>8. Security</h2>
       <p>We use encrypted connections, hashed passwords, rate limiting on sign-in, and database-level rules so each user can only reach their own records. No system is perfectly secure. If a breach affects you we will tell you and the authorities where the law requires.</p>
