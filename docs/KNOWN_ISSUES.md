@@ -9,7 +9,7 @@
 8. No error monitoring (Sentry) yet.
 9. Legal pages are drafts, unreviewed.
 10. Dashboard fetches all trades (≤10,000) per load; fine for launch, needs SQL aggregation later.
-11. Billing is manual: plan activation by owner SQL after confirming payment (DEPLOYMENT.md). No webhook, no automatic renewal/cancel, no founding coupon, no annual link.
+11. ~~Billing is manual~~ Automated via HandyPay API + webhooks (2026-11-11), **pending one real test-mode run**; manual fallback remains when keys are absent. Previously: plan activation by owner SQL after confirming payment (DEPLOYMENT.md). No webhook, no automatic renewal/cancel, no founding coupon, no annual link.
 12. **Email is not configured**: until `RESEND_API_KEY` is set, email confirmation is OFF (anyone can register any address) and password reset is unavailable (UI says so). Because payments are matched by email, set up email BEFORE taking payment.
 13. `.npmrc` uses legacy-peer-deps (optional peer conflict, see DECISIONS).
 14. Not yet reviewed: Better Auth cookie/CSRF settings behind a custom domain; Neon pooled-connection behaviour under load.
@@ -25,3 +25,6 @@
 24. Legal pages still contain unfilled required values until `src/lib/legal.ts` is completed (they display a warning). Not yet reviewed by counsel.
 25. **Futures trades cannot be saved**: the form sends `futures`, the `trades.asset_class` check allows `future`. Found 2026-11-11; see docs/design/OPUS_FABLE_HANDOFF.md H-1.
 26. Frontend redesign 2026-11-11: open items and backend dependencies are tracked in `docs/design/OPUS_FABLE_HANDOFF.md`; honest scores in `docs/design/FRONTEND_COMPLETION_REPORT.md`.
+
+25. 2026-11-11: past-due subscriptions keep access until period end + 3 days (GRACE_DAYS); stated in Terms and Subscription policy.
+26. 2026-11-11: HandyPay webhook object field names are assumed Stripe-style; raw payloads are stored in `billing_events.payload` — check the first real delivery.
