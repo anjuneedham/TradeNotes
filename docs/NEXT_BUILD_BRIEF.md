@@ -44,6 +44,14 @@ Weighted today about 4.6 on this scale vs the 5.3 headline; the aim is to move e
 ### Phase 4 (decision memo only, do not build without owner approval)
 Broker auto-sync via an aggregator (for example SnapTrade) and AI weekly summaries via the Claude API: write cost, privacy and legal impact, and a go/no-go recommendation.
 
+## 3b. Cost guardrails (owner requirement: no new paid services, no cost surprises)
+- Phases 1-3 must need **no new subscription, vendor account or paid API**. Everything runs on the existing stack (Vercel, the TradeNotes Supabase Postgres, Resend free tier, Sentry free tier, GitHub).
+- **Screenshots are the only feature that stores bulk data.** Use the storage that is already included with the existing host (Supabase Storage on the same project, or Vercel Blob if the owner already pays for Vercel Pro). Hard-cap it in code so cost cannot run away: max 2 MB per image after client-side compression, max 5 images per trade, per-user quota by plan (Free none, Standard 500 MB, Premium 2 GB), and a total-storage check that refuses uploads once the platform's included allowance is 80% used. Show the owner the current usage in the owner checklist.
+- **Reminder and review emails:** opt-in only, weekly at most, and capped so total sends stay under the Resend free limits (about 100/day, 3,000/month); stop sending and log a warning near the cap.
+- **Dashboards:** aggregate in SQL with indexes; no per-request loading of whole histories; no background workers or cron products beyond what the plan already includes.
+- **Not allowed without the owner's written approval:** market-data licences (replay), broker-sync aggregators, AI/LLM API calls, paid analytics or monitoring tiers, any new SaaS. Phase 4 items are memos only.
+- If any feature cannot meet the above, stop, describe the cost, and ask the owner.
+
 ## 4. Non-negotiable engineering rules
 - **Branching:** feature branch per phase; PR into `main`; CI must be green. Never force-push `main`.
 - **Schema:** idempotent files in `db/paste/NN_name.sql` only. Update `db/expected-columns.txt`, the table-count constants in `scripts/migrate.mjs` and `scripts/verify-db.mjs`, and add verification checks. Every new user table needs row-level security, no grants to `anon`/`authenticated`, and a two-user isolation test. Run `bash scripts/test-paste.sh` and the DB tests.
