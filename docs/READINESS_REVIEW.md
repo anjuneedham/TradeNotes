@@ -1,3 +1,5 @@
+**SEO (2026-11-12):** 6.5/10, up from 4, see `docs/SEO.md`.
+
 # Projection: if the owner-side items below are done (estimate, not measured)
 Assumes: one real payment and refund works end to end, a Sentry event is seen, ImprovMX delivery confirmed, branch protection on `main`, Production Branch = `main`.
 | Lens | Now | Projected |
