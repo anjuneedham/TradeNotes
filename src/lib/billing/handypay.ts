@@ -53,13 +53,13 @@ const urlIn = (j: Record<string, unknown>): string | null => {
  * Create a hosted subscription checkout for this user. Uses the documented inline form so `metadata` (user id + plan)
  * is echoed on webhooks — that, not the email, is how the payment is matched to the account.
  */
-export async function createSubscriptionCheckout(opts: { plan: Exclude<PlanId, "free">; userId: string; email: string; siteUrl: string }): Promise<string> {
+export async function createSubscriptionCheckout(opts: { plan: Exclude<PlanId, "free">; userId: string; email: string; siteUrl: string; founding?: { amountCents: number } }): Promise<string> {
   const p = PLANS[opts.plan];
   const j = await call<Record<string, unknown>>("POST", "/subscription-sessions", {
-    amount_cents: p.monthly * 100, currency: "usd", interval: "month", interval_count: 1, quantity: 1,
-    name: `TradeNotes ${p.name}`, customer_email: opts.email,
+    amount_cents: opts.founding?.amountCents ?? p.monthly * 100, currency: "usd", interval: "month", interval_count: 1, quantity: 1,
+    name: `TradeNotes ${p.name}${opts.founding ? " (Founding member)" : ""}`, customer_email: opts.email,
     success_url: `${opts.siteUrl}/app/billing?checkout=success`, cancel_url: `${opts.siteUrl}/app/billing?checkout=cancelled`,
-    metadata: { user_id: opts.userId, plan: opts.plan },
+    metadata: { user_id: opts.userId, plan: opts.plan, ...(opts.founding ? { founding: "1" } : {}) },
   });
   const url = urlIn(j);
   if (!url || !safeUrl(url)) throw new Error("HandyPay returned no checkout URL");

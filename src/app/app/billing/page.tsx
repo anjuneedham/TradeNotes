@@ -6,6 +6,8 @@ import { PlanComparison } from "@/components/PlanComparison";
 import { Card, Notice, Badge, Meter, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 import { shortDate } from "@/lib/format";
 import { LEGAL, isFilled } from "@/lib/legal";
+import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
+import { FOUNDING_OFFER } from "@/lib/plans";
 import { handypayEnabled } from "@/lib/billing/handypay";
 import { startCheckout, cancelSubscription, resumeSubscriptionAction, openPortal } from "./actions";
 
@@ -29,6 +31,8 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
     payments: await q<PaymentRow>("select id, amount_cents, currency, status, description, receipt_url, occurred_at from tradenotes.payments order by occurred_at desc limit 24"),
   }));
   const auto = handypayEnabled();
+  const seats = auto && plan === "free" ? await foundingSeatsLeft() : null;
+  const offer = seats !== null && seats > 0;
   const managed = auto && Boolean(sub?.provider_subscription_id) && sub?.provider === "handypay";
   const limit = PLANS[plan].tradeLimit;
   const over = limit !== null && used >= limit;
@@ -78,13 +82,15 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
         </div>
       </Card>
 
+      {offer && <Notice kind="ok"><strong className="font-medium">Founding member offer:</strong> {seats} of {FOUNDING_OFFER.seats} seats left. {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months, applied automatically when you subscribe (Starter ${foundingPriceCents("starter") / 100}/mo, Pro ${foundingPriceCents("pro") / 100}/mo), in exchange for honest feedback.</Notice>}
+
       <section aria-labelledby="change" className="space-y-3">
         <h2 id="change" className="text-lg font-semibold tracking-tight">{paid ? "Change plan" : "Upgrade"}</h2>
         <div className="grid gap-3 md:grid-cols-3">
           {PLAN_ORDER.map((id) => (
             <Card key={id} className={`flex flex-col ${want === id && plan !== id ? "border-fg" : ""}`}>
               <div className="flex items-center justify-between"><h3 className="font-medium">{PLANS[id].name}</h3>{plan === id && <Badge tone="accent">Your plan</Badge>}</div>
-              <p className="fig mt-2 text-2xl font-medium">${PLANS[id].monthly}<span className="font-sans text-sm font-normal text-muted"> / month</span></p>
+              <p className="fig mt-2 text-2xl font-medium">{offer && id !== "free" && <s className="mr-2 text-base text-muted">${PLANS[id].monthly}</s>}${offer && id !== "free" ? foundingPriceCents(id) / 100 : PLANS[id].monthly}<span className="font-sans text-sm font-normal text-muted"> / month</span></p>
               <p className="mt-2 text-sm font-medium">{planHeadline(id)}</p>
               <p className="mt-1 text-xs leading-relaxed text-muted">{PLAN_BLURB[id]}</p>
               <div className="mt-auto pt-4">

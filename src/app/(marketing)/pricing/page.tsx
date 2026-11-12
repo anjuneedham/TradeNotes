@@ -2,9 +2,11 @@ import Link from "next/link";
 import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
 import { PLAN_ORDER, PLAN_BLURB, planHeadline, FEATURES_DEV } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
+import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
 import { Badge, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 
 export const metadata = { title: "Pricing — TradeNotes" };
+export const revalidate = 60; // seat count refreshes at most once a minute
 
 const FAQ: [string, string][] = [
   ["What do I get for paying today?", "A higher trade limit and CSV import from your broker. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date."],
@@ -14,7 +16,8 @@ const FAQ: [string, string][] = [
   ["Can I get a refund?", "See the Terms for the current refund window on your first payment."],
 ];
 
-export default function Pricing() {
+export default async function Pricing() {
+  const seats = await foundingSeatsLeft();
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
       <div className="max-w-2xl">
@@ -57,7 +60,7 @@ export default function Pricing() {
         <strong className="font-medium">Plain terms:</strong> today the paid plans add a higher trade limit and CSV import. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
       </p>
       <p className="mt-3 text-sm text-muted">
-        <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members can get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months in exchange for honest feedback. Ask for it after signing up.
+        <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months (Starter ${foundingPriceCents("starter") / 100}/mo, Pro ${foundingPriceCents("pro") / 100}/mo), applied automatically at checkout, in exchange for honest feedback. After {FOUNDING_OFFER.months} months the normal price applies. {seats === null ? "" : seats > 0 ? `${seats} of ${FOUNDING_OFFER.seats} seats left.` : "All founding seats are taken."}
       </p>
 
       <section aria-labelledby="compare" className="mt-16">

@@ -108,6 +108,7 @@ tradenotes.subscriptions.cancel_at_period_end|boolean|NO|||
 tradenotes.subscriptions.canceled_at|timestamp with time zone|YES|||
 tradenotes.subscriptions.current_period_end|timestamp with time zone|YES|||
 tradenotes.subscriptions.current_period_start|timestamp with time zone|YES|||
+tradenotes.subscriptions.founding_claimed_at|timestamp with time zone|YES|||
 tradenotes.subscriptions.is_founding_member|boolean|NO|||
 tradenotes.subscriptions.last_event_at|timestamp with time zone|YES|||
 tradenotes.subscriptions.plan|text|NO|||

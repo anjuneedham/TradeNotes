@@ -49,7 +49,7 @@ export default function Privacy() {
         <li><code>tn_src</code> — remembers the source tag of the link you came from (30 days).</li>
         <li><code>tn_theme</code> — remembers a light or dark appearance if you choose one in Settings (1 year; not set unless you choose).</li>
       </ul>
-      <p>We do not use advertising or third-party analytics cookies.</p>
+      <p>We do not use advertising cookies. To count visits and see which pages are used, we use Vercel Web Analytics, which sets no cookies and does not track you across other sites; it records page views with coarse, anonymised device and country information.</p>
 
       <h2>6. How long we keep it</h2>
       <p>While your account is open. You can delete your account yourself at any time in Settings → Your data; this immediately removes your profile, trades, notes, subscription record and payment history from our database. If you ask us by email instead, we will do it within {LEGAL.deletionDays} days. Copies in provider backups expire on the provider’s normal schedule. {LEGAL.paymentProvider} keeps its own payment records as the law requires.</p>

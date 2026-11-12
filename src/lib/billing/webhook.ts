@@ -56,6 +56,10 @@ export async function handleWebhook(rawBody: string, signature: string | null, s
           [userId, JSON.stringify({ event: event.id, type: event.type, from: { plan: cur.plan, status: cur.status }, to: { plan: n.plan, status: n.status } })]);
         if (out.notify) mail = { notify: out.notify, userId, plan: n.plan, periodEnd: n.current_period_end };
       }
+      // Founding seat is confirmed only by a verified, signed payment event for a checkout that reserved it.
+      if (out.next && out.next.plan !== "free" && (out.next.status === "active" || out.next.status === "trialing") && (objectOf(event).metadata as Record<string, unknown> | undefined)?.founding === "1") {
+        await client.query("update tradenotes.subscriptions set is_founding_member = true where user_id = $1 and founding_claimed_at is not null", [userId]);
+      }
       if (out.payment) {
         const p = out.payment;
         await client.query(

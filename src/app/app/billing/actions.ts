@@ -6,6 +6,7 @@ import { pool } from "@/lib/db";
 import { CHECKOUT_URLS, type PlanId } from "@/lib/plans";
 import { emailEnabled } from "@/lib/email";
 import { sendTemplate } from "@/lib/email-templates";
+import { claimFoundingSeat, foundingPriceCents } from "@/lib/founding";
 import { safeUrl, handypayEnabled, createSubscriptionCheckout, cancelAtPeriodEnd, resumeSubscription, portalUrl } from "@/lib/billing/handypay";
 
 const site = () => process.env.NEXT_PUBLIC_SITE_URL ?? process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -23,7 +24,9 @@ export async function startCheckout(formData: FormData) {
   if (!handypayEnabled()) redirect(CHECKOUT_URLS[want]);
   let url: string;
   try {
-    url = await createSubscriptionCheckout({ plan: want, userId: user.id, email: user.email, siteUrl: site() });
+    // Founding offer: reserve a seat (race-safe, max 10) and charge the discounted price; otherwise the normal price.
+    const founding = (await claimFoundingSeat(user.id)) ? { amountCents: foundingPriceCents(want) } : undefined;
+    url = await createSubscriptionCheckout({ plan: want, userId: user.id, email: user.email, siteUrl: site(), founding });
   } catch (e) {
     console.error("checkout failed", e instanceof Error ? e.message : e);
     redirect("/app/billing?error=checkout");
