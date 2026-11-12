@@ -26,7 +26,7 @@ Weighted today about 4.6 on this scale vs the 5.3 headline; the aim is to move e
 ### Phase 1: capture and evidence (biggest buying drivers)
 1. **Broker presets:** MT4/MT5 (CSV and HTML statement), TradingView, Tradovate, NinjaTrader, Thinkorswim, Interactive Brokers (Flex/activity CSV), cTrader, Webull, Binance/Bybit spot+futures. Auto-detect format from headers, show "we recognised X", fall back to manual mapping. Store sample fixtures (anonymised) in `src/lib/import-fixtures/` with unit tests per broker. Handle time zones (user setting, store UTC), multi-leg fills grouped into one trade, commissions/swap.
 2. **Instrument specs:** futures tick size/value, options multiplier, forex pip and lot rules, crypto precision; P&L must stay correct. Extend `metrics` tests with hand-calculated cases.
-3. **Screenshots:** upload (PNG/JPEG/WebP, size cap, content-type sniffing), gallery on trade detail, paste-from-clipboard, delete. Storage choice must be approved by the owner (Vercel Blob or Supabase Storage); access via signed URLs, per-user isolation proven by tests. Update Privacy Policy (new data and processor) and plan gates (Standard and up).
+3. **Screenshots:** upload (PNG/JPEG/WebP, size cap, content-type sniffing), gallery on trade detail, paste-from-clipboard, delete. **Storage decision (owner, 2026-11-12): Supabase Storage on the existing TradeNotes Supabase project.** Do not use Vercel Blob or any other provider. Implementation rules are in section 3c. Update the Privacy Policy (screenshots are a new data type; Supabase is already a listed provider) and plan gates (Standard and up).
 4. **Multiple accounts:** CRUD, switcher in the app shell, filter everywhere, "All accounts" combined view with currency handling, enforce plan limits server-side.
 ### Phase 2: analytics and review workflow
 5. **Global filter bar** (date range, account, strategy, instrument, side, tags, session) shared by dashboard, analytics and journal; URL-based state.
@@ -46,11 +46,21 @@ Broker auto-sync via an aggregator (for example SnapTrade) and AI weekly summari
 
 ## 3b. Cost guardrails (owner requirement: no new paid services, no cost surprises)
 - Phases 1-3 must need **no new subscription, vendor account or paid API**. Everything runs on the existing stack (Vercel, the TradeNotes Supabase Postgres, Resend free tier, Sentry free tier, GitHub).
-- **Screenshots are the only feature that stores bulk data.** Use the storage that is already included with the existing host (Supabase Storage on the same project, or Vercel Blob if the owner already pays for Vercel Pro). Hard-cap it in code so cost cannot run away: max 2 MB per image after client-side compression, max 5 images per trade, per-user quota by plan (Free none, Standard 500 MB, Premium 2 GB), and a total-storage check that refuses uploads once the platform's included allowance is 80% used. Show the owner the current usage in the owner checklist.
+- **Screenshots are the only feature that stores bulk data.** Use **Supabase Storage on the existing TradeNotes Supabase project** (owner decision), which is included with that project at no extra charge within its plan allowance. Hard-cap it in code so cost cannot run away: max 2 MB per image after client-side compression, max 5 images per trade, per-user quota by plan (Free none, Standard 500 MB, Premium 2 GB), and a total-storage check that refuses uploads once the platform's included allowance is 80% used. Show the owner the current usage in the owner checklist.
 - **Reminder and review emails:** opt-in only, weekly at most, and capped so total sends stay under the Resend free limits (about 100/day, 3,000/month); stop sending and log a warning near the cap.
 - **Dashboards:** aggregate in SQL with indexes; no per-request loading of whole histories; no background workers or cron products beyond what the plan already includes.
 - **Not allowed without the owner's written approval:** market-data licences (replay), broker-sync aggregators, AI/LLM API calls, paid analytics or monitoring tiers, any new SaaS. Phase 4 items are memos only.
 - If any feature cannot meet the above, stop, describe the cost, and ask the owner.
+
+## 3c. Screenshot storage design (Supabase Storage; decided)
+- **One private bucket** named `trade-screenshots` (never public). Object path: `<user_id>/<trade_id>/<random-uuid>.<ext>`; store only that path plus size and content type in `tradenotes.trade_screenshots`. Never store or trust client-supplied file names for paths.
+- **Access only through the server.** The app talks to Postgres directly, not through the Supabase client, so uploads, deletes and reads go through Next.js server code that first checks the signed-in user owns the trade (row-level security query), then calls the Supabase Storage REST API with the service-role key, or returns a short-lived signed URL (60 to 300 seconds) for viewing. The service-role key is server-only: never sent to the browser, never logged, never in `NEXT_PUBLIC_*`.
+- **Defence in depth:** also add storage access policies in `db/paste` (if the storage schema exists in the target database; make the migration skip safely when it does not, so CI's plain Postgres still passes) so that no `anon` or `authenticated` API role can list or read the bucket.
+- **Required owner actions (the build session cannot do these):** create the private bucket `trade-screenshots` in the TradeNotes Supabase project; add Vercel environment variables `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (Sensitive, Production and Preview). Until they are set the screenshot UI must show a clear "not available yet" state and the rest of the app must keep working.
+- **Abstraction for tests:** put storage behind an interface (`put`, `delete`, `signedUrl`, `deletePrefix`) with a Supabase adapter and an in-memory fake used in unit tests, e2e and CI. CI must not need a Supabase account.
+- **Lifecycle:** deleting a trade deletes its objects; **account deletion must delete every object under `<user_id>/`** (extend the existing self-service deletion and its tests); an import roll-back does not touch screenshots. Offer screenshots in the data export (a zip or a list of signed links) or state clearly that they are not included.
+- **Validation:** sniff the real file type from the bytes (PNG, JPEG, WebP only), reject others, strip metadata (EXIF) where practical, enforce the size, count and quota caps from section 3b on the server, and rate-limit uploads per user.
+- **Verification:** cross-user tests prove user B cannot obtain a URL for user A's object, including by guessing paths or trade ids; expired signed URLs stop working; quota and 80%-of-allowance refusals work.
 
 ## 4. Non-negotiable engineering rules
 - **Branching:** feature branch per phase; PR into `main`; CI must be green. Never force-push `main`.
@@ -78,7 +88,7 @@ Broker auto-sync via an aggregator (for example SnapTrade) and AI weekly summari
 - Updated `docs/READINESS_REVIEW.md`: re-scored scorecard (section 2) with evidence per row, honest remaining gaps, and the new overall / industry / app-type ratings. If any row did not reach target, say so and why.
 - Updated pricing, plan comparison, billing copy and landing page to match what truly shipped.
 - Phase-4 decision memo and the data-licensing recommendation.
-- A short owner checklist: anything needing owner action (storage choice, env vars, legal review of new text, deployments).
+- A short owner checklist: anything needing owner action (bucket creation and the Supabase storage env vars in section 3c, legal review of new text, deployments).
 
 ## 7. Owner-side items that run in parallel (not for the build session)
 One real payment and refund; confirm a Sentry event appears; confirm ImprovMX delivery; branch protection on `main` and Production Branch set to `main`; Jamaican data-controller registration; lawyer review when budget allows; month-12 repricing process for founding members.
