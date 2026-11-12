@@ -1,3 +1,4 @@
+import { defaultMultiplier } from "@/lib/trade-schema";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getContext } from "@/lib/app-context";
@@ -33,7 +34,8 @@ export default async function EditTrade({ params }: { params: Promise<{ id: stri
   const [x1, x2] = exits;
   const values: Record<string, string> = {
     account_id: String(t.account_id), asset_class: String(t.asset_class ?? "other"), side: String(t.side), symbol: String(t.symbol),
-    multiplier: t.asset_class === "future" || t.asset_class === "option" ? num(t.multiplier) : "",
+    // Keep a non-standard multiplier (e.g. broker-derived contract size on an imported CFD) so saving an edit never changes P&L.
+    multiplier: t.asset_class === "future" || t.asset_class === "option" || Number(t.multiplier) !== defaultMultiplier(String(t.asset_class ?? "other"), String(t.symbol)) ? num(t.multiplier) : "",
     quantity: num(t.quantity), entry_price: num(t.entry_price), stop_price: num(t.stop_price), target_price: num(t.target_price),
     fees: Number(t.fees) ? num(t.fees) : "", opened_at: local(t.opened_at), closed_at: local(t.closed_at),
     exit1_price: x1 ? num(x1.price) : "", exit1_qty: x1 && !(exits.length === 1 && Number(x1.quantity) === qty) ? num(x1.quantity) : "",

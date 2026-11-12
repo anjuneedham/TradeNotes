@@ -108,7 +108,11 @@ export function fingerprintOf(t: Omit<ImportedTrade, "fingerprint">): string {
   const exitVwap = t.exits.length ? r8(t.exits.reduce((s, e) => s + e.price * e.quantity, 0) / t.exits.reduce((s, e) => s + e.quantity, 0)) : "";
   return [dbSymbol(t.symbol), t.side, r8(t.quantity), r8(t.entryPrice), exitVwap, t.openedAt, t.closedAt ?? ""].join("|");
 }
-function trade(t: Omit<ImportedTrade, "fingerprint">): ImportedTrade { return { ...t, fingerprint: fingerprintOf(t) }; }
+function trade(t: Omit<ImportedTrade, "fingerprint">, fingerprint = fingerprintOf(t)): ImportedTrade { return { ...t, fingerprint }; }
+const unknownFuturesWarning = (trades: ImportedTrade[]) => {
+  const n = trades.filter((t) => t.multiplier === null).length;
+  return n ? [`${n} trade(s) are futures we don't have specs for; their point value is set to 1, so their P&L is wrong until you edit each one and enter the point value.`] : [];
+};
 
 /**
  * Multiplier implied by the broker's own gross profit (account currency): gross / (price move × quantity).
@@ -142,12 +146,13 @@ export function groupFills(fills: Fill[]): { trades: ImportedTrade[]; openPositi
   for (const [, fs] of bySym) {
     fs.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : a.row - b.row));
     let pos = 0; // signed
+    const EPS = 1e-9;
     let cur: { side: "long" | "short"; qty: number; cost: number; openedAt: string; exits: { quantity: number; price: number; at: string }[]; fees: number; f: Fill } | null = null;
     for (const f of fs) {
       let remaining = f.quantity;
       const signed = f.side === "buy" ? 1 : -1;
-      while (remaining > 1e-12) {
-        if (!cur || Math.abs(pos) < 1e-12) {
+      while (remaining > EPS) {
+        if (!cur || Math.abs(pos) < EPS) {
           cur = { side: signed > 0 ? "long" : "short", qty: 0, cost: 0, openedAt: f.at, exits: [], fees: 0, f };
           cur.qty = remaining; cur.cost = remaining * f.price; cur.fees += f.fees * (remaining / f.quantity);
           pos = signed * remaining; remaining = 0;
@@ -159,7 +164,7 @@ export function groupFills(fills: Fill[]): { trades: ImportedTrade[]; openPositi
           cur.exits.push({ quantity: closing, price: f.price, at: f.at });
           cur.fees += f.fees * (closing / f.quantity);
           pos += signed * closing; remaining -= closing;
-          if (Math.abs(pos) < 1e-9) {
+          if (Math.abs(pos) < EPS) {
             pos = 0;
             const t = cur;
             trades.push(trade({
@@ -172,7 +177,7 @@ export function groupFills(fills: Fill[]): { trades: ImportedTrade[]; openPositi
         }
       }
     }
-    if (cur && Math.abs(pos) > 1e-12) openPositions++;
+    if (cur && Math.abs(pos) >= EPS) openPositions++;
   }
   trades.sort((a, b) => (a.openedAt < b.openedAt ? -1 : 1));
   return { trades, openPositions };
@@ -453,8 +458,7 @@ export function parseWithPreset(text: string, presetId: string, ctx: Ctx): { pre
     trades = trades.filter((t) => (seen.has(t.fingerprint) ? (dups++, false) : (seen.add(t.fingerprint), true)));
     const warnings = [...(out.warnings ?? [])];
     if (dups) warnings.push(`${dups} duplicate row(s) in the file were skipped.`);
-    const unknownMult = trades.filter((t) => t.multiplier === null).length;
-    if (unknownMult) warnings.push(`${unknownMult} trade(s) are futures we don't have specs for; their point value is set to 1. Edit them to set the right value.`);
+    warnings.push(...unknownFuturesWarning(trades));
     return { preset: p.id === "metatrader4" ? metatrader : p, result: { trades, errors: out.errors, warnings, openPositions, ignoredRows: out.ignoredRows ?? 0 } };
   }
   return { preset: null, result: { trades: [], errors: [{ row: 0, message: presetId === "auto" ? "We didn't recognise this file. Use manual column mapping." : "This file doesn't match the chosen broker format." }], warnings: [], openPositions: 0, ignoredRows: 0 } };
@@ -463,11 +467,13 @@ export function parseWithPreset(text: string, presetId: string, ctx: Ctx): { pre
 /** Manual mapping (generic CSV, one row per round trip) converted to the same shape; naive times read in the user's time zone. */
 export function parseManual(text: string, mapping: ColumnMapping, assetClass: AssetClass, ctx: Ctx): ParseResult {
   const p = previewImport(text, mapping, (v) => parseBrokerTime(v, ctx.tz, ctx.dateOrder));
+  // Keep the original generic-CSV fingerprint so files imported before broker presets existed are still recognised as duplicates.
   const trades = p.valid.map((t) => trade({
     symbol: t.symbol, side: t.side, quantity: t.quantity, entryPrice: t.entryPrice, exits: [{ quantity: t.quantity, price: t.exitPrice, at: t.closedAt ?? t.openedAt }],
     openedAt: t.openedAt, closedAt: t.closedAt ?? t.openedAt, fees: t.fees, assetClass, multiplier: defaultMultiplierFor(assetClass, t.symbol), brokerNet: null,
-  }));
-  return { trades, errors: p.errors, warnings: p.duplicatesInFile ? [`${p.duplicatesInFile} duplicate row(s) in the file were skipped.`] : [], openPositions: 0, ignoredRows: 0 };
+  }, t.fingerprint));
+  const warnings = [...(p.duplicatesInFile ? [`${p.duplicatesInFile} duplicate row(s) in the file were skipped.`] : []), ...unknownFuturesWarning(trades)];
+  return { trades, errors: p.errors, warnings, openPositions: 0, ignoredRows: 0 };
 }
 
 /** Validation report: totals by our engine vs the broker's own net P&L where the export states it. */

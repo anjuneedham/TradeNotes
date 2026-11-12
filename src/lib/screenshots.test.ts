@@ -31,6 +31,21 @@ describe("metadata stripping", () => {
     const out = stripMetadata(bytes(...PNG_SIG, ...keep.slice(0, 15), ...chunk("tEXt", [65, 66]), ...keep.slice(15), ...chunk("eXIf", [1]), ...chunk("IEND", [])), "image/png");
     expect([...out]).toEqual([...PNG_SIG, ...keep, ...chunk("IEND", [])]);
   });
+  it("WebP with a huge/negative chunk length terminates and returns the input (no infinite loop)", () => {
+    const b = new Uint8Array([...new TextEncoder().encode("RIFF\0\0\0\0WEBPVP8X"), 0xf8, 0xff, 0xff, 0xff, 0, 0, 0, 0]);
+    expect(stripMetadata(b, "image/webp")).toEqual(b);
+  });
+  it("WebP: drops EXIF chunk, clears the VP8X flag, fixes the RIFF size", () => {
+    const vp8x = [..."VP8X"].map((c) => c.charCodeAt(0)).concat([10, 0, 0, 0, 0x08 | 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const exif = [..."EXIF"].map((c) => c.charCodeAt(0)).concat([2, 0, 0, 0, 7, 7]);
+    const img = [..."VP8L"].map((c) => c.charCodeAt(0)).concat([2, 0, 0, 0, 1, 2]);
+    const body = [..."WEBP"].map((c) => c.charCodeAt(0)).concat(vp8x, exif, img);
+    const out = stripMetadata(new Uint8Array([..."RIFF"].map((c) => c.charCodeAt(0)).concat([body.length & 255, 0, 0, 0], body)), "image/webp");
+    const text = String.fromCharCode(...out);
+    expect(text.includes("EXIF")).toBe(false);
+    expect(out[20]).toBe(0x10); // EXIF flag cleared, other flags kept
+    expect(out[4]).toBe(out.length - 8);
+  });
   it("malformed input is returned unchanged", () => {
     const b = bytes(0xff, 0xd8, 0x00, 0x01);
     expect(stripMetadata(b, "image/jpeg")).toEqual(b);

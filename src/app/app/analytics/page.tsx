@@ -3,6 +3,7 @@ import { getContext } from "@/lib/app-context";
 import { summarize, groupSummary } from "@/lib/metrics";
 import { loadTrades, toExt, inRange, rangeStart, parseRange, RANGES, tagSummary, type StatRow } from "@/lib/trades-data";
 import { signedMoney, pct, num, pnlClass } from "@/lib/format";
+import { localDayHour } from "@/lib/timezone";
 import { Notice, PageHeader, Segmented, EmptyState, btnCls, linkCls } from "@/components/ui";
 import { Stat, Breakdown } from "@/components/stats";
 
@@ -11,7 +12,7 @@ const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default async function Analytics({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const { db, profile, scope } = await getContext();
+  const { db, profile, scope, tz } = await getContext();
   const range = parseRange((await searchParams).range);
   const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
@@ -58,7 +59,7 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
         <Breakdown title="By instrument" groups={groupSummary(ext, (t) => t.symbol)} cur={cur} />
         <Breakdown title="By session" groups={groupSummary(ext, (t) => t.session)} cur={cur} />
         <Breakdown title="By direction" groups={groupSummary(ext, (t) => cap(t.side))} cur={cur} />
-        <Breakdown title="By weekday" note="UTC, by close time." groups={groupSummary(ext, (t) => (t.closedAt ? DAYS[new Date(t.closedAt).getUTCDay()] : null))} cur={cur} />
+        <Breakdown title="By weekday" note={`By close time, ${tz}.`} groups={groupSummary(ext, (t) => (t.closedAt ? DAYS[localDayHour(t.closedAt, tz).day] : null))} cur={cur} />
         <Breakdown id="mistakes" title="By mistake tag" note="Results of trades carrying each tag. A trade with several tags counts under each." groups={tagSummary(ext, (t) => t.mistakes)} cur={cur} />
         <Breakdown title="By emotion" note="Results of trades carrying each tag. A trade with several tags counts under each." groups={tagSummary(ext, (t) => t.emotions)} cur={cur} />
       </div>

@@ -14,6 +14,9 @@ do $$ begin
 end $$;
 
 alter table tradenotes.imports add column if not exists preset text;
+-- Upload rate window (counts uploads, including ones deleted since, so upload-then-delete loops cannot dodge the cap).
+alter table tradenotes.profiles add column if not exists shot_window_start timestamptz;
+alter table tradenotes.profiles add column if not exists shot_window_count integer not null default 0;
 
 alter table tradenotes.trade_screenshots add column if not exists size_bytes integer not null default 0;
 alter table tradenotes.trade_screenshots add column if not exists content_type text not null default 'image/png';
@@ -34,14 +37,34 @@ end $$;
 create unique index if not exists trade_screenshots_path_uidx on tradenotes.trade_screenshots (storage_path);
 create index if not exists trade_screenshots_user_created on tradenotes.trade_screenshots (user_id, created_at desc);
 
--- At most 5 screenshots per trade, enforced in the database too (the app checks first and shows a friendly message).
+-- At most 5 screenshots per trade and 30 uploads per user per hour, enforced in the database too (the app checks first
+-- and shows a friendly message). The trade row is locked so two concurrent uploads cannot both pass the count.
 create or replace function tradenotes.check_screenshot_count() returns trigger language plpgsql security definer set search_path = '' as $$
+declare n integer;
 begin
+  perform 1 from tradenotes.trades where id = new.trade_id for update;
   if (select count(*) from tradenotes.trade_screenshots where trade_id = new.trade_id) >= 5 then
     raise exception 'screenshot limit reached for this trade';
   end if;
+  update tradenotes.profiles
+     set shot_window_count = case when shot_window_start > now() - interval '1 hour' then shot_window_count + 1 else 1 end,
+         shot_window_start = case when shot_window_start > now() - interval '1 hour' then shot_window_start else now() end
+   where id = new.user_id returning shot_window_count into n;
+  if n > 30 then raise exception 'screenshot rate limit reached'; end if;
   return new;
 end $$;
+-- Users may edit their own profile, but not the upload counters (only the trigger above, running as owner, changes them).
+create or replace function tradenotes.protect_profile_counters() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if current_user = 'app_user' and (new.shot_window_count is distinct from old.shot_window_count or new.shot_window_start is distinct from old.shot_window_start) then
+    raise exception 'upload counters cannot be changed by clients';
+  end if;
+  return new;
+end $$;
+drop trigger if exists profiles_protect_counters on tradenotes.profiles;
+create trigger profiles_protect_counters before update on tradenotes.profiles for each row execute function tradenotes.protect_profile_counters();
+revoke all on function tradenotes.protect_profile_counters() from public;
+
 drop trigger if exists shots_count on tradenotes.trade_screenshots;
 create trigger shots_count before insert on tradenotes.trade_screenshots for each row execute function tradenotes.check_screenshot_count();
 revoke all on function tradenotes.check_screenshot_count() from public;

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { logout } from "../(auth)/actions";
 import { AppNav } from "@/components/AppNav";
 import { AccountSwitcher } from "@/components/AccountSwitcher";
-import { getAuth } from "@/lib/auth";
+import { currentSession } from "@/lib/session";
 import { withUser } from "@/lib/db";
 import { ACCOUNT_COOKIE, resolveScope, type Account } from "@/lib/app-context";
 
@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // Account switcher (only shown with 2+ accounts). Failures here must never break the page.
   let switcher: React.ReactNode = null;
   try {
-    const session = await getAuth().api.getSession({ headers: await headers() });
+    const session = await currentSession();
     if (session) {
       const accounts = await withUser(session.user.id, (q) => q<Account>("select id, name, currency, starting_balance, broker from tradenotes.accounts order by created_at"));
       const scope = resolveScope(accounts, jar.get(ACCOUNT_COOKIE)?.value);

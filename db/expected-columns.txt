@@ -109,6 +109,8 @@ tradenotes.profiles.markets|ARRAY|YES|||
 tradenotes.profiles.onboarding_completed_at|timestamp with time zone|YES|||
 tradenotes.profiles.preferred_timeframe|text|YES|||
 tradenotes.profiles.primary_market|text|YES|||
+tradenotes.profiles.shot_window_count|integer|NO|32|0|
+tradenotes.profiles.shot_window_start|timestamp with time zone|YES|||
 tradenotes.profiles.show_explanations|boolean|NO|||
 tradenotes.profiles.signup_source|text|YES|||
 tradenotes.profiles.timezone|text|NO|||

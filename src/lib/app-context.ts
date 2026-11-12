@@ -1,8 +1,8 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { cleanSrc } from "./db-config";
 import { cleanRef, attachReferral } from "./affiliate";
 import { redirect } from "next/navigation";
-import { getAuth } from "./auth";
+import { currentSession } from "./session";
 import { withUser, type Q } from "./db";
 import { effectivePlan } from "./entitlements";
 import { emailEnabled } from "./email";
@@ -29,7 +29,7 @@ export function resolveScope(accounts: Account[], cookie: string | undefined): S
 
 /** Validates the session, loads the user's context (under row-level security) and returns a `db` helper bound to that user. */
 export async function getContext({ requireOnboarded = true } = {}) {
-  const session = await getAuth().api.getSession({ headers: await headers() });
+  const session = await currentSession();
   if (!session) redirect("/login");
   const user = { id: session.user.id, email: session.user.email };
   const db = <T>(fn: (q: Q) => Promise<T>) => withUser(user.id, fn);

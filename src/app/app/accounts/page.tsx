@@ -7,7 +7,7 @@ import { Card, Notice, PageHeader, Badge, Field, inputCls, btnGhostCls, btnDange
 import { money } from "@/lib/format";
 
 export const metadata = { title: "Accounts — TradeNotes" };
-const ERRORS: Record<string, string> = { last: "You need at least one account, so the last one can't be deleted.", confirm: "Type the account name exactly to delete it. Nothing was deleted.", invalid: "Please check the account details and try again." };
+const ERRORS: Record<string, string> = { last: "You need at least one account, so the last one can't be deleted.", confirm: "Type the account name exactly to delete it. Nothing was deleted.", invalid: "Please check the account details and try again.", currency: "An account's currency can't be changed once it has trades, because their results are recorded in it. Create a new account in the other currency instead." };
 
 export default async function Accounts({ searchParams }: { searchParams: Promise<{ created?: string; saved?: string; deleted?: string; error?: string }> }) {
   const sp = await searchParams;
@@ -40,7 +40,7 @@ export default async function Accounts({ searchParams }: { searchParams: Promise
                 <input type="hidden" name="id" value={a.id} />
                 <Field label="Name"><input name="name" defaultValue={a.name} required maxLength={60} className={inputCls} /></Field>
                 <Field label="Broker (optional)"><input name="broker" defaultValue={a.broker ?? ""} maxLength={60} className={inputCls} /></Field>
-                <Field label="Currency" hint="Changing it does not convert existing trades."><input name="currency" defaultValue={a.currency} required pattern="[A-Za-z]{3}" maxLength={3} className={inputCls} /></Field>
+                <Field label="Currency" hint={(n.get(a.id) ?? 0) > 0 ? "Fixed once the account has trades." : "Can be changed until you add trades."}><input name="currency" defaultValue={a.currency} required pattern="[A-Za-z]{3}" maxLength={3} className={inputCls} /></Field>
                 <Field label="Starting balance"><input name="starting_balance" type="number" step="any" min="0" defaultValue={Number(a.starting_balance)} className={inputCls} /></Field>
                 <div className="sm:col-span-2"><button className={btnGhostCls}>Save</button></div>
               </form>

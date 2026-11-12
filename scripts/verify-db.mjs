@@ -30,7 +30,7 @@ const pol = await q(`select tablename t, count(*)::int k from pg_policies where 
 const polMap = Object.fromEntries(pol.map((r) => [r.t, r.k]));
 ok("policies: profiles=2, subscriptions=1, payments=1, 7 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions, JSON.stringify(polMap));
 const trg = (await q(`select tgname from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='tradenotes' and not t.tgisinternal`)).map((r) => r.tgname);
-const wantTrg = ["profiles_protect_admin","exits_owner","shots_owner","shots_count","trades_refs","imports_refs"];
+const wantTrg = ["profiles_protect_admin","profiles_protect_counters","exits_owner","shots_owner","shots_count","trades_refs","imports_refs"];
 ok("safety triggers present", wantTrg.every((t) => trg.includes(t)), `have: ${trg.join(",")}`);
 const fns = await q(`select p.proname, p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='tradenotes'`);
 const fm = Object.fromEntries(fns.map((f) => [f.proname, f.prosecdef]));
@@ -69,6 +69,8 @@ try {
   ok("screenshot path must be <own user>/<trade>/<uuid>.<ext>", (await errors("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path) values ($1,$2,$3)", [t.id, A, shot(B, t.id)])) && (await errors("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path) values ($1,$2,$3)", [t.id, A, `${A}/${t.id}/../x.png`])));
   for (let i = 0; i < 4; i++) await q("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path,size_bytes) values ($1,$2,$3,10)", [t.id, A, shot(A, t.id)]);
   ok("a 6th screenshot on one trade is refused by the database", await errors("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path) values ($1,$2,$3)", [t.id, A, shot(A, t.id)]));
+  ok("uploads are counted per user (rate window = 5 after 5 uploads)", (await n("select shot_window_count::int n from tradenotes.profiles where id = $1", [A])) === 5);
+  ok("a user cannot reset their own upload counter", await errors("update tradenotes.profiles set shot_window_count = 0 where id = $1", [A]));
   ok("app_user can read total storage used (aggregate only)", Number((await q("select tradenotes.storage_used_bytes() as b"))[0].b) >= 1040);
   await as(B);
   ok("B sees none of A's screenshots", (await n("select count(*)::int n from tradenotes.trade_screenshots")) === 0);

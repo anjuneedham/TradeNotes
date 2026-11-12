@@ -43,7 +43,16 @@ export async function updateAccount(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const p = accountSchema.safeParse(Object.fromEntries(formData));
   if (!UUID.test(id) || !p.success) redirect("/app/accounts?error=invalid");
-  await db((q) => q("update tradenotes.accounts set name = $2, broker = $3, currency = $4, starting_balance = $5 where id = $1", [id, p.data.name, p.data.broker, p.data.currency, p.data.starting_balance]));
+  // Trades store the account currency they were logged in; changing it afterwards would turn every trade into
+  // "needs an exchange rate". Allow the change only while the account has no trades.
+  const blocked = await db(async (q) => {
+    const [a] = await q<{ currency: string; n: number }>("select a.currency, (select count(*)::int from tradenotes.trades t where t.account_id = a.id) as n from tradenotes.accounts a where a.id = $1", [id]);
+    if (!a) return false;
+    if (a.currency !== p.data.currency && a.n > 0) return true;
+    await q("update tradenotes.accounts set name = $2, broker = $3, currency = $4, starting_balance = $5 where id = $1", [id, p.data.name, p.data.broker, p.data.currency, p.data.starting_balance]);
+    return false;
+  });
+  if (blocked) redirect("/app/accounts?error=currency");
   revalidatePath("/app", "layout");
   redirect("/app/accounts?saved=1");
 }

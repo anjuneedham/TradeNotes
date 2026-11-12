@@ -79,9 +79,9 @@ function stripWebp(b: Uint8Array): Uint8Array {
   let i = 12;
   while (i + 8 <= b.length) {
     const type = ascii(b, i, i + 4);
-    const len = b[i + 4] | (b[i + 5] << 8) | (b[i + 6] << 16) | (b[i + 7] << 24);
+    const len = (b[i + 4] | (b[i + 5] << 8) | (b[i + 6] << 16) | (b[i + 7] << 24)) >>> 0;
     const end = i + 8 + len + (len & 1);
-    if (end > b.length + 1) return b;
+    if (end > b.length + 1 || end <= i) return b; // malformed: never loop or read past the end
     if (type !== "EXIF" && type !== "XMP ") {
       const c = b.slice(i, Math.min(end, b.length));
       if (type === "VP8X" && c.length > 8) c[8] &= ~(0x08 | 0x04); // clear EXIF + XMP flags

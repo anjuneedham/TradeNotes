@@ -103,9 +103,9 @@ export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount
           </Field>
           <Field label="Instrument" hint={asset === "forex" ? "e.g. EURUSD" : undefined} error={e.symbol}><input name="symbol" defaultValue={v.symbol} required autoCapitalize="characters" autoComplete="off" className={inputCls} {...inv("symbol")} /></Field>
           <Field label={sizeLabel} hint={asset === "forex" ? "1 lot = 100,000 units. Mini = 0.1, micro = 0.01." : undefined} error={e.quantity}><input name="quantity" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.quantity} required className={inputCls} {...inv("quantity")} /></Field>
-          {(asset === "future" || asset === "option") && (
-            <Field label={asset === "future" ? "Point value (per contract)" : "Contract multiplier"} error={e.multiplier}
-              hint={asset === "option" ? "Standard equity options: 100. Leave blank for 100." : spec ? `${spec.name}: $${spec.pointValue.toLocaleString("en-US")} per point (tick ${spec.tickSize} = $${spec.tickValue}). Leave blank to use this.` : "Dollars per 1.00 price move, e.g. ES 50, NQ 20, CL 1000."}>
+          {(asset === "future" || asset === "option" || Boolean(v.multiplier)) && (
+            <Field label={asset === "future" ? "Point value (per contract)" : asset === "option" ? "Contract multiplier" : "Contract size (P&L per 1.00 price move per unit)"} error={e.multiplier}
+              hint={asset !== "future" && asset !== "option" ? "Set from your broker's figures when imported. Leave as is unless you know it's wrong." : asset === "option" ? "Standard equity options: 100. Leave blank for 100." : spec ? `${spec.name}: $${spec.pointValue.toLocaleString("en-US")} per point (tick ${spec.tickSize} = $${spec.tickValue}). Leave blank to use this.` : "Dollars per 1.00 price move, e.g. ES 50, NQ 20, CL 1000."}>
               <input name="multiplier" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.multiplier} className={inputCls} {...inv("multiplier")} />
             </Field>
           )}

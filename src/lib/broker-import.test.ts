@@ -132,6 +132,32 @@ describe("fill grouping", () => {
   });
 });
 
+describe("review fixes", () => {
+  it("manual mapping keeps the original CSV fingerprint (old imports still count as duplicates)", async () => {
+    const { previewImport } = await import("./csv-import");
+    const csv = "Symbol,Side,Qty,Entry,Exit,Open Time\nEUR/USD,buy,1,1.1,1.2,2025-12-01T09:30:00Z\n";
+    const m = { symbol: "Symbol", side: "Side", quantity: "Qty", entryPrice: "Entry", exitPrice: "Exit", openedAt: "Open Time" };
+    expect(parseManual(csv, m, "forex", UTC).trades[0].fingerprint).toBe(previewImport(csv, m).valid[0].fingerprint);
+  });
+  it("manual futures with an unknown contract warn before import", () => {
+    const csv = "Symbol,Side,Qty,Entry,Exit,Open Time\nZWZ5,buy,1,500,510,2025-12-01T09:30:00Z\n";
+    const r = parseManual(csv, { symbol: "Symbol", side: "Side", quantity: "Qty", entryPrice: "Entry", exitPrice: "Exit", openedAt: "Open Time" }, "future", UTC);
+    expect(r.trades[0].multiplier).toBeNull();
+    expect(r.warnings.join(" ")).toMatch(/don't have specs/);
+  });
+  it("floating-point dust never opens a phantom position", () => {
+    const at = (m: number) => `2025-01-01T00:0${m}:00.000Z`;
+    const { trades, openPositions } = groupFills([
+      { symbol: "X", side: "buy", quantity: 0.1, price: 10, at: at(1), fees: 0, row: 1 },
+      { symbol: "X", side: "buy", quantity: 0.2, price: 10, at: at(2), fees: 0, row: 2 },
+      { symbol: "X", side: "sell", quantity: 0.30000000000000004, price: 11, at: at(3), fees: 0, row: 3 },
+    ]);
+    expect(openPositions).toBe(0);
+    expect(trades).toHaveLength(1);
+    expect(trades[0].quantity).toBe(0.3);
+  });
+});
+
 describe("helpers", () => {
   it("numbers in broker formats", () => {
     expect(num("$(12.50)")).toBe(-12.5);
