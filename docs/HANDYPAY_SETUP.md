@@ -1,33 +1,46 @@
-# HandyPay: API key and webhook setup (do TEST mode first)
-The app switches from static links to automatic billing the moment `HANDYPAY_API_KEY` exists. Webhooks are what activate a plan after payment, so set BOTH before testing.
+# HandyPay live setup, from zero (go-live checklist)
+Goal: customers pay inside TradeNotes, HandyPay tells TradeNotes, the plan switches on automatically.
+You need two secrets in Vercel: **API key** (lets the app create checkouts) and **webhook signing secret** (lets the app trust HandyPay's notifications). Without the webhook secret, payments succeed but plans never activate.
 
-## 0. Rotate first
-The live key pasted in chat on 2026-11-12 must be revoked in HandyPay. Never paste keys in chat or commit them; they go only in Vercel as **Sensitive**.
+## Before you start
+- The old key pasted in chat on 2026-11-12 is compromised: **revoke it** in HandyPay and create a new one. Never paste keys in chat/GitHub.
+- Your own first payment will use a founding seat (50% off, 1 of 10) and, if you arrive through a partner link, create a commission. Do the self-test from a clean browser with no `?ref=`. A SQL clean-up for the seat is at the bottom.
 
-## 1. Test mode first (recommended)
-1. HandyPay dashboard -> switch to **Test mode** -> Developers/API keys -> create a key. Test keys start `hp_test_`.
-2. Vercel -> tradenotes -> Settings -> Environment Variables -> add `HANDYPAY_API_KEY` = the test key, **Production**, tick **Sensitive**.
+## Step 1: Create the live API key (HandyPay dashboard)
+1. Log in to HandyPay, make sure the account is in **Live** mode (not Test).
+2. Developers / API keys -> **Create key**. It starts with `hp_live_`. Copy it once.
 
-## 2. Webhook endpoint
-1. HandyPay dashboard -> Webhooks -> Add endpoint, URL exactly: `https://tradenotes.dev/api/webhooks/handypay`
-2. Select these events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` (and/or `invoice.payment_succeeded`), `invoice.payment_failed`, `charge.refunded`. (If HandyPay lets you pick "all events", that is fine: unknown ones are ignored.)
-3. Copy the endpoint's **signing secret**. Vercel -> add `HANDYPAY_WEBHOOK_SECRET` = that secret, Production, **Sensitive**.
-4. Redeploy (env vars apply only to new deployments).
+## Step 2: Add the webhook endpoint (HandyPay dashboard)
+1. Webhooks -> **Add endpoint**.
+2. URL, exactly: `https://tradenotes.dev/api/webhooks/handypay`
+3. Events: select `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`, `charge.refunded` (or "all events"; unknown ones are ignored safely).
+4. Save, then reveal and copy the endpoint's **signing secret** (often `whsec_...`).
 
-## 3. How the app verifies
-Header `X-HandyPay-Signature: sha256=<hex>` = HMAC-SHA256 of the raw request body with the signing secret. Bad or missing signature -> 401. Each event id is stored once, so retries cannot double-apply. Raw payloads are saved in `tradenotes.billing_events` so the first real delivery can be inspected.
+## Step 3: Put both secrets in Vercel
+Vercel -> project **tradenotes** -> Settings -> Environment Variables. Add two variables, each with **Production** ticked and **Sensitive** ON:
+| Name | Value |
+|---|---|
+| `HANDYPAY_API_KEY` | the `hp_live_...` key |
+| `HANDYPAY_WEBHOOK_SECRET` | the endpoint signing secret |
+Tell Claude (no values) when both are saved; I will confirm they exist and redeploy. (Or redeploy yourself: Deployments -> latest -> Redeploy.)
 
-## 4. Test payment (about 15 minutes)
-1. Sign up on tradenotes.dev with a real inbox, confirm the email.
-2. /app/billing -> choose Monthly or Annual -> Standard. With founding seats open you should see 50% off.
-3. Pay with HandyPay's test card. Within about a minute the plan should switch to Standard and a payment row should appear under Payment history.
-4. Tell Claude. I will check `billing_events` outcomes (should be `applied:*`, not `ignored:*`), the founding-seat flag and the commission row if a partner link was used.
-5. Cancel from /app/billing, confirm it says access continues to period end; then use Resume.
-6. Refund the test payment in HandyPay; confirm a `refunded` row appears and any unpaid partner commission is voided.
+## Step 4: Check the endpoint is alive (30 seconds)
+In HandyPay Webhooks, use **Send test event** if offered. Open the delivery log: expect **HTTP 200** and a body like `{"ok":true,"outcome":"..."}`. `401 bad signature` = wrong secret in Vercel (re-copy, redeploy). `503` = secret missing from Production.
 
-## 5. Go live
-Only after step 4 passes: create live-mode key + live webhook endpoint (same URL, new secret), replace both Vercel variables, redeploy, and run ONE real cheapest-plan payment on yourself, then refund it.
+## Step 5: First live payment (yourself, cheapest plan)
+1. Private browser window -> https://tradenotes.dev -> sign up with a real inbox -> confirm the email.
+2. Account -> Plan & billing -> Standard (monthly). While seats remain you should see the 50% founding price.
+3. Pay with a real card. Expected: returned to /app/billing, plan shows **Standard** within about a minute, a row appears in Payment history.
+4. HandyPay Webhooks -> delivery log: each event shows 200 with `"ok":true`. Outcomes starting `applied:` are good; `ignored:no-matching-user` means the event did not carry our user id.
+5. Cancel in-app (access continues to period end), then Resume. Then refund the payment in HandyPay and confirm a "refunded" row.
+If anything looks wrong, stop, do NOT take other customers, and send Claude what the delivery log shows (not the secret).
 
-## Troubleshooting
-- Plan did not change: HandyPay -> Webhooks -> delivery log. 401 = wrong secret; 5xx = look in Vercel logs for `billing webhook failed`; 200 with `ignored:no-matching-user` = metadata `user_id` missing (event came from a static link, not in-app checkout).
-- "We couldn't start checkout": key missing or wrong mode; Vercel logs show `checkout failed`.
+## Step 6: Release your own founding seat (optional, SQL on the TradeNotes database)
+```sql
+update tradenotes.subscriptions set is_founding_member = false, founding_claimed_at = null
+where user_id = (select id from public.tn_user where email = 'YOUR-TEST-EMAIL');
+```
+
+## Reference
+Signature header `X-HandyPay-Signature: sha256=<hex>`: HMAC-SHA256 of the raw body with the signing secret. Every event id is stored once (retries cannot double-apply); raw payloads are kept in `tradenotes.billing_events`. Field names are Stripe-style assumptions (KNOWN_ISSUES #26): the first real delivery is the proof.
+Troubleshooting: Vercel -> Logs -> search `billing webhook failed` or `checkout failed`; Sentry (once active) tags these `billing-webhook` / `checkout`.
