@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { PLANS } from "@/lib/plans";
+import { pageMeta, jsonLd, SITE_URL } from "@/lib/seo";
+import { LEGAL } from "@/lib/legal";
 import { PLAN_ORDER, planHeadline } from "@/lib/plan-features";
 import { summarize, type TradeInput } from "@/lib/metrics";
 import { signedMoney, pct, num, pnlClass } from "@/lib/format";
@@ -30,16 +32,31 @@ const built: [string, string][] = [
 ];
 const dev = ["Trade screenshots", "Calendar view and weekly reviews", "Backtesting with historical replay"];
 
+export const metadata = pageMeta({ title: "TradeNotes — Trading Journal & Performance Analytics", description: "A trading journal that shows where your results come from: log trades, tag mistakes, and track win rate, expectancy and drawdown. Free plan, no card.", path: "/" });
+
+const LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": `${SITE_URL}/#org`, name: "TradeNotes", url: SITE_URL, parentOrganization: { "@type": "Organization", name: LEGAL.businessName } },
+    {
+      "@type": "SoftwareApplication", name: "TradeNotes", url: SITE_URL, applicationCategory: "FinanceApplication", operatingSystem: "Web",
+      description: "Trading journal and performance analytics for retail traders.", publisher: { "@id": `${SITE_URL}/#org` },
+      offers: (Object.keys(PLANS) as (keyof typeof PLANS)[]).map((id) => ({ "@type": "Offer", name: PLANS[id].name, price: String(PLANS[id].monthly), priceCurrency: "USD", url: `${SITE_URL}/pricing` })),
+    },
+  ],
+};
+
 export default function Home() {
   const s = summarize(SAMPLE);
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(LD) }} />
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12 lg:pb-24 lg:pt-20">
         <div>
           <Eyebrow>Trading journal · Performance analytics</Eyebrow>
           <h1 className="mt-4 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">Know your trades. Understand your patterns. Improve your process.</h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
-            Most traders repeat the same mistakes because they never measure them. TradeNotes is where you record every decision and see, in plain numbers, what it cost or earned you.
+            Most traders repeat the same mistakes because they never measure them. TradeNotes is a trading journal where you record every decision and see, in plain numbers, what it cost or earned you.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>

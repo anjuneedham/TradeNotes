@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
+import { SITE_URL, SITE_NAME } from "@/lib/seo";
 import "./globals.css";
 
 const plexSans = localFont({ src: "./fonts/ibm-plex-sans-latin-wght-normal.woff2", weight: "100 700", variable: "--font-plex-sans", display: "swap" });
@@ -10,8 +11,12 @@ const plexMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "TradeNotes — Trading Journal & Performance Analytics",
-  description: "Know your trades. Understand your patterns. Improve your process.",
+  description: "A trading journal that shows where your results come from: log trades, tag mistakes, and track win rate, expectancy and drawdown. Free plan, no card.",
+  applicationName: SITE_NAME,
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US" },
+  twitter: { card: "summary_large_image" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#0d0f11" }, { media: "(prefers-color-scheme: light)", color: "#f6f5f1" }] };
 

@@ -1,9 +1,10 @@
+import { pageMeta } from "@/lib/seo";
 import { LegalShell } from "@/components/LegalShell";
 import { LEGAL, show } from "@/lib/legal";
 import { PLANS } from "@/lib/plans";
 import { GRACE_DAYS } from "@/lib/entitlements";
 
-export const metadata = { title: "Subscription & Cancellation Policy — TradeNotes" };
+export const metadata = pageMeta({ title: "Subscription & Cancellation Policy — TradeNotes", description: "How TradeNotes subscriptions renew, how to cancel, what happens after a failed payment and how refunds work.", path: "/legal/subscription" });
 
 export default function SubscriptionPolicy() {
   const mail = show(LEGAL.supportEmail, "support email");

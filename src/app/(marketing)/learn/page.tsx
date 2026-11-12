@@ -1,7 +1,8 @@
 import { GLOSSARY } from "@/lib/glossary";
+import { pageMeta } from "@/lib/seo";
 import { Eyebrow } from "@/components/ui";
 
-export const metadata = { title: "Learn — TradeNotes" };
+export const metadata = pageMeta({ title: "Trading metrics explained — TradeNotes", description: "Plain-English guide to the trading metrics a journal tracks: win rate, profit factor, expectancy, R-multiple, drawdown and more, with examples.", path: "/learn" });
 export default function Learn() {
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 lg:grid-cols-[14rem_minmax(0,1fr)]">

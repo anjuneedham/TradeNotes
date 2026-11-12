@@ -1,7 +1,8 @@
+import { pageMeta } from "@/lib/seo";
 import { LegalShell } from "@/components/LegalShell";
 import { LEGAL, show, isFilled } from "@/lib/legal";
 
-export const metadata = { title: "Privacy Policy — TradeNotes" };
+export const metadata = pageMeta({ title: "Privacy Policy — TradeNotes", description: "What data TradeNotes collects, why, who processes it, how long we keep it and how to access or delete it.", path: "/legal/privacy" });
 
 export default function Privacy() {
   const who = show(LEGAL.businessName, "business name");

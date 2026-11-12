@@ -1,7 +1,8 @@
+import { pageMeta } from "@/lib/seo";
 import { LegalShell } from "@/components/LegalShell";
 import { LEGAL, show } from "@/lib/legal";
 
-export const metadata = { title: "Terms of Service — TradeNotes" };
+export const metadata = pageMeta({ title: "Terms of Service — TradeNotes", description: "The terms for using TradeNotes: accounts, subscriptions, refunds, acceptable use and liability.", path: "/legal/terms" });
 
 export default function Terms() {
   const who = show(LEGAL.businessName, "business name");

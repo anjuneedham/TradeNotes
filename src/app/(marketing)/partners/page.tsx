@@ -1,9 +1,10 @@
 import { LegalShell } from "@/components/LegalShell";
 import { LEGAL, isFilled } from "@/lib/legal";
 import { AFFILIATE } from "@/lib/affiliate";
+import { pageMeta } from "@/lib/seo";
 import { PLANS } from "@/lib/plans";
 
-export const metadata = { title: "Partner program — TradeNotes", description: "Earn recurring commission by recommending TradeNotes to your trading community." };
+export const metadata = pageMeta({ title: "Partner program — TradeNotes", description: "Earn recurring commission by recommending TradeNotes to your trading community. 30% of what each referred customer pays for 12 months.", path: "/partners" });
 
 const usd = (c: number) => `$${(c / 100).toFixed(2).replace(/\.00$/, "")}`;
 
