@@ -13,7 +13,7 @@ export function LegalShell({ title, children }: { title: string; children: React
         </p>
       )}
       <p className="mt-4 rounded-md border border-border bg-raised p-3 text-sm" data-testid="responsibility">
-        {LEGAL.responsibilityStatement}{LEGAL.counselReviewed ? "" : " Not reviewed by a lawyer."}
+        {LEGAL.responsibilityStatement}
       </p>
       <div className="mt-6 space-y-3 [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">{children}</div>
     </div>
