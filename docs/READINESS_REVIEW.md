@@ -1,3 +1,12 @@
+# Projection: if the owner-side items below are done (estimate, not measured)
+Assumes: one real payment and refund works end to end, a Sentry event is seen, ImprovMX delivery confirmed, branch protection on `main`, Production Branch = `main`.
+| Lens | Now | Projected |
+|---|---|---|
+| Overall app | 7.6 | **8.2** |
+| Industry-specific | 5.3 | **5.4** (these are operations items, not features) |
+| App-type-specific | 7.9 | **8.8** |
+Remaining caps after that: legal pages not reviewed by a lawyer and no Data Protection registration (-0.3 overall), no backup-restore drill, no public demo or broker sync. Feature build plan to reach 8.0+ industry: `docs/NEXT_BUILD_BRIEF.md`.
+
 # Readiness rating — 2026-11-12 (night; production = commit ac9760f)
 **Verified live today:** Sentry client reports reach Sentry (HTTP 200); Resend delivers real confirmation email; HandyPay live key works and creates a $6.00/month founding checkout (nothing paid); webhook rejects unsigned/forged calls; account deletion works. **Not verified:** a real payment activating a plan via the webhook, server-side Sentry events, ImprovMX delivery log, branch protection, Production Branch = `main`.
 
