@@ -11,7 +11,7 @@ Note: the Vercel build needs `DATABASE_URL` in the Production environment; the C
 ## 2. Error monitoring with Sentry (free tier, ~20 minutes)
 1. sentry.io -> create account -> Create Project -> platform **Next.js** -> copy the DSN.
 2. **Code is already wired** (`src/instrumentation.ts`, `src/instrumentation-client.ts`, `src/app/global-error.tsx`, `src/lib/monitor.ts`). It is inert until a DSN exists, strips request bodies/cookies/headers/user before sending, and has no session replay. Payment-webhook, checkout and email-provider failures are reported with an `area` tag.
-3. Add in Vercel -> Settings -> Environment Variables (Production + Preview): `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN` = the DSN; `SENTRY_AUTH_TOKEN` (Sensitive) for source-map upload; `SENTRY_ORG`, `SENTRY_PROJECT`.
+3. (The Vercel Sentry integration sets `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`; the server falls back to `NEXT_PUBLIC_SENTRY_DSN`, so no plain `SENTRY_DSN` is needed.) Add in Vercel -> Settings -> Environment Variables (Production + Preview): `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN` = the DSN; `SENTRY_AUTH_TOKEN` (Sensitive) for source-map upload; `SENTRY_ORG`, `SENTRY_PROJECT`.
 4. Settings to choose: sample rate 100% errors, performance tracing 0-10%, session replay OFF (it can capture trade notes; do not enable without updating the privacy policy), `sendDefaultPii: false`.
 5. Sentry -> Alerts: email on **any new issue** and on **error rate spike**. Add the Resend/support address.
 6. Test: trigger a deliberate error on a preview deploy, confirm it appears with a readable stack, then delete the test route.
