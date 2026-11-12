@@ -6,6 +6,7 @@ import { pool } from "@/lib/db";
 import { CHECKOUT_URLS, isInterval, type PlanId } from "@/lib/plans";
 import { emailEnabled } from "@/lib/email";
 import { sendTemplate } from "@/lib/email-templates";
+import { report } from "@/lib/monitor";
 import { claimFoundingSeat, foundingPriceCents } from "@/lib/founding";
 import { safeUrl, handypayEnabled, createSubscriptionCheckout, cancelAtPeriodEnd, resumeSubscription, portalUrl } from "@/lib/billing/handypay";
 
@@ -30,6 +31,7 @@ export async function startCheckout(formData: FormData) {
     url = await createSubscriptionCheckout({ plan: want, userId: user.id, email: user.email, siteUrl: site(), interval, founding });
   } catch (e) {
     console.error("checkout failed", e instanceof Error ? e.message : e);
+    report(e, "checkout");
     redirect("/app/billing?error=checkout");
   }
   redirect(url);

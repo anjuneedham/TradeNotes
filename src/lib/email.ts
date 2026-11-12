@@ -1,4 +1,5 @@
 import { LEGAL, isFilled } from "./legal";
+import { report } from "./monitor";
 
 /** Transactional email via Resend's HTTP API (no SDK). Disabled until RESEND_API_KEY is set. */
 export const emailEnabled = () => Boolean(process.env.RESEND_API_KEY);
@@ -12,5 +13,5 @@ export async function sendEmail(to: string, subject: string, text: string, html?
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from: process.env.EMAIL_FROM ?? "TradeNotes <onboarding@resend.dev>", to, subject, text, ...(html ? { html } : {}), ...(replyTo ? { reply_to: replyTo } : {}) }),
   });
-  if (!res.ok) throw new Error(`Email provider error ${res.status}`);
+  if (!res.ok) { const err = new Error(`Email provider error ${res.status}`); report(err, "email", { status: res.status }); throw err; }
 }

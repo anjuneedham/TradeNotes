@@ -5,6 +5,7 @@ import { verifySignature } from "./handypay";
 import { sendTemplate } from "../email-templates";
 import { emailEnabled } from "../email";
 import type { PlanId } from "../plans";
+import { report } from "../monitor";
 import { accrueCommission, voidUnpaidCommissions } from "../affiliate";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -81,6 +82,7 @@ export async function handleWebhook(rawBody: string, signature: string | null, s
   } catch (e) {
     await client.query("rollback").catch(() => undefined);
     console.error("billing webhook failed", event.type, event.id, e instanceof Error ? e.message : e);
+    report(e, "billing-webhook", { type: event.type, event: event.id });
     return { status: 500, body: { ok: false, outcome: "error" } };
   } finally {
     client.release();
