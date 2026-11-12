@@ -1,9 +1,12 @@
-# Readiness rating — 2026-11-12 (evening; production live at tradenotes.dev, commit 29e8aaa)
+# Readiness rating — 2026-11-12 (late; production at tradenotes.dev = commit 441047f)
+**Since the last rating:** legal pages filled and live (operator accepts responsibility, no lawyer review stated), support@tradenotes.dev forwarding set up (ImprovMX, delivery not yet confirmed from a second account), Resend verified and sending. **Still open:** Sentry not linked to the project, HandyPay key/webhook not set (see HANDYPAY_SETUP.md), no live payment test, no branch protection, Production Branch not `main`.
+
+## Previous snapshot (29e8aaa)
 | Lens | Score /10 | Was | One-line reason |
 |---|---|---|---|
-| **Overall app** | **6.8** | 6.5 | Solid, tested, live; money path and legal still unproven |
-| **Industry-specific** (retail trading journal / fintech-adjacent) | **5.0** | n/a | Trust basics are good; the features buyers compare on (broker sync, depth) are not there |
-| **App-type-specific** (paid B2C subscription web app) | **6.5** | n/a | Auth, isolation, email, CI in place; billing unverified, legal blank, monitoring not yet receiving data |
+| **Overall app** | **7.2** | 6.8 | Solid, tested, live; money path and legal still unproven |
+| **Industry-specific** (retail trading journal / fintech-adjacent) | **5.2** | 5.0 | Trust basics are good; the features buyers compare on (broker sync, depth) are not there |
+| **App-type-specific** (paid B2C subscription web app) | **7.2** | 6.5 | Auth, isolation, email, CI in place; billing unverified, legal blank, monitoring not yet receiving data |
 
 ## Overall app (6.8)
 + 20-table database with row-level security, 43 verification checks on every build, 101 tests, CI with runtime smoke test, security headers, email confirmation working, production on the custom domain with rollback available.
