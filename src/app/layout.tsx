@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   title: "TradeNotes — Trading Journal & Performance Analytics",
   description: "A trading journal that shows where your results come from: log trades, tag mistakes, and track win rate, expectancy and drawdown. Free plan, no card.",
   applicationName: SITE_NAME,
-  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US" },
-  twitter: { card: "summary_large_image" },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US", images: [{ url: "/og", width: 1200, height: 630, alt: "TradeNotes: trading journal and performance analytics" }] },
+  twitter: { card: "summary_large_image", images: ["/og"] },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#0d0f11" }, { media: "(prefers-color-scheme: light)", color: "#f6f5f1" }] };
 

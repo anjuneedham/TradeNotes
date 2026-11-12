@@ -1,11 +1,9 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "TradeNotes: trading journal and performance analytics";
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+const size = { width: 1200, height: 630 };
 
-/** Share-card image for links to any page without its own image (Open Graph and Twitter). */
-export default function OpengraphImage() {
+/** Share-card image (Open Graph and Twitter) for every page: referenced explicitly from page metadata. */
+export function GET() {
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "80px", background: "#0d0f11", color: "#f3f1ea" }}>

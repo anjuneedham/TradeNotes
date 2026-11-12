@@ -13,7 +13,7 @@ export const DISALLOWED_PATHS = ["/app", "/api", "/partners/stats", "/login", "/
 /** Page metadata with a canonical URL, Open Graph and Twitter tags. `index: false` for pages that must stay out of search. */
 export function pageMeta(o: { title: string; description: string; path: string; index?: boolean }): Metadata {
   const url = o.path === "/" ? SITE_URL : `${SITE_URL}${o.path}`;
-  const image = `${SITE_URL}/opengraph-image`;
+  const image = `${SITE_URL}/og`;
   return {
     title: o.title,
     description: o.description,
