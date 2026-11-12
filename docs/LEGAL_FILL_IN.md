@@ -1,3 +1,7 @@
+# Legal pages — STATUS 2026-11-12
+Filled from the founder's submission: businessName "Yardscale Digital (App Studio)", address "Independence City, St Catherine, Jamaica", supportEmail support@tradenotes.dev, refund 14 days, deletion 30 days, governing law Jamaica, no DPA number yet. **counselReviewed = false** and every legal page now states (in `LEGAL.responsibilityStatement`) that the operator accepts full responsibility and that no lawyer reviewed it.
+**Open:** support@tradenotes.dev must actually receive mail (set up forwarding) before the site is shared publicly.
+
 # Legal pages — what to fill in
 Pages (`/legal/terms`, `/legal/privacy`, `/legal/disclaimer`) are rendered from **`src/lib/legal.ts`**. Until required values are set, each page shows a red "not filled in" warning and `[… not set yet]` markers; `npm run check:legal` fails. **I am not a lawyer; these are plain-English drafts. The founder has accepted legal responsibility; a lawyer review is still recommended.**
 

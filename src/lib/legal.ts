@@ -6,13 +6,13 @@
 export const LEGAL = {
   productName: "TradeNotes",
   /** Legal or trading name of the person/company operating TradeNotes (the "data controller"). */
-  businessName: "TODO: legal or trading name",
+  businessName: "Yardscale Digital (App Studio)",
   /** Where users contact you for support, privacy requests, cancellations and refunds. */
-  supportEmail: "TODO: support email",
+  supportEmail: "support@tradenotes.dev",
   /** Country the business operates from. */
   country: "Jamaica",
   /** Optional postal address (leave empty to omit). */
-  address: "",
+  address: "Independence City, St Catherine, Jamaica",
   /** Optional Jamaica Data Protection Act registration number, once you have one (leave empty to omit). */
   dpaRegistrationNumber: "",
   /** Law that governs the Terms. CONFIRM WITH COUNSEL. */
@@ -24,8 +24,10 @@ export const LEGAL = {
   /** Payment provider shown to customers. */
   paymentProvider: "Handypay",
   effectiveDate: "11 November 2026",
-  /** Set to true only after a qualified lawyer has reviewed these pages. */
+  /** Set to true only after a qualified lawyer has reviewed these pages (it has NOT been reviewed). */
   counselReviewed: false,
+  /** The operator states, in the pages themselves, that it accepts responsibility and that no lawyer has reviewed the wording. */
+  responsibilityStatement: "Yardscale Digital (App Studio) accepts full responsibility for these documents and for how it handles your data. These documents were written without review by a lawyer. If anything here is unclear or you think it is wrong, tell us and we will fix it.",
 } as const;
 
 export const isFilled = (v: string) => v.trim() !== "" && !v.trim().toUpperCase().startsWith("TODO");

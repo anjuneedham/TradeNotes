@@ -12,11 +12,9 @@ export function LegalShell({ title, children }: { title: string; children: React
           Some details on this page are not filled in yet ({missing.join(", ")}). Do not publish this page until they are.
         </p>
       )}
-      {legalComplete() && !LEGAL.counselReviewed && (
-        <p className="mt-4 rounded-md border border-border bg-raised p-3 text-xs text-muted">
-          These documents have not yet been reviewed by a qualified lawyer.
-        </p>
-      )}
+      <p className="mt-4 rounded-md border border-border bg-raised p-3 text-sm" data-testid="responsibility">
+        {LEGAL.responsibilityStatement}{LEGAL.counselReviewed ? "" : " Not reviewed by a lawyer."}
+      </p>
       <div className="mt-6 space-y-3 [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">{children}</div>
     </div>
   );
