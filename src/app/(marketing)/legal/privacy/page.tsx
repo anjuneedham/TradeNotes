@@ -47,6 +47,7 @@ export default function Privacy() {
       <ul>
         <li><code>better-auth.session_token</code> — keeps you logged in (essential; expires after about 30 days).</li>
         <li><code>tn_src</code> — remembers the source tag of the link you came from (30 days).</li>
+        <li><code>tn_ref</code> — remembers which partner&apos;s link you came from, so they can be credited if you subscribe (30 days; only set when a partner link is used).</li>
         <li><code>tn_theme</code> — remembers a light or dark appearance if you choose one in Settings (1 year; not set unless you choose).</li>
       </ul>
       <p>We do not use advertising cookies. To count visits and see which pages are used, we use Vercel Web Analytics, which sets no cookies and does not track you across other sites; it records page views with coarse, anonymised device and country information.</p>

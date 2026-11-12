@@ -27,7 +27,7 @@ export type Notify = "subscription_confirmed" | "payment_failed" | "cancellation
 export interface Outcome { next: SubState | null; payment: PaymentRecord | null; notify: Notify | null; note: string }
 
 /** Monthly prices in cents, used only when an event carries no plan metadata. */
-export const PLAN_BY_AMOUNT: Record<number, PlanId> = { 1200: "starter", 2400: "pro" };
+export const PLAN_BY_AMOUNT: Record<number, PlanId> = { 1200: "starter", 2400: "pro", 12000: "starter", 24000: "pro" };
 
 type Obj = Record<string, unknown>;
 export const objectOf = (e: ProviderEvent): Obj => ((e.data?.object as Obj) ?? e.data ?? {}) as Obj;

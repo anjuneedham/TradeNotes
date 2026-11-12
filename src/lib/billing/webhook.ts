@@ -5,6 +5,7 @@ import { verifySignature } from "./handypay";
 import { sendTemplate } from "../email-templates";
 import { emailEnabled } from "../email";
 import type { PlanId } from "../plans";
+import { accrueCommission, voidUnpaidCommissions } from "../affiliate";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export interface WebhookResult { status: number; body: { ok: boolean; outcome: string } }
@@ -56,16 +57,22 @@ export async function handleWebhook(rawBody: string, signature: string | null, s
           [userId, JSON.stringify({ event: event.id, type: event.type, from: { plan: cur.plan, status: cur.status }, to: { plan: n.plan, status: n.status } })]);
         if (out.notify) mail = { notify: out.notify, userId, plan: n.plan, periodEnd: n.current_period_end };
       }
+      const iv = (objectOf(event).metadata as Record<string, unknown> | undefined)?.interval;
+      if (out.next && out.next.plan !== "free" && (iv === "month" || iv === "year")) await client.query("update tradenotes.subscriptions set billing_interval = $2 where user_id = $1", [userId, iv]);
       // Founding seat is confirmed only by a verified, signed payment event for a checkout that reserved it.
       if (out.next && out.next.plan !== "free" && (out.next.status === "active" || out.next.status === "trialing") && (objectOf(event).metadata as Record<string, unknown> | undefined)?.founding === "1") {
         await client.query("update tradenotes.subscriptions set is_founding_member = true where user_id = $1 and founding_claimed_at is not null", [userId]);
       }
       if (out.payment) {
         const p = out.payment;
-        await client.query(
+        const ins2 = await client.query(
           `insert into tradenotes.payments (id, user_id, provider_subscription_id, amount_cents, currency, status, description, receipt_url, occurred_at)
            values ($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict (id) do nothing`,
           [p.id, userId, subscriptionIdOf(event), p.amount_cents, p.currency, p.status, p.description, p.receipt_url, p.occurred_at]);
+        if (ins2.rowCount) {
+          if (p.status === "paid") await accrueCommission(client, userId, p);       // affiliate commission (no-op for non-referred users)
+          else if (p.status === "refunded") await voidUnpaidCommissions(client, userId);
+        }
       }
       outcome = out.note;
     }

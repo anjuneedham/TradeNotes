@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getContext } from "@/lib/app-context";
 import { pool } from "@/lib/db";
-import { CHECKOUT_URLS, type PlanId } from "@/lib/plans";
+import { CHECKOUT_URLS, isInterval, type PlanId } from "@/lib/plans";
 import { emailEnabled } from "@/lib/email";
 import { sendTemplate } from "@/lib/email-templates";
 import { claimFoundingSeat, foundingPriceCents } from "@/lib/founding";
@@ -20,13 +20,14 @@ export async function startCheckout(formData: FormData) {
   const { user, plan } = await getContext({ requireOnboarded: false });
   const want = String(formData.get("plan"));
   if (want !== "starter" && want !== "pro") redirect("/app/billing");
+  const interval = isInterval(formData.get("interval")) ? (formData.get("interval") as "month" | "year") : "month";
   if (plan !== "free") redirect("/app/billing?error=already-subscribed");
-  if (!handypayEnabled()) redirect(CHECKOUT_URLS[want]);
+  if (!handypayEnabled()) redirect(CHECKOUT_URLS[want]); // static links are monthly only
   let url: string;
   try {
     // Founding offer: reserve a seat (race-safe, max 10) and charge the discounted price; otherwise the normal price.
-    const founding = (await claimFoundingSeat(user.id)) ? { amountCents: foundingPriceCents(want) } : undefined;
-    url = await createSubscriptionCheckout({ plan: want, userId: user.id, email: user.email, siteUrl: site(), founding });
+    const founding = (await claimFoundingSeat(user.id)) ? { amountCents: foundingPriceCents(want, interval) } : undefined;
+    url = await createSubscriptionCheckout({ plan: want, userId: user.id, email: user.email, siteUrl: site(), interval, founding });
   } catch (e) {
     console.error("checkout failed", e instanceof Error ? e.message : e);
     redirect("/app/billing?error=checkout");

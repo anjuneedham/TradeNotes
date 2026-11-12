@@ -3,6 +3,8 @@
 Done since 11-10: HandyPay checkout + signed webhooks + lifecycle (unit-tested, fake provider e2e), CSV import (paid feature now real), trade edit, data export/delete, frontend redesign, founding offer built and concurrency-tested (see FOUNDING_OFFER.md), Vercel Web Analytics code added.
 **Blocking before the first payment:** (1) legal fields (`businessName`, `supportEmail`) still TODO; (2) no production deployment exists: every Vercel deployment is a branch preview behind SSO protection, and `main` has not been deployed; (3) one real HandyPay test-mode payment incl. discounted founding checkout (webhook field names unverified against real events); (4) public domain + Resend verification (last, per founder); (5) Vercel Web Analytics must be switched on in the dashboard (code is in, data is 0 until then); (6) error monitoring; CI gate; month-12 repricing of founding members is manual.
 
+**Added 2026-11-12 (later):** annual billing (2 months free: $120/$240, founding = 50% of the annual), partner programme (docs/AFFILIATE_PROGRAM.md; 30% x 12 months, 30-day hold, CLI payouts), CI workflow + monitoring instructions (docs/MONITORING_AND_CI.md). Database now 20 tables, 43 verification checks, 101 tests. **Security:** a live HandyPay key was pasted into chat on 2026-11-12; rotate it and store only in Vercel (Sensitive).
+
 ---
 # Readiness review — 2026-11-10 (commit 9783a7d, live on Vercel)
 

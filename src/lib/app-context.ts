@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { cleanSrc } from "./db-config";
+import { cleanRef, attachReferral } from "./affiliate";
 import { redirect } from "next/navigation";
 import { getAuth } from "./auth";
 import { withUser, type Q } from "./db";
@@ -12,7 +13,7 @@ export interface Profile {
   onboarding_completed_at: string | null; is_admin: boolean;
 }
 export interface Subscription {
-  plan: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; provider: string; provider_subscription_id: string | null;
+  plan: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; provider: string; provider_subscription_id: string | null; billing_interval: string;
 }
 export interface Account { id: string; name: string; currency: string; starting_balance: string }
 
@@ -35,9 +36,13 @@ export async function getContext({ requireOnboarded = true } = {}) {
     }
     const accounts = await q<Account>("select id, name, currency, starting_balance from tradenotes.accounts order by created_at");
     const [sub] = await q<Subscription>(
-      "select plan, status, current_period_end, cancel_at_period_end, provider, provider_subscription_id from tradenotes.subscriptions where user_id = $1", [user.id]);
+      "select plan, status, current_period_end, cancel_at_period_end, provider, provider_subscription_id, billing_interval from tradenotes.subscriptions where user_id = $1", [user.id]);
     return { profile, accounts, sub: sub ?? null };
   });
+  if (firstVisit) {
+    const ref = cleanRef((await cookies()).get("tn_ref")?.value);
+    if (ref) await attachReferral(user.id, user.email, ref).catch((e) => console.error("referral failed", e instanceof Error ? e.message : e));
+  }
   // Best-effort welcome email; never blocks or fails the request.
   if (firstVisit && emailEnabled()) sendTemplate(user.email, "welcome").catch((e) => console.error("welcome email failed", e instanceof Error ? e.message : e));
   if (requireOnboarded && !profile?.onboarding_completed_at) redirect("/app/onboarding");

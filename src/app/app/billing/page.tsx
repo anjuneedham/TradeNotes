@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
-import { PLANS, CHECKOUT_URLS } from "@/lib/plans";
+import { PLANS, CHECKOUT_URLS, ANNUAL_MONTHS_FREE, isInterval } from "@/lib/plans";
 import { PLAN_ORDER, PLAN_BLURB, planHeadline } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { Card, Notice, Badge, Meter, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/ui";
@@ -23,14 +23,16 @@ interface PaymentRow { id: string; amount_cents: number; currency: string; statu
 
 export const metadata = { title: "Plan & billing — TradeNotes" };
 
-export default async function Billing({ searchParams }: { searchParams: Promise<{ plan?: string; checkout?: string; error?: string; cancelled?: string; resumed?: string }> }) {
+export default async function Billing({ searchParams }: { searchParams: Promise<{ interval?: string; plan?: string; checkout?: string; error?: string; cancelled?: string; resumed?: string }> }) {
   const { db, user, plan, sub } = await getContext({ requireOnboarded: false });
-  const { plan: want, checkout, error, cancelled, resumed } = await searchParams;
+  const { interval: iv, plan: want, checkout, error, cancelled, resumed } = await searchParams;
   const { used, payments } = await db(async (q) => ({
     used: (await q<{ n: number }>("select count(*)::int as n from tradenotes.trades"))[0].n,
     payments: await q<PaymentRow>("select id, amount_cents, currency, status, description, receipt_url, occurred_at from tradenotes.payments order by occurred_at desc limit 24"),
   }));
   const auto = handypayEnabled();
+  const interval = auto && isInterval(iv) ? iv : "month";
+  const yearly = interval === "year";
   const seats = auto && plan === "free" ? await foundingSeatsLeft() : null;
   const offer = seats !== null && seats > 0;
   const managed = auto && Boolean(sub?.provider_subscription_id) && sub?.provider === "handypay";
@@ -68,8 +70,8 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
             <p className="mt-1 flex items-center gap-2.5 text-2xl font-semibold tracking-tight">{PLANS[plan].name}{paid && (sub?.cancel_at_period_end ? <Badge tone="warn">Ends {end ?? "at period end"}</Badge> : sub?.status === "past_due" ? <Badge tone="warn">Payment failed</Badge> : <Badge tone="win">{sub?.status === "trialing" ? "Trial" : "Active"}</Badge>)}</p>
           </div>
           <div className="text-right">
-            <p className="fig text-2xl font-medium">${PLANS[plan].monthly}<span className="font-sans text-sm font-normal text-muted"> / month</span></p>
-            <p className="mt-1 text-xs text-muted">{paid ? (sub?.cancel_at_period_end ? `Cancelled. Access until ${end ?? "the end of the paid period"}, then Free.` : end ? `Paid through ${end}. Renews automatically each month unless cancelled.` : "Renews automatically each month unless cancelled.") : "No charge. No card on file."}</p>
+            <p className="fig text-2xl font-medium">${paid && sub?.billing_interval === "year" ? PLANS[plan].annual : PLANS[plan].monthly}<span className="font-sans text-sm font-normal text-muted"> / {paid && sub?.billing_interval === "year" ? "year" : "month"}</span></p>
+            <p className="mt-1 text-xs text-muted">{paid ? (sub?.cancel_at_period_end ? `Cancelled. Access until ${end ?? "the end of the paid period"}, then Free.` : end ? `Paid through ${end}. Renews automatically each ${sub?.billing_interval === "year" ? "year" : "month"} unless cancelled.` : `Renews automatically each ${sub?.billing_interval === "year" ? "year" : "month"} unless cancelled.`) : "No charge. No card on file."}</p>
           </div>
         </div>
         <div className="mt-5 border-t border-border pt-4">
@@ -86,18 +88,25 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
 
       <section aria-labelledby="change" className="space-y-3">
         <h2 id="change" className="text-lg font-semibold tracking-tight">{paid ? "Change plan" : "Upgrade"}</h2>
+        {auto && !paid && (
+          <div className="flex gap-2 text-sm" role="group" aria-label="Billing period">
+            <Link href={`/app/billing${want ? `?plan=${want}` : ""}`} className={yearly ? btnGhostCls : btnCls} aria-current={!yearly}>Monthly</Link>
+            <Link href={`/app/billing?interval=year${want ? `&plan=${want}` : ""}`} className={yearly ? btnCls : btnGhostCls} aria-current={yearly}>Annual · {ANNUAL_MONTHS_FREE} months free</Link>
+          </div>
+        )}
         <div className="grid gap-3 md:grid-cols-3">
           {PLAN_ORDER.map((id) => (
             <Card key={id} className={`flex flex-col ${want === id && plan !== id ? "border-fg" : ""}`}>
               <div className="flex items-center justify-between"><h3 className="font-medium">{PLANS[id].name}</h3>{plan === id && <Badge tone="accent">Your plan</Badge>}</div>
-              <p className="fig mt-2 text-2xl font-medium">{offer && id !== "free" && <s className="mr-2 text-base text-muted">${PLANS[id].monthly}</s>}${offer && id !== "free" ? foundingPriceCents(id) / 100 : PLANS[id].monthly}<span className="font-sans text-sm font-normal text-muted"> / month</span></p>
+              <p className="fig mt-2 text-2xl font-medium">{offer && id !== "free" && <s className="mr-2 text-base text-muted">${yearly ? PLANS[id].annual : PLANS[id].monthly}</s>}${offer && id !== "free" ? foundingPriceCents(id, interval) / 100 : yearly && id !== "free" ? PLANS[id].annual : PLANS[id].monthly}<span className="font-sans text-sm font-normal text-muted"> / {yearly && id !== "free" ? "year" : "month"}</span></p>
+              {yearly && id !== "free" && <p className="mt-1 text-xs text-muted">{ANNUAL_MONTHS_FREE} months free (${(PLANS[id].annual / 12).toFixed(0)}/mo equivalent). Billed once a year.</p>}
               <p className="mt-2 text-sm font-medium">{planHeadline(id)}</p>
               <p className="mt-1 text-xs leading-relaxed text-muted">{PLAN_BLURB[id]}</p>
               <div className="mt-auto pt-4">
                 {plan === id ? <p className="text-xs text-muted">This is your current plan.</p>
                   : id === "free" ? <p className="text-xs text-muted">To move to Free, cancel your subscription (see below). You keep paid access until the period you paid for ends.</p>
                   : paid ? <p className="text-xs leading-relaxed text-muted">To switch to {PLANS[id].name}, {support ? `email ${support}` : "contact support"} so we can move your existing subscription. Subscribing again here would start a second one.</p>
-                  : auto ? <form action={startCheckout}><input type="hidden" name="plan" value={id} /><button className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}</button></form>
+                  : auto ? <form action={startCheckout}><input type="hidden" name="plan" value={id} /><input type="hidden" name="interval" value={interval} /><button className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}</button></form>
                   : <a href={CHECKOUT_URLS[id]} target="_blank" rel="noopener noreferrer" className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}<span className="sr-only"> (opens Handypay checkout in a new tab)</span> ↗</a>}
               </div>
             </Card>

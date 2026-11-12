@@ -24,11 +24,11 @@ const missing = expected.filter((e) => !actual.has(e));
 ok(`all ${expected.length} expected columns present with the right types`, missing.length === 0, missing.slice(0, 5).join(" ; "));
 
 const tables = await q(`select n.nspname s, c.relname t, c.relrowsecurity rls from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and (n.nspname='tradenotes' or (n.nspname='public' and c.relname like 'tn\\_%'))`);
-ok("17 TradeNotes tables exist", tables.length === 17, String(tables.length));
+ok("20 TradeNotes tables exist", tables.length === 20, String(tables.length));
 ok("row-level security enabled on every TradeNotes table", tables.every((t) => t.rls), tables.filter((t) => !t.rls).map((t) => t.t).join(","));
 const pol = await q(`select tablename t, count(*)::int k from pg_policies where schemaname='tradenotes' group by 1`);
 const polMap = Object.fromEntries(pol.map((r) => [r.t, r.k]));
-ok("policies: profiles=2, subscriptions=1, payments=1, 7 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events, JSON.stringify(polMap));
+ok("policies: profiles=2, subscriptions=1, payments=1, 7 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions, JSON.stringify(polMap));
 const trg = (await q(`select tgname from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='tradenotes' and not t.tgisinternal`)).map((r) => r.tgname);
 const wantTrg = ["profiles_protect_admin","exits_owner","shots_owner","trades_refs","imports_refs"];
 ok("safety triggers present", wantTrg.every((t) => trg.includes(t)), `have: ${trg.join(",")}`);
@@ -68,6 +68,7 @@ try {
   ok("B cannot insert a paid subscription row", await errors("insert into tradenotes.subscriptions (user_id,plan) values ($1,'pro')", [B]));
   ok("B cannot insert a payment record", await errors("insert into tradenotes.payments (id,user_id,amount_cents,currency,status) values ('x',$1,100,'USD','paid')", [B]));
   ok("B cannot read or write billing events", (await errors("select 1 from tradenotes.billing_events")) && (await errors("insert into tradenotes.billing_events (id,type,payload) values ('e','t','{}')")));
+  ok("B cannot read or write affiliate tables", (await errors("select 1 from tradenotes.affiliates")) && (await errors("select 1 from tradenotes.referrals")) && (await errors("select 1 from tradenotes.commissions")) && (await errors("insert into tradenotes.commissions (affiliate_id,payment_id,base_cents,commission_cents,payable_after) values (gen_random_uuid(),'x',1,1,now())")));
   await c.query("reset role");
   await c.query("insert into tradenotes.payments (id,user_id,amount_cents,currency,status) values ($1,$2,2400,'USD','paid')", [`verify-${A}`, A]);
   await as(B);

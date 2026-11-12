@@ -163,3 +163,28 @@ tradenotes.trades.target_price|numeric|YES|20|8|
 tradenotes.trades.timeframe|text|YES|||
 tradenotes.trades.updated_at|timestamp with time zone|NO|||
 tradenotes.trades.user_id|uuid|NO|||
+tradenotes.affiliates.code|text|NO|||
+tradenotes.affiliates.commission_pct|integer|NO|32|0|
+tradenotes.affiliates.created_at|timestamp with time zone|NO|||
+tradenotes.affiliates.dashboard_token|text|NO|||
+tradenotes.affiliates.email|text|NO|||
+tradenotes.affiliates.id|uuid|NO|||
+tradenotes.affiliates.name|text|NO|||
+tradenotes.affiliates.notes|text|YES|||
+tradenotes.affiliates.payout_details|text|YES|||
+tradenotes.affiliates.status|text|NO|||
+tradenotes.commissions.affiliate_id|uuid|NO|||
+tradenotes.commissions.base_cents|integer|NO|32|0|
+tradenotes.commissions.commission_cents|integer|NO|32|0|
+tradenotes.commissions.created_at|timestamp with time zone|NO|||
+tradenotes.commissions.id|uuid|NO|||
+tradenotes.commissions.paid_at|timestamp with time zone|YES|||
+tradenotes.commissions.payable_after|timestamp with time zone|NO|||
+tradenotes.commissions.payment_id|text|NO|||
+tradenotes.commissions.payout_ref|text|YES|||
+tradenotes.commissions.status|text|NO|||
+tradenotes.commissions.user_id|uuid|YES|||
+tradenotes.referrals.affiliate_id|uuid|NO|||
+tradenotes.referrals.created_at|timestamp with time zone|NO|||
+tradenotes.referrals.user_id|uuid|NO|||
+tradenotes.subscriptions.billing_interval|text|NO|||

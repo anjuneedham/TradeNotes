@@ -1,12 +1,12 @@
 import { pool } from "./db";
-import { FOUNDING_OFFER, PLANS, type PlanId } from "./plans";
+import { FOUNDING_OFFER, priceCents, type Interval, type PlanId } from "./plans";
 
 /** A reserved-but-unpaid seat is held this long, then released so an abandoned checkout can't block a real buyer. */
 export const RESERVATION_HOURS = 2;
 
 /** Discounted monthly price in cents for a paid plan (whole cents, never below 1). */
-export const foundingPriceCents = (plan: Exclude<PlanId, "free">) =>
-  Math.max(1, Math.round(PLANS[plan].monthly * 100 * (100 - FOUNDING_OFFER.discountPct) / 100));
+export const foundingPriceCents = (plan: Exclude<PlanId, "free">, interval: Interval = "month") =>
+  Math.max(1, Math.round(priceCents(plan, interval) * (100 - FOUNDING_OFFER.discountPct) / 100));
 
 /** Seats still open given how many are held (confirmed + live reservations). Never negative. */
 export const seatsLeft = (taken: number) => Math.max(0, FOUNDING_OFFER.seats - taken);

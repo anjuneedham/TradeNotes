@@ -1,0 +1,55 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }
+permissions: { contents: read }
+
+jobs:
+  app:
+    name: lint, types, unit tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      # No DATABASE_URL here, so the build's migrate/verify steps skip themselves; this checks that the app compiles.
+      - run: npx next build
+        env: { NEXT_TELEMETRY_DISABLED: "1" }
+
+  database:
+    name: schema applies twice, security checks, DB integration tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: pw, POSTGRES_DB: tn_ci }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:pw@localhost:5432/tn_ci
+      FOUNDING_TEST_DATABASE_URL: postgresql://postgres:pw@localhost:5432/tn_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Simulate Supabase API roles (the exposure the migrations must close)
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
+          grant usage on schema public to anon, authenticated, service_role;
+          alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+          SQL
+      - run: node scripts/migrate.mjs
+      - name: Re-apply (must be idempotent)
+        run: node scripts/migrate.mjs
+      - run: node scripts/verify-db.mjs
+      - name: DB integration tests (founding seats, affiliate flow)
+        run: npx vitest run src/lib/founding.db.test.ts src/lib/affiliate.db.test.ts

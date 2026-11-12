@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
+import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE } from "@/lib/plans";
 import { PLAN_ORDER, PLAN_BLURB, planHeadline, FEATURES_DEV } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
@@ -11,7 +11,7 @@ export const revalidate = 60; // seat count refreshes at most once a minute
 const FAQ: [string, string][] = [
   ["What do I get for paying today?", "A higher trade limit and CSV import from your broker. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date."],
   ["How does upgrading work?", "You subscribe through Handypay's hosted checkout using the same email as your TradeNotes account. We confirm the payment and switch your plan on by hand, usually within a few hours and within one business day."],
-  ["When am I charged?", "When you subscribe, then automatically each month on the same date until you cancel. Prices are in US dollars; taxes may apply."],
+  ["When am I charged?", "When you subscribe, then automatically each month (or each year, if you choose annual and get 2 months free) on the same date until you cancel. Prices are in US dollars; taxes may apply."],
   ["What happens if I cancel or a payment fails?", "You keep paid access until the end of the period you paid for, then your account returns to Free. Nothing is deleted. If you hold more trades than the Free limit you can still view and analyse all of them — you just can't add new ones."],
   ["Can I get a refund?", "See the Terms for the current refund window on your first payment."],
 ];
@@ -22,7 +22,7 @@ export default async function Pricing() {
     <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Start free. Pay when your journal outgrows it.</h1>
-        <p className="mt-3 text-muted">Three plans, billed monthly in US dollars. No card needed for Free. Cancel any time.</p>
+        <p className="mt-3 text-muted">Three plans, billed monthly or yearly in US dollars. Pay yearly and get 2 months free. No card needed for Free. Cancel any time.</p>
       </div>
 
       <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -34,6 +34,7 @@ export default async function Pricing() {
             <section key={id} aria-labelledby={`plan-${id}`} className={`flex flex-col rounded-lg border bg-panel p-5 sm:p-6 ${id === "starter" ? "border-fg" : "border-border"}`}>
               <div className="flex items-center justify-between gap-2"><h2 id={`plan-${id}`} className="text-lg font-semibold">{p.name}</h2>{id === "starter" && <Badge tone="neutral">Most traders</Badge>}</div>
               <p className="mt-3"><span className="fig text-4xl font-medium">${p.monthly}</span><span className="text-sm text-muted"> / month</span></p>
+              {id !== "free" && <p className="mt-1 text-xs text-muted">or ${p.annual} / year ({ANNUAL_MONTHS_FREE} months free)</p>}
               <p className="mt-3 text-sm text-muted">{PLAN_BLURB[id]}</p>
               <ul className="mt-5 space-y-2 text-sm">
                 <li className="font-medium">{planHeadline(id)}</li>
