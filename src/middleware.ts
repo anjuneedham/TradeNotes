@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cleanSrc } from "@/lib/db-config";
-import { cleanRef, AFFILIATE } from "@/lib/affiliate";
+import { cleanRef, AFFILIATE } from "@/lib/affiliate-config";
 
 /**
  * Optimistic gate only (cookie present). The real session check happens server-side in getContext(),
