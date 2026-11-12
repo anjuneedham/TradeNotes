@@ -1,3 +1,31 @@
+# Readiness rating — 2026-11-12 (evening; production live at tradenotes.dev, commit 29e8aaa)
+| Lens | Score /10 | Was | One-line reason |
+|---|---|---|---|
+| **Overall app** | **6.8** | 6.5 | Solid, tested, live; money path and legal still unproven |
+| **Industry-specific** (retail trading journal / fintech-adjacent) | **5.0** | n/a | Trust basics are good; the features buyers compare on (broker sync, depth) are not there |
+| **App-type-specific** (paid B2C subscription web app) | **6.5** | n/a | Auth, isolation, email, CI in place; billing unverified, legal blank, monitoring not yet receiving data |
+
+## Overall app (6.8)
++ 20-table database with row-level security, 43 verification checks on every build, 101 tests, CI with runtime smoke test, security headers, email confirmation working, production on the custom domain with rollback available.
+- Payments never exercised end to end with the real provider; founding/annual/affiliate paths untested against live HandyPay events.
+- Legal pages show the unfilled-details warning. Sentry not receiving events yet. No backup-restore drill. Branch protection on `main` not enabled, so CI does not block merges.
+- Production branch in Vercel is not `main` (manual promote needed).
+
+## Industry-specific (5.0): what traders compare you on
+Strong: no broker credentials stored; honest metrics (open/partial trades disclosed, small-sample warnings); R-multiples, partial exits, forex lots; CSV import; risk disclaimer page; 18+ only; self-service export/delete.
+Missing versus Tradezella/TraderSync/Edgewonk-class tools: **broker auto-sync** (the #1 purchase driver), futures/options contract specifics, calendar and weekly review, screenshots, backtesting/replay, mobile app, community/social proof, real testimonials. Marketing is truthful about this ("in development"), which protects trust but caps conversion.
+Regulatory: you are a journaling tool, not an adviser. Keep "no financial advice / no performance promises" everywhere, and keep partner rules banning income claims. Registration with the Jamaican Information Commissioner (data controller) and a lawyer review are still open.
+Moves it to 6.5+: CSV templates for the 5 biggest brokers (MT4/MT5, TradingView, Tradovate, NinjaTrader, Thinkorswim), calendar view, a public demo with sample data, 3 real user testimonials.
+
+## App-type-specific (6.5): paid B2C SaaS checklist
+Done: signup/login, email confirmation and reset, plans and limits enforced server-side, cancel/resume, payment history, data export, account deletion, partner program, analytics code, CI, monitoring code.
+Not done: one real live payment and refund (including webhook field names), legal fill-in, Sentry data flowing, uptime check, branch protection, support inbox/process, backup restore test, DPA registration, tax position with HandyPay (merchant of record).
+Moves it to 8: the six items above, in that order.
+
+## Path to a paid launch
+1) Legal fill-in (form submitted) 2) HandyPay key rotated + webhook secret 3) Sentry variables present, redeploy 4) test payment of the cheapest plan, then refund 5) branch protection + uptime check 6) Production Branch = `main`.
+
+---
 # Readiness review — 2026-11-12 update (after merging billing, CSV import, redesign; founding offer; analytics)
 **Overall ~7.0 / 10 (was 6.5). Free/early-access launch: ready once legal fields + a public domain are set. Charging money: not yet.**
 Done since 11-10: HandyPay checkout + signed webhooks + lifecycle (unit-tested, fake provider e2e), CSV import (paid feature now real), trade edit, data export/delete, frontend redesign, founding offer built and concurrency-tested (see FOUNDING_OFFER.md), Vercel Web Analytics code added.
