@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { TradeInput } from "./metrics";
 
-export const ASSET_CLASSES = ["forex", "futures", "stock", "option", "crypto", "other"] as const;
+export const ASSET_CLASSES = ["forex", "future", "stock", "option", "crypto", "other"] as const;
 export const SESSIONS = ["Asia", "London", "London/NY overlap", "New York", "Other"] as const;
 export const EMOTIONS = ["Calm", "Confident", "Anxious", "FOMO", "Greedy", "Frustrated", "Revenge", "Bored", "Hesitant"] as const;
 export const MISTAKES = ["Entered early", "Entered late", "Moved stop", "No stop loss", "Oversized", "Revenge trade", "Broke rules", "Closed too early", "Held too long", "Chased price"] as const;

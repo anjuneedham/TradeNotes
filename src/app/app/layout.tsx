@@ -1,19 +1,17 @@
-import Link from "next/link";
+import { cookies } from "next/headers";
 import { logout } from "../(auth)/actions";
+import { AppNav } from "@/components/AppNav";
 
-const links = [["Dashboard", "/app"], ["Journal", "/app/journal"], ["Billing", "/app/billing"], ["Learn", "/learn"]] as const;
-
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // Theme preference is a per-device cookie (set in Settings). No value = follow the device.
+  const t = (await cookies()).get("tn_theme")?.value;
+  const theme = t === "light" || t === "dark" ? t : undefined;
+  const logoutForm = (
+    <form action={logout}><button className="w-full rounded-md px-2.5 py-2 text-left text-sm text-muted hover:bg-raised/60 hover:text-fg">Log out</button></form>
+  );
   return (
-    <div>
-      <div className="border-b border-border bg-panel">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2 text-sm">
-          {links.map(([l, h]) => <Link key={h} href={h} className="py-1 text-muted hover:text-fg">{l}</Link>)}
-          <Link href="/app/journal/new" className="rounded-md bg-accent px-3 py-1 font-medium text-white">+ Log trade</Link>
-          <form action={logout} className="ml-auto"><button className="py-1 text-muted hover:text-fg">Log out</button></form>
-        </div>
-      </div>
-      <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
+    <div data-theme={theme} className="bg-bg text-fg">
+      <AppNav logout={logoutForm}>{children}</AppNav>
     </div>
   );
 }

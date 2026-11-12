@@ -1,36 +1,24 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 
+const plexSans = localFont({ src: "./fonts/ibm-plex-sans-latin-wght-normal.woff2", weight: "100 700", variable: "--font-plex-sans", display: "swap" });
+const plexMono = localFont({
+  src: [{ path: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400" }, { path: "./fonts/ibm-plex-mono-latin-500-normal.woff2", weight: "500" }],
+  variable: "--font-plex-mono", display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "TradeNotes — Trading Journal & Backtesting",
+  title: "TradeNotes — Trading Journal & Performance Analytics",
   description: "Know your trades. Understand your patterns. Improve your process.",
 };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#0d0f11" }, { media: "(prefers-color-scheme: light)", color: "#f6f5f1" }] };
 
+/** Root layout holds only fonts and tokens. Chrome lives in the (marketing), (auth) and app layouts. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen antialiased">
-        <header className="border-b border-border">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link href="/" className="font-semibold tracking-tight">TradeNotes</Link>
-            <div className="flex gap-4 text-sm text-muted">
-              <Link href="/pricing" className="hover:text-fg">Pricing</Link>
-              <Link href="/learn" className="hover:text-fg">Learn</Link>
-            </div>
-          </nav>
-        </header>
-        <main>{children}</main>
-        <footer className="mt-24 border-t border-border">
-          <div className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4 py-6 text-xs text-muted">
-            <span>© 2026 TradeNotes</span>
-            <Link href="/legal/terms">Terms</Link>
-            <Link href="/legal/privacy">Privacy</Link>
-            <Link href="/legal/disclaimer">Risk disclaimer</Link>
-            <span className="w-full">TradeNotes is a journaling and analytics tool. It does not provide financial advice. Trading involves substantial risk of loss; past performance does not guarantee future results.</span>
-          </div>
-        </footer>
-      </body>
+    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+      <body className="min-h-screen antialiased">{children}</body>
     </html>
   );
 }

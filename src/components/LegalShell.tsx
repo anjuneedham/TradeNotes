@@ -5,7 +5,7 @@ export function LegalShell({ title, children }: { title: string; children: React
   const missing = missingLegalFields();
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 text-sm leading-relaxed">
-      <h1 className="text-3xl font-semibold">{title}</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
       <p className="mt-1 text-xs text-muted">Effective {LEGAL.effectiveDate}</p>
       {!legalComplete() && (
         <p role="alert" className="mt-4 rounded border border-loss/50 bg-loss/10 p-3">
@@ -13,7 +13,7 @@ export function LegalShell({ title, children }: { title: string; children: React
         </p>
       )}
       {legalComplete() && !LEGAL.counselReviewed && (
-        <p className="mt-4 rounded border border-border bg-panel p-3 text-xs text-muted">
+        <p className="mt-4 rounded-md border border-border bg-raised p-3 text-xs text-muted">
           These documents have not yet been reviewed by a qualified lawyer.
         </p>
       )}

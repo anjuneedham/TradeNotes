@@ -23,7 +23,7 @@ export const LEGAL = {
   deletionDays: 30,
   /** Payment provider shown to customers. */
   paymentProvider: "Handypay",
-  effectiveDate: "10 November 2026",
+  effectiveDate: "11 November 2026",
   /** Set to true only after a qualified lawyer has reviewed these pages. */
   counselReviewed: false,
 } as const;

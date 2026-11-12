@@ -1,16 +1,66 @@
-export default function EquityCurve({ points, currency }: { points: number[]; currency: string }) {
+"use client";
+import { useState } from "react";
+import { money, signedMoney, shortDate } from "@/lib/format";
+
+export interface EquityPoint { cumulative: number; closedAt: string | null }
+
+/**
+ * Cumulative net P&L after each closed trade. One series, so no legend: the card title names it.
+ * The line is drawn in the neutral accent ink; green/red are reserved for results in text.
+ */
+export default function EquityCurve({ points, currency, height = 200 }: { points: EquityPoint[]; currency: string; height?: number }) {
+  const [hover, setHover] = useState<number | null>(null);
   if (points.length < 2) return <p className="text-sm text-muted">The equity curve appears once you have at least 2 closed trades.</p>;
-  const w = 600, h = 180, pad = 8;
-  const all = [0, ...points];
-  const min = Math.min(...all), max = Math.max(...all), span = max - min || 1;
-  const x = (i: number) => pad + (i / (all.length - 1)) * (w - 2 * pad);
-  const y = (v: number) => h - pad - ((v - min) / span) * (h - 2 * pad);
-  const d = all.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  const last = points[points.length - 1];
+
+  const vals = [0, ...points.map((p) => p.cumulative)];
+  const min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
+  const n = vals.length - 1;
+  const W = 1000, H = 100; // drawing units; the SVG stretches, strokes stay 2px
+  const x = (i: number) => (i / n) * W;
+  const y = (v: number) => H - ((v - min) / span) * H;
+  const d = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(2)}`).join(" ");
+  const last = vals[n];
+  const pctY = (v: number) => `${(y(v) / H) * 100}%`;
+  const h = hover !== null ? { i: hover, v: vals[hover], step: hover > 0 ? vals[hover] - vals[hover - 1] : 0, at: hover > 0 ? points[hover - 1].closedAt : null } : null;
+
+  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setHover(Math.max(0, Math.min(n, Math.round(((e.clientX - r.left) / r.width) * n))));
+  };
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label={`Equity curve of cumulative net P&L in ${currency}, ending at ${last.toFixed(2)}`}>
-      <line x1={pad} x2={w - pad} y1={y(0)} y2={y(0)} stroke="var(--border)" strokeDasharray="4 4" />
-      <path d={d} fill="none" stroke={last >= 0 ? "var(--win)" : "var(--loss)"} strokeWidth="2" />
-    </svg>
+    <figure>
+      <div className="flex gap-2">
+        <div className="fig relative w-16 shrink-0 text-right text-[11px] text-muted sm:w-20" style={{ height }} aria-hidden="true">
+          <span className="absolute right-0 top-0 -translate-y-1/2">{money(max, currency)}</span>
+          {min < 0 && max > 0 && Math.abs(y(0) - 0) > 14 && Math.abs(y(0) - H) > 14 && <span className="absolute right-0 -translate-y-1/2" style={{ top: pctY(0) }}>{money(0, currency)}</span>}
+          <span className="absolute bottom-0 right-0 translate-y-1/2">{money(min, currency)}</span>
+        </div>
+        <div className="relative min-w-0 flex-1 touch-pan-y" style={{ height }} onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setHover(null)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible" role="img"
+            aria-label={`Equity curve: cumulative net P&L over ${n} closed trades, ending at ${signedMoney(last, currency)}. Lowest point ${money(min, currency)}, highest ${money(max, currency)}.`}>
+            <line x1="0" x2={W} y1={y(max)} y2={y(max)} stroke="var(--border)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+            <line x1="0" x2={W} y1={y(min)} y2={y(min)} stroke="var(--border)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+            <line x1="0" x2={W} y1={y(0)} y2={y(0)} stroke="var(--border-strong)" strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+            <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            {h && <line x1={x(h.i)} x2={x(h.i)} y1="0" y2={H} stroke="var(--border-strong)" strokeWidth="1" vectorEffect="non-scaling-stroke" />}
+          </svg>
+          {/* end marker / hover marker (HTML so it stays round while the SVG stretches) */}
+          <span className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-panel bg-accent"
+            style={{ left: `${((h ? h.i : n) / n) * 100}%`, top: pctY(h ? h.v : last) }} />
+          {h && (
+            <div className="pointer-events-none absolute top-0 z-10 w-max max-w-[14rem] rounded-md border border-border-strong bg-raised px-2.5 py-1.5 text-xs shadow-lg"
+              style={h.i / n > 0.5 ? { right: `${(1 - h.i / n) * 100}%`, marginRight: 10 } : { left: `${(h.i / n) * 100}%`, marginLeft: 10 }}>
+              <p className="text-muted">{h.i === 0 ? "Start" : `Trade ${h.i} of ${n}${h.at ? ` · ${shortDate(h.at)}` : ""}`}</p>
+              <p className="fig mt-0.5 font-medium text-fg">{signedMoney(h.v, currency)} <span className="font-sans font-normal text-muted">cumulative</span></p>
+              {h.i > 0 && <p className="fig text-muted">{signedMoney(h.step, currency)} <span className="font-sans">this trade</span></p>}
+            </div>
+          )}
+        </div>
+      </div>
+      <figcaption className="mt-2 flex justify-between pl-[4.5rem] text-[11px] text-muted sm:pl-[5.5rem]">
+        <span>First closed trade</span><span>Trade {n}</span>
+      </figcaption>
+    </figure>
   );
 }

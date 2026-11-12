@@ -79,8 +79,14 @@ describe("DB rows -> metrics (end to end)", () => {
 describe("entitlements", () => {
   const future = new Date(Date.now() + 864e5).toISOString(), past = new Date(Date.now() - 864e5).toISOString();
   it("active paid plan unlocks", () => expect(effectivePlan({ plan: "pro", status: "active", current_period_end: future })).toBe("pro"));
-  it("past_due, canceled, expired fall back to free", () => {
-    expect(effectivePlan({ plan: "pro", status: "past_due", current_period_end: future })).toBe("free");
+  it("past_due keeps access through the paid period + grace, then free", () => {
+    expect(effectivePlan({ plan: "pro", status: "past_due", current_period_end: future })).toBe("pro");
+    const end = new Date("2026-01-10T00:00:00Z").toISOString();
+    expect(effectivePlan({ plan: "pro", status: "past_due", current_period_end: end }, new Date("2026-01-12T00:00:00Z"))).toBe("pro");
+    expect(effectivePlan({ plan: "pro", status: "past_due", current_period_end: end }, new Date("2026-01-14T00:00:00Z"))).toBe("free");
+    expect(effectivePlan({ plan: "pro", status: "past_due", current_period_end: null })).toBe("free");
+  });
+  it("canceled, expired fall back to free", () => {
     expect(effectivePlan({ plan: "pro", status: "canceled", current_period_end: future })).toBe("free");
     expect(effectivePlan({ plan: "starter", status: "active", current_period_end: past })).toBe("free");
   });
@@ -92,5 +98,13 @@ describe("entitlements", () => {
     expect(canAddTrade("free", 49)).toBe(true);
     expect(canAddTrade("free", 50)).toBe(false);
     expect(canAddTrade("pro", 1e6)).toBe(true);
+  });
+});
+
+import { ASSET_CLASSES as AC } from "./trade-schema";
+describe("asset classes match the database check constraint", () => {
+  it("every form value is allowed by trades.asset_class", () => {
+    const db = ["stock", "option", "future", "forex", "crypto", "other"]; // db/paste trades_asset_class check
+    for (const a of AC) expect(db).toContain(a);
   });
 });

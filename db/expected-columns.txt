@@ -48,6 +48,15 @@ tradenotes.audit_log.created_at|timestamp with time zone|NO|||
 tradenotes.audit_log.detail|jsonb|YES|||
 tradenotes.audit_log.id|bigint|NO|64|0|
 tradenotes.audit_log.user_id|uuid|YES|||
+tradenotes.billing_events.id|text|NO|||
+tradenotes.billing_events.outcome|text|YES|||
+tradenotes.billing_events.payload|jsonb|NO|||
+tradenotes.billing_events.processed_at|timestamp with time zone|YES|||
+tradenotes.billing_events.provider_subscription_id|text|YES|||
+tradenotes.billing_events.provider|text|NO|||
+tradenotes.billing_events.received_at|timestamp with time zone|NO|||
+tradenotes.billing_events.type|text|NO|||
+tradenotes.billing_events.user_id|uuid|YES|||
 tradenotes.imports.account_id|uuid|NO|||
 tradenotes.imports.created_at|timestamp with time zone|NO|||
 tradenotes.imports.file_name|text|YES|||
@@ -58,6 +67,16 @@ tradenotes.imports.rows_skipped_duplicate|integer|NO|32|0|
 tradenotes.imports.rows_total|integer|NO|32|0|
 tradenotes.imports.status|text|NO|||
 tradenotes.imports.user_id|uuid|NO|||
+tradenotes.payments.amount_cents|integer|NO|32|0|
+tradenotes.payments.currency|character|NO|||3
+tradenotes.payments.description|text|YES|||
+tradenotes.payments.id|text|NO|||
+tradenotes.payments.occurred_at|timestamp with time zone|NO|||
+tradenotes.payments.provider_subscription_id|text|YES|||
+tradenotes.payments.provider|text|NO|||
+tradenotes.payments.receipt_url|text|YES|||
+tradenotes.payments.status|text|NO|||
+tradenotes.payments.user_id|uuid|NO|||
 tradenotes.profiles.created_at|timestamp with time zone|NO|||
 tradenotes.profiles.display_name|text|YES|||
 tradenotes.profiles.experience_level|text|YES|||
@@ -85,9 +104,16 @@ tradenotes.strategies.id|uuid|NO|||
 tradenotes.strategies.name|text|NO|||
 tradenotes.strategies.rules|text|YES|||
 tradenotes.strategies.user_id|uuid|NO|||
+tradenotes.subscriptions.cancel_at_period_end|boolean|NO|||
+tradenotes.subscriptions.canceled_at|timestamp with time zone|YES|||
 tradenotes.subscriptions.current_period_end|timestamp with time zone|YES|||
+tradenotes.subscriptions.current_period_start|timestamp with time zone|YES|||
 tradenotes.subscriptions.is_founding_member|boolean|NO|||
+tradenotes.subscriptions.last_event_at|timestamp with time zone|YES|||
 tradenotes.subscriptions.plan|text|NO|||
+tradenotes.subscriptions.provider_customer_id|text|YES|||
+tradenotes.subscriptions.provider_subscription_id|text|YES|||
+tradenotes.subscriptions.provider|text|NO|||
 tradenotes.subscriptions.status|text|NO|||
 tradenotes.subscriptions.stripe_customer_id|text|YES|||
 tradenotes.subscriptions.stripe_subscription_id|text|YES|||
