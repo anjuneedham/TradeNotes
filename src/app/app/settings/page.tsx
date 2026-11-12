@@ -8,6 +8,7 @@ import { logout } from "../../(auth)/actions";
 import { savePreferences, deleteAccount } from "./actions";
 import { Card, Notice, Badge, PageHeader, btnCls, btnGhostCls, linkCls, inputCls } from "@/components/ui";
 import { money } from "@/lib/format";
+import { COMMON_TIMEZONES } from "@/lib/timezone";
 
 export const metadata = { title: "Settings — TradeNotes" };
 
@@ -26,6 +27,7 @@ const Line = ({ k, children }: { k: string; children: React.ReactNode }) => (
 const DELETE_ERRORS: Record<string, string> = {
   confirm: "Type DELETE (in capitals) to confirm. Your account was not deleted.",
   password: "That password didn't match. Your account was not deleted.",
+  files: "We couldn't delete your screenshots just now, so nothing was deleted. Please try again in a minute.",
   subscription: "We couldn't cancel your subscription automatically, so nothing was deleted. Cancel it from Plan & billing first, or contact support.",
 };
 
@@ -54,14 +56,13 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         </Card>
       </Section>
 
-      <Section title="Account" sub="Your sign-in and the trading account your statistics are reported in.">
+      <Section title="Account" sub="Your sign-in and your trading accounts.">
         <dl>
           <Line k="Email">{user.email}</Line>
-          <Line k="Trading account">{acct?.name ?? "—"}</Line>
-          <Line k="Account currency">{acct?.currency ?? "—"}</Line>
-          <Line k="Starting balance"><span className="fig">{acct ? money(Number(acct.starting_balance), acct.currency) : "—"}</span></Line>
+          <Line k="Trading accounts">{accounts.length} of {PLANS[plan].accounts}</Line>
+          <Line k="First account">{acct ? `${acct.name} · ${acct.currency} · start ` : "—"}<span className="fig">{acct ? money(Number(acct.starting_balance), acct.currency) : ""}</span></Line>
         </dl>
-        <p className="mt-2 text-xs text-muted">Account details were set during onboarding and can&apos;t be edited here yet{support ? `. Email ${support} if something needs correcting.` : "."}</p>
+        <Link href="/app/accounts" className={`${btnGhostCls} mt-3`}>Manage trading accounts</Link>
       </Section>
 
       <Section title="Preferences">
@@ -69,6 +70,13 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           <label className="flex cursor-pointer items-start gap-3 text-sm">
             <input type="checkbox" name="show_explanations" defaultChecked={profile?.show_explanations ?? true} className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
             <span><span className="font-medium">Show plain-English explanations next to my stats</span><span className="mt-0.5 block text-xs text-muted">Turn off to see only the numbers.</span></span>
+          </label>
+          <label className="block max-w-sm text-sm">
+            <span className="font-medium">Your time zone</span>
+            <select name="timezone" defaultValue={profile?.timezone ?? "UTC"} className={`${inputCls} mt-1`}>
+              {Array.from(new Set([profile?.timezone ?? "UTC", ...COMMON_TIMEZONES])).map((z) => <option key={z} value={z}>{z}</option>)}
+            </select>
+            <span className="mt-1 block text-xs text-muted">Used to read broker files whose times have no time zone, and for calendar days and time-of-day stats. Trades are stored in UTC.</span>
           </label>
           <fieldset>
             <legend className="text-sm font-medium">Appearance <span className="font-normal text-muted">· on this device</span></legend>
@@ -94,7 +102,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <div className="space-y-4 text-sm">
           <div>
             <a href="/app/export" className={btnGhostCls} download>Download my trades (CSV)</a>
-            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet.</p>
+            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet. Screenshots are not included in the file; open a trade to view or save its screenshots.</p>
           </div>
           <details className="rounded-md border border-border p-3" open={Boolean(deleteError)}>
             <summary className="cursor-pointer font-medium">Delete my account</summary>

@@ -10,13 +10,13 @@ import EquityCurve from "@/components/EquityCurve";
 export const metadata = { title: "Dashboard — TradeNotes" };
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const { db, accounts, profile } = await getContext();
+  const { db, profile, scope } = await getContext();
   const range = parseRange((await searchParams).range);
-  const cur = accounts[0]?.currency ?? "USD";
+  const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
 
   let rows: StatRow[] = [], truncated = false;
-  try { ({ rows, truncated } = await loadTrades(db)); }
+  try { ({ rows, truncated } = await loadTrades(db, scope.accountIds)); }
   catch (e) { console.error("dashboard load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
 
   if (rows.length === 0) {
@@ -68,7 +68,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Dashboard" sub={<>{accounts[0]?.name ?? "Account"} · {cur} · {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}, {rangeLabel}</>}>
+      <PageHeader title="Dashboard" sub={<>{scope.label} · {cur} · {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}, {rangeLabel}</>}>
         <Segmented label="Date range" value={range} options={RANGES.map((r) => ({ ...r, href: r.value === "all" ? "/app" : `/app?range=${r.value}` }))} />
       </PageHeader>
 
@@ -76,7 +76,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       {excludedN > 0 && (
         <Notice>
           {s.excluded.open_or_partial.length > 0 && <>{s.excluded.open_or_partial.length} open or partially-closed trade(s) are not included in these statistics. </>}
-          {s.excluded.missing_fx.length > 0 && <>{s.excluded.missing_fx.length} trade(s) in another currency need an exchange rate and are not included. </>}
+          {s.excluded.missing_fx.length > 0 && <>{s.excluded.missing_fx.length} trade(s) in another currency need an exchange rate{scope.mixed ? ", or belong to an account in a different currency (choose that account to see them)," : ""} and are not included. </>}
           {s.excluded.invalid.length > 0 && <>{s.excluded.invalid.length} trade(s) have invalid data and are not included.</>}
         </Notice>
       )}

@@ -186,15 +186,15 @@ async function logTrade(page, o) {
   await B.waitForURL(/\/app\/journal\/[0-9a-f-]{36}$/);
   await B.goto(B.url() + '/edit');
   const aId = globalThis.__detailUrl.split('/').pop();
+  await B.getByLabel('Instrument').fill('HACKED'); // type first: the form re-renders while typing, then forge the hidden id
   await B.evaluate((id) => { const old = document.querySelector('input[name=trade_id]'); const f = old.form; old.removeAttribute('name'); const i = document.createElement('input'); i.type = 'hidden'; i.name = 'trade_id'; i.value = id; f.appendChild(i); }, aId);
-  await B.getByLabel('Instrument').fill('HACKED');
   await B.getByRole('button', { name: 'Save changes' }).click();
   check('forged update of A trade by B is refused', await B.getByText('Trade not found.').waitFor({ timeout: 8000 }).then(() => true, () => false));
   await B.goto(BASE + '/app/journal/new');
   const aAcct = globalThis.__aAccount;
   if (aAcct) {
-    await B.evaluate((id) => { const old = document.querySelector('input[name=account_id]'); const f = old.form; old.removeAttribute('name'); const i = document.createElement('input'); i.type = 'hidden'; i.name = 'account_id'; i.value = id; f.appendChild(i); }, aAcct);
     await B.getByLabel('Instrument').fill('HACKED'); await B.getByLabel('Size (lots)').fill('1'); await B.getByLabel('Entry price').fill('1.1');
+    await B.evaluate((id) => { const old = document.querySelector('input[name=account_id]'); const f = old.form; old.removeAttribute('name'); const i = document.createElement('input'); i.type = 'hidden'; i.name = 'account_id'; i.value = id; f.appendChild(i); }, aAcct);
     await B.getByRole('button', { name: 'Save trade' }).click();
     const fc = await B.getByText('Account not found.').waitFor({ timeout: 8000 }).then(() => true, () => false);
     check('forged create into A account by B is refused', fc, (await B.locator('main').innerText()).slice(0, 300));
@@ -247,8 +247,153 @@ async function logTrade(page, o) {
   check('A trade not modified by B (no HACKED rows)', !finalJ.includes('HACKED'));
   check('no browser JS errors', errors.length === 0, errors.join(' | '));
 
+  await phase1(browser, stamp);
+
   await browser.close();
   const failed = results.filter(r => !r[1]).length;
   console.log(`\n${results.length - failed}/${results.length} passed`);
   process.exit(failed ? 1 : 0);
 })().catch(e => { console.error('E2E CRASH', e.message); process.exit(2); });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Phase 1 (capture and evidence): broker import presets, instrument specs, multiple accounts, screenshots.
+// Needs DATABASE_URL (to set plans the way the payment webhook would) and the app started with SCREENSHOT_STORAGE=memory.
+const path = require('path');
+const FIX = path.join(__dirname, '..', 'src', 'lib', 'import-fixtures');
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+async function setPlan(email, plan) {
+  const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+  await c.query(`update tradenotes.subscriptions s set plan = $2, status = 'active', current_period_end = now() + interval '30 days' from public.tn_user u where u.id = s.user_id and u.email = $1`, [email, plan]);
+  await c.end();
+}
+async function newUser(browser, email, opts = {}) {
+  const ctx = await browser.newContext(opts); const page = await ctx.newPage();
+  await signup(page, email); await onboard(page);
+  return page;
+}
+async function importFile(page, file, { tz } = {}) {
+  await page.goto(BASE + '/app/import');
+  await page.getByLabel('Trade history file').setInputFiles(path.join(FIX, file));
+  if (tz) await page.getByLabel('Times in this file are in').selectOption(tz);
+}
+async function phase1(browser, stamp) {
+  if (!process.env.DATABASE_URL) { check('phase 1 e2e needs DATABASE_URL (skipped)', false); return; }
+  const free = await newUser(browser, `f${stamp}@e2e.test`);
+  const std = await newUser(browser, `s${stamp}@e2e.test`);
+  const prem = await newUser(browser, `p${stamp}@e2e.test`, { viewport: { width: 390, height: 844 } });
+  await setPlan(`s${stamp}@e2e.test`, 'starter');
+  await setPlan(`p${stamp}@e2e.test`, 'pro');
+
+  // --- Free: import, extra accounts and screenshots are refused (UI and server)
+  await free.goto(BASE + '/app/import');
+  check('P1 free: import shows upgrade instead of the form', (await free.locator('main').innerText()).includes('Broker import is part of'));
+  await free.goto(BASE + '/app/accounts');
+  check('P1 free: cannot add a second account (limit shown)', (await free.locator('main').innerText()).includes('Free includes 1 trading account'));
+
+  // --- Standard: broker import with auto-detect, reconciliation and correct futures P&L
+  await importFile(std, 'tradovate.csv');
+  check('P1 import: Tradovate recognised', await std.getByText('We recognised a Tradovate export').waitFor({ timeout: 8000 }).then(() => true, () => false));
+  check('P1 import: matches the broker figures (net 588)', await std.getByText(/Matches the broker's own figures: 3 trades, net 588/).isVisible());
+  await std.getByRole('button', { name: 'Import 3 trades' }).click();
+  await std.waitForURL('**/app/import?done=*');
+  await std.goto(BASE + '/app/journal');
+  const sj = await std.locator('tbody').innerText();
+  check('P1 import: ES long 2 @ 5000 -> 5010.25 shows +$1,025.00 (point value 50)', sj.includes('ESZ5') && sj.includes('$1,025.00'), sj.slice(0, 300));
+  check('P1 import: CL loss shows -$500.00', sj.includes('-$500.00'));
+  await importFile(std, 'tradovate.csv');
+  await std.getByRole('button', { name: 'Import 3 trades' }).click();
+  await std.waitForURL('**/app/import?done=*');
+  check('P1 import: re-importing the same file skips all 3 duplicates', await std.getByText('Imported 0 trades, skipped 3 duplicates').waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await importFile(std, 'mt5.html', { tz: 'Europe/Athens' });
+  check('P1 import: MetaTrader HTML recognised', await std.getByText('We recognised a MetaTrader 4 / 5 export').waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await std.getByRole('button', { name: 'Import 3 trades' }).click();
+  await std.waitForURL('**/app/import?done=*');
+  await std.goto(BASE + '/app');
+  const sd = await std.locator('body').innerText();
+  check('P1 dashboard after imports: net $1,635.50 (588 + 1,047.50)', sd.includes('$1,635.50'), sd.slice(0, 500));
+
+  // --- Standard: accounts (limit 2), switcher, mixed currency disclosure
+  await std.goto(BASE + '/app/accounts');
+  await std.getByLabel('Name').last().fill('Prop EUR');
+  await std.getByLabel('Currency').last().fill('EUR');
+  await std.getByRole('button', { name: 'Add account' }).click();
+  await std.waitForURL('**/app/accounts?created=1');
+  check('P1 accounts: second account created on Standard', (await std.locator('main').innerText()).includes('Prop EUR'));
+  check('P1 accounts: third account refused on Standard', (await std.locator('main').innerText()).includes('Standard includes 2 trading accounts'));
+  const propId = await std.locator('select[name=account]:visible option', { hasText: 'Prop EUR' }).getAttribute('value');
+  await std.locator('select[name=account]:visible').selectOption(propId);
+  await std.waitForTimeout(1500);
+  await std.goto(BASE + '/app/journal');
+  check('P1 switcher: Prop EUR shows no trades', (await std.locator('main').innerText()).includes('No trades'));
+  await std.locator('select[name=account]:visible').selectOption('all');
+  await std.waitForTimeout(1500);
+  await std.goto(BASE + '/app');
+  const sAll = await std.locator('body').innerText();
+  check('P1 switcher: All accounts combines and labels the view', sAll.includes('All accounts') && sAll.includes('$1,635.50'));
+
+  // --- Standard: screenshots (upload, view, delete, type sniffing, cross-user)
+  await std.goto(BASE + '/app/journal');
+  await std.locator('tbody tr', { hasText: 'ESZ5' }).getByRole('link', { name: 'View' }).click();
+  await std.waitForURL(/\/app\/journal\/[0-9a-f-]{36}$/);
+  const tradeUrl = std.url(), tradeId = tradeUrl.split('/').pop();
+  await std.locator('input[type=file]').setInputFiles({ name: 'chart.png', mimeType: 'image/png', buffer: PNG });
+  await std.getByRole('button', { name: 'Open screenshot 1' }).waitFor({ timeout: 10000 }).catch(() => {});
+  check('P1 screenshots: upload shows in the gallery', await std.getByRole('button', { name: 'Open screenshot 1' }).isVisible());
+  const shotSrc = await std.locator('img[alt^="Trade screenshot"]').first().getAttribute('src');
+  const view = await std.request.get(BASE + shotSrc);
+  check('P1 screenshots: owner can view (200 image/png, no-store)', view.status() === 200 && view.headers()['content-type'] === 'image/png' && /no-store/.test(view.headers()['cache-control']));
+  const svg = await std.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: tradeId, file: { name: 'x.png', mimeType: 'image/png', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>') } } });
+  check('P1 screenshots: SVG renamed to .png is rejected by byte sniffing', svg.status() === 400);
+  const xsite = await std.request.post(BASE + '/app/screenshots', { headers: { Origin: 'https://evil.example' }, multipart: { trade_id: tradeId, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
+  check('P1 screenshots: cross-site upload refused (403)', xsite.status() === 403);
+  const freeUp = await free.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: tradeId, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
+  check('P1 screenshots: another user cannot upload to this trade (404)', freeUp.status() === 404);
+  const freeView = await free.request.get(BASE + shotSrc);
+  check('P1 screenshots: another user cannot view it by id (404)', freeView.status() === 404);
+  const freeDel = await free.request.delete(BASE + shotSrc, { headers: { Origin: BASE } });
+  check('P1 screenshots: another user cannot delete it (404)', freeDel.status() === 404);
+  const guess = await free.request.get(BASE + '/app/screenshots/00000000-0000-0000-0000-000000000000');
+  check('P1 screenshots: guessed id gives 404', guess.status() === 404);
+  const anon = await (await browser.newContext()).request.get(BASE + shotSrc, { maxRedirects: 0 });
+  check('P1 screenshots: signed-out request does not get the image', anon.status() !== 200 || !/image/.test(anon.headers()['content-type'] || ''));
+  for (let i = 0; i < 4; i++) await std.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: tradeId, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
+  const sixth = await std.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: tradeId, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
+  check('P1 screenshots: 6th image on a trade refused', sixth.status() === 400 && /up to 5/.test(await sixth.text()));
+  const freeOwn = await free.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: '00000000-0000-0000-0000-000000000000', file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
+  check('P1 screenshots: unknown trade id refused', freeOwn.status() === 404);
+  const del = await std.request.delete(BASE + shotSrc, { headers: { Origin: BASE } });
+  check('P1 screenshots: owner can delete (204), then it is gone', del.status() === 204 && (await std.request.get(BASE + shotSrc)).status() === 404);
+
+  // --- Premium on a 390px phone: pages fit, futures form shows the contract spec
+  for (const p of ['/app/accounts', '/app/import', '/app/journal/new', tradeUrl.replace(BASE, '')]) {
+    const r = await prem.goto(BASE + p);
+    const over = await prem.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    check(`P1 mobile 390px: ${p.replace(/[0-9a-f-]{36}/, ':id')} has no horizontal scroll${r.status() === 404 ? ' (404 for other user, as expected)' : ''}`, !over);
+  }
+  await prem.goto(BASE + '/app/journal/new');
+  await prem.getByLabel('Market').selectOption('future');
+  await prem.getByLabel('Instrument').fill('MNQH6');
+  check('P1 instrument spec: MNQ point value hint shown', await prem.getByText(/Micro E-mini Nasdaq-100: \$2 per point/).isVisible());
+  await prem.goto(BASE + '/app/settings');
+  await prem.getByLabel('Your time zone').selectOption('America/New_York');
+  await prem.getByRole('button', { name: 'Save preferences' }).click();
+  await prem.waitForURL('**/app/settings?saved=1');
+  check('P1 settings: time zone saved', (await prem.getByLabel('Your time zone').inputValue()) === 'America/New_York');
+  await prem.goto(BASE + '/app/import');
+  check('P1 import: default time zone comes from settings', (await prem.locator('body').innerText()).includes('Choose your file'));
+  await prem.screenshot({ path: SP + '/p1-premium-mobile.png', fullPage: true });
+
+  // --- Standard deletes their whole account: screenshot rows and files gone
+  const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+  const before = (await c.query(`select count(*)::int n from tradenotes.trade_screenshots s join public.tn_user u on u.id = s.user_id where u.email = $1`, [`s${stamp}@e2e.test`])).rows[0].n;
+  await std.goto(BASE + '/app/settings');
+  await std.getByText('Delete my account', { exact: true }).click();
+  await std.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await std.getByLabel('Current password').fill('correct-horse-battery');
+  await std.getByRole('button', { name: 'Delete my account permanently' }).click();
+  await std.waitForURL(BASE + '/?deleted=1', { timeout: 15000 }).catch(() => {});
+  const after = (await c.query(`select count(*)::int n from tradenotes.trade_screenshots s where not exists (select 1 from public.tn_user u where u.id = s.user_id)`)).rows[0].n;
+  check('P1 delete account: had screenshots, none left behind', before >= 4 && after === 0, `${before}/${after}`);
+  await c.end();
+}
+

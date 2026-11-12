@@ -1,0 +1,4 @@
+symbol,_priceFormat,_priceFormatType,_tickSize,buyFillId,sellFillId,qty,buyPrice,sellPrice,pnl,boughtTimestamp,soldTimestamp,duration
+ESZ5,-2,0,0.25,101,102,2,5000.00,5010.25,$1025.00,11/03/2025 09:31:05,11/03/2025 09:45:00,13min 55sec
+MNQZ5,-2,0,0.25,104,103,3,17990.00,18000.50,$63.00,11/04/2025 10:20:00,11/04/2025 10:05:00,15min
+CLZ5,-2,0,0.01,105,106,1,75.00,74.50,$(500.00),11/05/2025 09:00:00,11/05/2025 09:30:00,30min

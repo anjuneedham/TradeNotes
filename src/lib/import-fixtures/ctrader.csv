@@ -1,0 +1,3 @@
+ID,Symbol,Opening Direction,Opening Time,Closing Time,Entry Price,Closing Price,Closing Quantity,Commission,Swap,Net $
+1,EURUSD,Buy,03/11/2025 09:00:00.000,03/11/2025 10:00:00.000,1.08500,1.08700,50000,-3.50,0.00,96.50
+2,GBPUSD,Sell,04/11/2025 14:00:00.000,04/11/2025 16:30:00.000,1.27000,1.27200,1.00 Lots,-7.00,-1.50,-208.50

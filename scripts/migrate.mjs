@@ -4,6 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { connect } from "./db-connect.mjs";
 
+/** Update when a db/paste file adds or drops a table (also in verify-db.mjs). */
+const EXPECTED_TABLES = 20;
 const dir = path.join(process.cwd(), "db", "paste");
 const files = fs.readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
 const client = await connect("migrate");
@@ -19,6 +21,6 @@ for (const f of files) {
   }
 }
 const r = await client.query("select count(*)::int as n from information_schema.tables where table_name like 'tn\\_%' or table_schema = 'tradenotes'");
-console.log(`[migrate] done. TradeNotes tables present: ${r.rows[0].n} (expected 20)`);
+console.log(`[migrate] done. TradeNotes tables present: ${r.rows[0].n} (expected ${EXPECTED_TABLES})`);
 await client.end();
-if (r.rows[0].n !== 20) { console.error("[migrate] unexpected table count"); process.exit(1); }
+if (r.rows[0].n !== EXPECTED_TABLES) { console.error("[migrate] unexpected table count"); process.exit(1); }

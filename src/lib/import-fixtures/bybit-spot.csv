@@ -1,0 +1,3 @@
+Spot Pairs,Order Type,Direction,Filled Value,Filled Price,Filled Quantity,Fees,Transaction ID,Order No.,Timestamp (UTC)
+SOL/USDT,Market,BUY,150,150,1,0.001 SOL,t1,o1,2025-11-03 10:00:00
+SOL/USDT,Limit,SELL,160,160,1,0.16 USDT,t2,o2,2025-11-03 11:00:00

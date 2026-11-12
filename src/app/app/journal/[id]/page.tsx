@@ -7,6 +7,10 @@ import { deleteTrade } from "../actions";
 import { Card, Badge, Notice, btnGhostCls, linkCls } from "@/components/ui";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { money, signedMoney, signedR, pnlClass, dateTime, plain } from "@/lib/format";
+import { ScreenshotGallery, type Shot } from "@/components/ScreenshotGallery";
+import { getStore } from "@/lib/storage";
+import { quotaBytes, MAX_SCREENSHOTS_PER_TRADE } from "@/lib/screenshots";
+import { moveInUnits } from "@/lib/instruments";
 
 export const metadata = { title: "Trade — TradeNotes" };
 interface Detail extends TradeRow {
@@ -28,17 +32,18 @@ export default async function TradeDetail({ params, searchParams }: { params: Pr
   const { id } = await params;
   const { saved } = await searchParams;
   if (!UUID.test(id)) notFound();
-  const { db } = await getContext();
-  const { t, exits, newer, older } = await db(async (q) => {
+  const { db, plan } = await getContext();
+  const { t, exits, newer, older, shots } = await db(async (q) => {
     // Row-level security: another user's id simply returns no row.
     const [t] = await q<Detail>(
       `select t.*, s.name as strategy_name, a.name as account_name, a.currency as account_currency
        from tradenotes.trades t left join tradenotes.strategies s on s.id = t.strategy_id join tradenotes.accounts a on a.id = t.account_id where t.id = $1`, [id]);
-    if (!t) return { t: null, exits: [], newer: null, older: null };
+    if (!t) return { t: null, exits: [], newer: null, older: null, shots: [] as Shot[] };
     const exits = await q<ExitRow & { exited_at: string | null }>("select trade_id, quantity, price, exited_at from tradenotes.trade_exits where trade_id = $1 order by exited_at nulls last, id", [id]);
     const [newer] = await q<{ id: string }>("select id from tradenotes.trades where opened_at > $1 order by opened_at asc limit 1", [t.opened_at]);
     const [older] = await q<{ id: string }>("select id from tradenotes.trades where opened_at < $1 order by opened_at desc limit 1", [t.opened_at]);
-    return { t, exits, newer: newer ?? null, older: older ?? null };
+    const shots = await q<Shot>("select id, caption, size_bytes from tradenotes.trade_screenshots where trade_id = $1 order by created_at", [id]);
+    return { t, exits, newer: newer ?? null, older: older ?? null, shots };
   });
   if (!t) notFound();
 
@@ -83,6 +88,7 @@ export default async function TradeDetail({ params, searchParams }: { params: Pr
             <Row k="Size">{plain(t.quantity)}{Number(t.multiplier) !== 1 ? ` × ${plain(t.multiplier)}` : ""}</Row>
             <Row k="Entry price">{plain(t.entry_price)}</Row>
             {exits.length === 0 ? <Row k="Exit">—</Row> : exits.map((x, i) => <Row key={i} k={exits.length > 1 ? `Exit ${i + 1}` : "Exit price"}>{plain(x.price)}{exits.length > 1 || Number(x.quantity) !== Number(t.quantity) ? ` · size ${plain(x.quantity)}` : ""}</Row>)}
+            {closed && exits.length > 0 && (() => { const avg = exits.reduce((s, x) => s + Number(x.price) * Number(x.quantity), 0) / exits.reduce((s, x) => s + Number(x.quantity), 0); const u = moveInUnits(t.asset_class ?? "", t.symbol, (t.side === "long" ? 1 : -1) * (avg - entry)); return u ? <Row k={`Move (${u.unit})`}>{u.value > 0 ? "+" : ""}{u.value}</Row> : null; })()}
             <Row k="Closed">{t.closed_at ? `${dateTime(t.closed_at)} UTC` : "—"}</Row>
             <Row k="Fees">{plain(t.fees)}{quote ? ` ${quote}` : ""}</Row>
             {quote && <Row k={`1 ${quote} in ${cur}`}>{plain(t.fx_to_account)}</Row>}
@@ -107,6 +113,8 @@ export default async function TradeDetail({ params, searchParams }: { params: Pr
         <Note title="How it went (post-trade)" text={t.post_trade_notes} />
         <Note title="Lesson learned" text={t.lessons} />
       </Card>
+
+      <ScreenshotGallery tradeId={t.id} shots={shots} max={MAX_SCREENSHOTS_PER_TRADE} state={!getStore() ? "unavailable" : quotaBytes(plan) > 0 ? "ok" : "plan"} />
 
       <div className="grid gap-3 md:grid-cols-2">
         <Card>

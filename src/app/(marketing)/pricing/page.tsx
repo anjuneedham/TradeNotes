@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE } from "@/lib/plans";
-import { PLAN_ORDER, PLAN_BLURB, planHeadline, FEATURES_DEV } from "@/lib/plan-features";
+import { PLAN_ORDER, PLAN_BLURB, planHeadline, featuresDev, paidAddsText } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
 import { Badge, btnCls, btnGhostCls, linkCls } from "@/components/ui";
@@ -8,8 +8,8 @@ import { Badge, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 export const metadata = { title: "Pricing — TradeNotes" };
 export const revalidate = 60; // seat count refreshes at most once a minute
 
-const FAQ: [string, string][] = [
-  ["What do I get for paying today?", "A higher trade limit and CSV import from your broker. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date."],
+const faq = (): [string, string][] => [
+  ["What do I get for paying today?", `${paidAddsText().charAt(0).toUpperCase()}${paidAddsText().slice(1)}. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date.`],
   ["How does upgrading work?", "You subscribe through Handypay's hosted checkout using the same email as your TradeNotes account. We confirm the payment and switch your plan on by hand, usually within a few hours and within one business day."],
   ["When am I charged?", "When you subscribe, then automatically each month (or each year, if you choose annual and get 2 months free) on the same date until you cancel. Prices are in US dollars; taxes may apply."],
   ["What happens if I cancel or a payment fails?", "You keep paid access until the end of the period you paid for, then your account returns to Free. Nothing is deleted. If you hold more trades than the Free limit you can still view and analyse all of them — you just can't add new ones."],
@@ -29,7 +29,7 @@ export default async function Pricing() {
         {PLAN_ORDER.map((id) => {
           const p = PLANS[id];
           const prev = PLAN_ORDER[PLAN_ORDER.indexOf(id) - 1];
-          const dev = FEATURES_DEV.filter((f) => f.cells[id] !== false && (!prev || f.cells[prev] === false)); // only what this tier adds
+          const dev = featuresDev().filter((f) => f.cells[id] !== false && (!prev || f.cells[prev] === false)); // only what this tier adds
           return (
             <section key={id} aria-labelledby={`plan-${id}`} className={`flex flex-col rounded-lg border bg-panel p-5 sm:p-6 ${id === "starter" ? "border-fg" : "border-border"}`}>
               <div className="flex items-center justify-between gap-2"><h2 id={`plan-${id}`} className="text-lg font-semibold">{p.name}</h2>{id === "starter" && <Badge tone="neutral">Most traders</Badge>}</div>
@@ -58,7 +58,7 @@ export default async function Pricing() {
       </div>
 
       <p className="mt-5 rounded-md border border-border bg-raised px-4 py-3 text-sm leading-relaxed">
-        <strong className="font-medium">Plain terms:</strong> today the paid plans add a higher trade limit and CSV import. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
+        <strong className="font-medium">Plain terms:</strong> today the paid plans add {paidAddsText()}. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
       </p>
       <p className="mt-3 text-sm text-muted">
         <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months (Starter ${foundingPriceCents("starter") / 100}/mo, Pro ${foundingPriceCents("pro") / 100}/mo), applied automatically at checkout, in exchange for honest feedback. After {FOUNDING_OFFER.months} months the normal price applies. {seats === null ? "" : seats > 0 ? `${seats} of ${FOUNDING_OFFER.seats} seats left.` : "All founding seats are taken."}
@@ -72,7 +72,7 @@ export default async function Pricing() {
       <section aria-labelledby="faq" className="mt-16 max-w-3xl">
         <h2 id="faq" className="text-xl font-semibold tracking-tight">Billing questions</h2>
         <dl className="mt-4 divide-y divide-border border-y border-border">
-          {FAQ.map(([q, a]) => (<div key={q} className="py-4"><dt className="font-medium">{q}</dt><dd className="mt-1.5 text-sm leading-relaxed text-muted">{a}</dd></div>))}
+          {faq().map(([q, a]) => (<div key={q} className="py-4"><dt className="font-medium">{q}</dt><dd className="mt-1.5 text-sm leading-relaxed text-muted">{a}</dd></div>))}
         </dl>
         <p className="mt-4 text-xs text-muted">Prices in USD. Taxes may apply. See <Link href="/legal/terms" className={linkCls}>Terms</Link> for cancellation and refunds.</p>
       </section>

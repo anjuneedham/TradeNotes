@@ -1,5 +1,5 @@
 import { PLANS, type PlanId } from "@/lib/plans";
-import { PLAN_ORDER, FEATURES_NOW, FEATURES_DEV, type FeatureRow } from "@/lib/plan-features";
+import { PLAN_ORDER, featuresNow, featuresDev, type FeatureRow } from "@/lib/plan-features";
 
 const Yes = () => (<><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="inline text-fg"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg><span className="sr-only">Included</span></>);
 const No = () => (<><span aria-hidden="true" className="text-muted">—</span><span className="sr-only">Not included</span></>);
@@ -31,11 +31,11 @@ export function PlanComparison({ current }: { current?: PlanId }) {
             ))}
           </tr>
         </thead>
-        <tbody><Rows rows={FEATURES_NOW} current={current} /></tbody>
+        <tbody><Rows rows={featuresNow()} current={current} /></tbody>
         <tbody>
           <tr><th scope="colgroup" colSpan={4} className="border-t border-border-strong pb-1 pt-6 text-left text-xs font-normal text-muted">
             <span className="font-medium text-warn">In development — not available yet.</span> No release date is promised. This shows which plan each is intended for.</th></tr>
-          <Rows rows={FEATURES_DEV} current={current} />
+          <Rows rows={featuresDev()} current={current} />
         </tbody>
       </table>
     </div>

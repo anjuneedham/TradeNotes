@@ -11,13 +11,13 @@ const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default async function Analytics({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const { db, accounts, profile } = await getContext();
+  const { db, profile, scope } = await getContext();
   const range = parseRange((await searchParams).range);
-  const cur = accounts[0]?.currency ?? "USD";
+  const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
 
   let rows: StatRow[] = [], truncated = false;
-  try { ({ rows, truncated } = await loadTrades(db)); }
+  try { ({ rows, truncated } = await loadTrades(db, scope.accountIds)); }
   catch (e) { console.error("analytics load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
 
   const ext = inRange(toExt(rows, cur), rangeStart(range));

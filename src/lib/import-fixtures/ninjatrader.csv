@@ -1,0 +1,3 @@
+Trade number,Instrument,Account,Strategy,Market pos.,Qty,Entry price,Exit price,Entry time,Exit time,Entry name,Exit name,Profit,Cum. net profit,Commission,MAE,MFE,ETD,Bars
+1,ES 12-25,Sim101,,Long,1,5000.00,5004.00,11/3/2025 9:35:00 AM,11/3/2025 9:50:00 AM,Entry,Exit,$200.00,$195.70,$4.30,$50.00,$250.00,$50.00,3
+2,NQ 12-25,Sim101,,Short,2,20000.00,20010.00,11/3/2025 10:05:00 AM,11/3/2025 10:20:00 AM,Entry,Stop loss,($400.00),($212.90),$8.60,$400.00,$100.00,$500.00,3

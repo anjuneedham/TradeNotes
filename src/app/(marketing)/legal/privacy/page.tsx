@@ -16,7 +16,9 @@ export default function Privacy() {
       <h2>2. What we collect</h2>
       <ul>
         <li><strong>Account:</strong> your email address and a securely hashed password (we cannot read your password).</li>
-        <li><strong>What you enter:</strong> trades, notes, tags, strategies, account names and balances, and your onboarding answers (experience, market, style, goals).</li>
+        <li><strong>What you enter:</strong> trades, notes, tags, strategies, account names and balances, your time-zone setting, and your onboarding answers (experience, market, style, goals).</li>
+        <li><strong>Files you import:</strong> broker exports you upload are read once to create your trades; we keep the trades, the file name and the import counts, not the file itself.</li>
+        <li><strong>Screenshots:</strong> images you attach to trades (paid plans). Charts can show account numbers, balances or names if they are visible on screen, so crop what you don&apos;t want stored. We remove embedded photo metadata (such as camera and location data) when you upload.</li>
         <li><strong>Sign-in records:</strong> when you log in we store your IP address and browser details with the session, for security.</li>
         <li><strong>Where you came from:</strong> if you arrive through a link tagged with a source (for example from a social post), we remember that tag so we can learn which channels work.</li>
         <li><strong>Payments:</strong> handled by {LEGAL.paymentProvider}. We never see or store your card number. We receive and keep a record of each payment (amount, currency, date, status and receipt link), the plan, and {LEGAL.paymentProvider}’s customer and subscription identifiers, so we can switch paid features on and off and show your payment history.</li>
@@ -36,7 +38,7 @@ export default function Privacy() {
       <h2>4. Who we share it with</h2>
       <p>Only service providers that help us run {LEGAL.productName}, under their own security and privacy terms:</p>
       <ul>
-        <li><strong>Supabase</strong> — database hosting (United States).</li>
+        <li><strong>Supabase</strong> — database hosting and private file storage for screenshots (United States). Screenshots are kept in a private bucket and shown to you only through short-lived links that expire within minutes.</li>
         <li><strong>Vercel</strong> — website hosting and server logs (United States).</li>
         <li><strong>Resend</strong> — sending our account emails.</li>
         <li><strong>{LEGAL.paymentProvider}</strong> — payments.</li>
@@ -49,14 +51,15 @@ export default function Privacy() {
         <li><code>tn_src</code> — remembers the source tag of the link you came from (30 days).</li>
         <li><code>tn_ref</code> — remembers which partner&apos;s link you came from, so they can be credited if you subscribe (30 days; only set when a partner link is used).</li>
         <li><code>tn_theme</code> — remembers a light or dark appearance if you choose one in Settings (1 year; not set unless you choose).</li>
+        <li><code>tn_acct</code> — remembers which of your trading accounts you are viewing (1 year; only set when you switch accounts).</li>
       </ul>
       <p>We do not use advertising cookies. To count visits and see which pages are used, we use Vercel Web Analytics, which sets no cookies and does not track you across other sites; it records page views with coarse, anonymised device and country information.</p>
 
       <h2>6. How long we keep it</h2>
-      <p>While your account is open. You can delete your account yourself at any time in Settings → Your data; this immediately removes your profile, trades, notes, subscription record and payment history from our database. If you ask us by email instead, we will do it within {LEGAL.deletionDays} days. Copies in provider backups expire on the provider’s normal schedule. {LEGAL.paymentProvider} keeps its own payment records as the law requires.</p>
+      <p>While your account is open. You can delete your account yourself at any time in Settings → Your data; this immediately removes your profile, trades, notes, screenshots, subscription record and payment history. Deleting a trade or trading account also deletes its screenshots. If you ask us by email instead, we will do it within {LEGAL.deletionDays} days. Copies in provider backups expire on the provider’s normal schedule. {LEGAL.paymentProvider} keeps its own payment records as the law requires.</p>
 
       <h2>7. Your rights</h2>
-      <p>You can download your trades yourself (Settings → Your data → Download my trades), correct any trade by editing it, and delete your account yourself. You can also ask us to give you a copy of your data, correct it, delete it, or stop using it for a purpose. Email {mail} from the address on your account; we may ask you to verify your identity. If you are unhappy with our response you can complain to the data-protection authority where you live — in Jamaica, the Office of the Information Commissioner.</p>
+      <p>You can download your trades yourself (Settings → Your data → Download my trades; screenshots are not in that file, but you can open and save each one from its trade), correct any trade by editing it, and delete your account yourself. You can also ask us to give you a copy of your data, correct it, delete it, or stop using it for a purpose. Email {mail} from the address on your account; we may ask you to verify your identity. If you are unhappy with our response you can complain to the data-protection authority where you live — in Jamaica, the Office of the Information Commissioner.</p>
 
       <h2>8. Security</h2>
       <p>We use encrypted connections, hashed passwords, rate limiting on sign-in, and database-level rules so each user can only reach their own records. No system is perfectly secure. If a breach affects you we will tell you and the authorities where the law requires.</p>
