@@ -21,3 +21,9 @@ Note: the session branch was created from an older commit (1458f71) that lacks t
 - Found while testing: `e2e-billing.js` has one failing check on unmodified `main` too (founding price $6 shown where the test expects $12 on a fresh DB). Not fixed here; belongs to the founding-offer owner.
 - Merged `main` (SEO work) into the branch; one import conflict in the landing page.
 - Next: owner merges PR #1 (after reviewing legal text), then Phase 2 on a new branch from `main`.
+
+### 2026-11-13 (later): production deploy and prompts
+- Production deploy of `main` (8af47d1) READY at tradenotes.dev after PR #2 (verify-db storage check fix). Migration 11 applied; 20 tables, 196 columns verified in the build.
+- Owner confirms the `trade-screenshots` bucket exists in the TradeNotes Supabase project (separate org, Free plan). **End-to-end upload on production is untested** (no paid test account yet).
+- Empty `trade-screenshots` bucket created by mistake in the Agriloop project (YardScale-Digital); delete is pending the owner's Supabase confirmation.
+- Prompts for Phase 2 to the end and for video production: `docs/prompts/`.
