@@ -4,7 +4,7 @@ Voice-ready narration for the seven-day plan in `docs/content/SEVEN_DAY_PUBLISHI
 **Status honesty:** these are text scripts only. No audio has been recorded, synthesized or rendered, and the founder has not approved any of them. The models cannot produce audio. Record the voice yourself or use a TTS tool, then re-time the captions to the real track.
 
 ## The experiment
-Same brief, same inputs, same file format for every video. Written by: Opus for 001 to 014 (three agents were not needed; two ran in parallel, 001 to 007 and 008 to 014) and **Fable 5.2 for 015 only**. Each file names its writer on line 2.
+Same brief, same inputs, same file format for every video. Written by: Opus for 001 to 014 (two Opus agents ran in parallel, one on 001 to 007 and one on 008 to 014) and **Fable 5.2 for 015 only**. Each file names its writer on line 2.
 
 | | Opus (14 scripts) | Fable (1 script) |
 |---|---|---|
