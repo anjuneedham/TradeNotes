@@ -1,5 +1,6 @@
 import { pageMeta } from "@/lib/seo";
 import { LegalShell } from "@/components/LegalShell";
+import { TRIAL_DAYS } from "@/lib/plans";
 import { LEGAL, show } from "@/lib/legal";
 
 export const metadata = pageMeta({ title: "Terms of Service — TradeNotes", description: "The terms for using TradeNotes: accounts, subscriptions, refunds, acceptable use and liability.", path: "/legal/terms" });
@@ -37,9 +38,9 @@ export default function Terms() {
       </ul>
 
       <h2>6. Cancellation and refunds</h2>
-      <p>You can cancel at any time from Plan &amp; billing in the app, using the link in your {LEGAL.paymentProvider} receipt, or by emailing {mail}. Cancellation stops future charges; access to paid features continues until the end of the period you have paid for.</p>
+      <p>Paid plans start with a {TRIAL_DAYS}-day free trial. You authorise {LEGAL.paymentProvider} to charge your card when the trial ends; cancel before then and you are not charged. The founding-member price has no trial. You can cancel at any time from Plan &amp; billing in the app, using the link in your {LEGAL.paymentProvider} receipt, or by emailing {mail}. Cancellation stops future charges; access to paid features continues until the end of the period you have paid for.</p>
       {LEGAL.refundDays > 0
-        ? <p>If you are unhappy, email us within <strong>{LEGAL.refundDays} days of your first payment</strong> for a full refund of that payment. After that, payments are not refunded except where the law requires.</p>
+        ? <p>If you are unhappy, email us within <strong>{LEGAL.refundDays} days of your first payment</strong> (taken when your trial ends) for a full refund of that payment. After that, payments are not refunded except where the law requires.</p>
         : <p>Payments are not refundable except where the law requires.</p>}
 
       <h2>7. Acceptable use</h2>

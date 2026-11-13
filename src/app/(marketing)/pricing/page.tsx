@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE } from "@/lib/plans";
+import { TRIAL_DAYS } from "@/lib/plans";
 import { PLAN_ORDER, PLAN_BLURB, planHeadline, featuresDev, paidAddsText } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { pageMeta, jsonLd } from "@/lib/seo";
@@ -11,8 +12,9 @@ export const revalidate = 60; // seat count refreshes at most once a minute
 
 const faq = (): [string, string][] => [
   ["What do I get for paying today?", `${paidAddsText().charAt(0).toUpperCase()}${paidAddsText().slice(1)}. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date.`],
+  ["Is there a free trial?", `Yes. Every paid plan (Standard and Premium, monthly or annual) starts with a ${TRIAL_DAYS}-day free trial. You enter your card at checkout and are charged when the trial ends; cancel before then and you pay nothing. The limited founding-member price has no trial. The Free plan needs no card and has no time limit.`],
   ["How does upgrading work?", "You subscribe through Handypay's hosted checkout using the same email as your TradeNotes account. We confirm the payment and switch your plan on by hand, usually within a few hours and within one business day."],
-  ["When am I charged?", "When you subscribe, then automatically each month (or each year, if you choose annual and get 2 months free) on the same date until you cancel. Prices are in US dollars; taxes may apply."],
+  ["When am I charged?", "When your 14-day free trial ends (the founding-member price is charged when you subscribe), then automatically each month (or each year, if you choose annual and get 2 months free) on the same date until you cancel. Prices are in US dollars; taxes may apply."],
   ["What happens if I cancel or a payment fails?", "You keep paid access until the end of the period you paid for, then your account returns to Free. Nothing is deleted. If you hold more trades than the Free limit you can still view and analyse all of them — you just can't add new ones."],
   ["Can I get a refund?", "See the Terms for the current refund window on your first payment."],
 ];

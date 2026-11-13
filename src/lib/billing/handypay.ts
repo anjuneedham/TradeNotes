@@ -6,7 +6,7 @@
  * Disabled (returns null) until HANDYPAY_API_KEY is set; the billing page then falls back to the static checkout links.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { PLANS, priceCents, type Interval, type PlanId } from "../plans";
+import { PLANS, HANDYPAY_PRICE_IDS, TRIAL_DAYS, type Interval, type PlanId } from "../plans";
 
 const BASE = () => process.env.HANDYPAY_API_URL ?? "https://api.handypay.me/api/v1"; // HANDYPAY_API_URL: test hook only
 export const handypayEnabled = () => Boolean(process.env.HANDYPAY_API_KEY);
@@ -56,12 +56,17 @@ const urlIn = (j: Record<string, unknown>): string | null => {
 export async function createSubscriptionCheckout(opts: { plan: Exclude<PlanId, "free">; userId: string; email: string; siteUrl: string; interval?: Interval; founding?: { amountCents: number } }): Promise<string> {
   const p = PLANS[opts.plan];
   const interval = opts.interval ?? "month";
-  const j = await call<Record<string, unknown>>("POST", "/subscription-sessions", {
-    amount_cents: opts.founding?.amountCents ?? priceCents(opts.plan, interval), currency: "usd", interval, interval_count: 1, quantity: 1,
-    name: `TradeNotes ${p.name}${interval === "year" ? " (annual)" : ""}${opts.founding ? " (Founding member)" : ""}`, customer_email: opts.email,
+  const common = {
+    customer_email: opts.email, quantity: 1,
     success_url: `${opts.siteUrl}/app/billing?checkout=success`, cancel_url: `${opts.siteUrl}/app/billing?checkout=cancelled`,
     metadata: { user_id: opts.userId, plan: opts.plan, interval, ...(opts.founding ? { founding: "1" } : {}) },
-  });
+  };
+  // Founding price: a custom discounted amount (inline form, no trial: HandyPay documents trial_period_days only for the price_id form).
+  // Everything else: the HandyPay price for this plan and interval, with the 14-day free trial.
+  const body = opts.founding
+    ? { amount_cents: opts.founding.amountCents, currency: "usd", interval, interval_count: 1, name: `TradeNotes ${p.name}${interval === "year" ? " (annual)" : ""} (Founding member)`, ...common }
+    : { price_id: HANDYPAY_PRICE_IDS[opts.plan][interval], trial_period_days: TRIAL_DAYS, ...common };
+  const j = await call<Record<string, unknown>>("POST", "/subscription-sessions", body);
   const url = urlIn(j);
   if (!url || !safeUrl(url)) throw new Error("HandyPay returned no checkout URL");
   return url;
