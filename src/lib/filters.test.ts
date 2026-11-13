@@ -122,13 +122,19 @@ describe("tradeWhere: values are bound parameters, never SQL text", () => {
     const w = tradeWhere(f, [ACCT], "UTC", { now, params: ["caller-param"] });
     expect(w.params).toEqual(["caller-param", [ACCT], "2026-11-04T12:00:00.000Z", "x'; drop table trades;--", "ES", "long", "London", ["FOMO"]]);
     expect(w.sql).toContain("t.account_id = any($2::uuid[])");
-    expect(w.sql).toContain("coalesce(t.closed_at, t.opened_at) >= $3::timestamptz");
+    expect(w.sql).toContain("((t.closed_at >= $3::timestamptz) or (t.closed_at is null and t.opened_at >= $3::timestamptz))");
     expect(w.sql).toContain("fs.name = $4");
     expect(w.sql).toContain("t.symbol = $5");
     expect(w.sql).toContain("t.side = $6");
     expect(w.sql).toContain("t.session = $7");
     expect(w.sql).toContain("t.mistakes && $8::text[] or t.emotions && $8::text[]");
+    expect(w.sql).not.toContain("coalesce"); // coalesce() in a filter cannot use an index under row-level security
     expect(w.sql).not.toMatch(/drop table|FOMO|London|2026/); // no value text in the SQL
+  });
+  it("a bounded window reuses one parameter per bound in both branches", () => {
+    const w = tradeWhere(NO_FILTERS, null, "UTC", { window: { start: new Date("2026-03-01T00:00:00Z"), end: new Date("2026-04-01T00:00:00Z") } });
+    expect(w.sql).toBe("true and ((t.closed_at >= $1::timestamptz and t.closed_at < $2::timestamptz) or (t.closed_at is null and t.opened_at >= $1::timestamptz and t.opened_at < $2::timestamptz))");
+    expect(w.params).toEqual(["2026-03-01T00:00:00.000Z", "2026-04-01T00:00:00.000Z"]);
   });
   it("skipDate leaves the date window out", () => {
     const w = tradeWhere(parseFilters({ range: "7d" }), null, "UTC", { now, skipDate: true });

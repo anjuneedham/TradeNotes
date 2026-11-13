@@ -29,11 +29,18 @@ The branch name is the one this session was assigned (the owner's prompt said `p
 
 | # | Task | Notes / decisions | Status |
 |---|---|---|---|
-| 1 | Filter bar + `src/lib/filters.ts` | URL state, invalid values ignored, first valid value wins for repeated single params, `tag` may repeat (any-of). Server-rendered GET form (works without JS). Dashboard, analytics, journal, calendar. | todo |
-| 2 | SQL aggregation + indexes (`db/paste/12_*.sql`) | SQL does filtering, joins, exit aggregation and the per-trade result (same formula as `evaluateTrade`, equality asserted on a seeded 10,000-trade set). `metrics.ts` keeps every aggregate formula (new `summarizeResults`). No row cap. | todo |
+| 1 | Filter bar + `src/lib/filters.ts` | URL state, invalid values ignored, first valid value wins for repeated single params, `tag` may repeat (any-of). Server-rendered GET form (works without JS). Dashboard, analytics, journal, calendar. | DONE (commit pushed; 102/102 e2e) |
+| 2 | SQL aggregation + indexes (`db/paste/12_*.sql`) | SQL does filtering, joins, exit aggregation and the per-trade result (same formula as `evaluateTrade`, equality asserted on a seeded 10,000-trade set). `metrics.ts` keeps every aggregate formula (new `summarizeResults`). No row cap. | DONE (see notes) |
 | 3 | `src/lib/analytics-extra.ts` | R buckets, weekday x hour heatmap (entry time, user zone), hold-time buckets, mistake cost, drawdown with recovery, profit factor + sample warning. MAE/MFE: NOT built (owner has not asked). | todo |
 | 4 | `/app/calendar` | Month grid in user zone, weekly totals, click-through to filtered journal, colour-blind-safe (sign + intensity labels), 390px. Standard and up (tier matrix: "Calendar + weekly review"). | todo |
 | 5 | `/app/reviews` | `13_reviews.sql`: period `month`, template columns, stats snapshot. Standard and up, gated on the server; data stays readable after a downgrade. Reminder emails NOT built (no owner confirmation of a free scheduler). | todo |
 | 6 | Playbook | `playbook_items`, `trade_checks` (new tables: RLS, trigger ownership checks, isolation checks; 20 -> 22 tables). Plan: Standard and up (ASSUMPTION, no tier given in the brief: flagged for the owner). | todo |
 | 7 | Plan copy | FEATURES_DEV -> FEATURES_NOW, PLANS flags, pricing, billing, landing, tests, privacy page + LEGAL_FILL_IN. | todo |
 | 8 | After the phase | PR, CI, code-review (high), security-review (new tables), plan matrix, 10k timings, `docs/QA_RESULTS_<date>.md`. | todo |
+
+#### Task 2 notes (SQL aggregation), 2026-11-13
+- Baseline before the change (Task 1 code, 10,000 seeded trades, local Postgres, warm median): dashboard 284 ms (response body 1.35 MB: all 10,000 equity points were sent to the browser), analytics 1,274 ms (a new `Intl.DateTimeFormat` per trade in the weekday table), journal 73 ms.
+- After: dashboard 214 ms (body 132 KB, curve thinned to <= 402 points for display only), analytics 272 ms, journal 72 ms. Data layer alone: 133 ms for 10,300 trades, `summarizeResults` 10 ms.
+- Design: SQL does filter + join + exit sums + the per-trade result; `summarizeResults` (metrics.ts) does every aggregate. `aggregate.db.test.ts` asserts SQL == `evaluateTrade` per trade (statuses, net/gross/fees, R) and == `summarize` for every aggregate, over 10,300 trades, with filters, a EUR account, and RLS. I broke the SQL twice on purpose (fee conversion; status precedence) and the test failed both times.
+- Finding: under row-level security `coalesce(closed_at, opened_at) >= x` can never use an index (COALESCE is treated as leaky, the range shows up as a heap filter). The date filter is written on plain columns instead. Planner evidence is in `db/paste/12_analytics_indexes.sql`: only `trades_user_closed` was kept; an expression index, a symbol index and a covering exits index were measured and rejected (no gain).
+- No row cap any more. Honest limit: a single query for a 100,000-trade user takes about 1.2 s; very large journals should use the date filter.

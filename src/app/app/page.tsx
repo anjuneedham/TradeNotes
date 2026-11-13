@@ -2,8 +2,9 @@ import Link from "next/link";
 import { getContext, scopeFor } from "@/lib/app-context";
 import { parseFilters, withKnownAccount, activeFilterCount, dateLabel, filterHref, NO_FILTERS } from "@/lib/filters";
 import { FilterBar } from "@/components/FilterBar";
-import { summarize, groupSummary, evaluateTrade } from "@/lib/metrics";
-import { loadTrades, loadFilterOptions, toExt, inRange, tagSummary, worstTrade, type StatRow } from "@/lib/trades-data";
+import { summarizeResults, groupResults, tagResults } from "@/lib/metrics";
+import { downsampleCurve } from "@/lib/curve";
+import { loadResults, loadLatest, loadFilterOptions, worstResult, closedBetween, type LoadedResults, type LatestRow } from "@/lib/trades-data";
 import { money, signedMoney, signedR, pct, num, pnlClass, shortDate } from "@/lib/format";
 import { Card, Notice, Badge, PageHeader, btnCls, linkCls } from "@/components/ui";
 import { Stat, Breakdown } from "@/components/stats";
@@ -20,17 +21,24 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
 
-  let rows: StatRow[] = [], truncated = false, options;
-  let windowRows: StatRow[] = [];
+  const now = new Date(), d30 = new Date(now.getTime() - 30 * 86400000), d60 = new Date(now.getTime() - 60 * 86400000);
+  let loaded: LoadedResults, windowed: LoadedResults, latest: LatestRow[], options;
   try {
-    [{ rows, truncated }, options] = await Promise.all([loadTrades(db, scope.accountIds, f, tz), loadFilterOptions(db, ctx.accounts)]);
-    // "What changed" compares the last 30 days with the 30 before, whatever date filter is chosen (other filters still apply).
-    windowRows = (f.range === "all" && !f.from && !f.to) ? rows : (await loadTrades(db, scope.accountIds, f, tz, { skipDate: true })).rows;
+    // One SQL query per need: the filtered results, the last-60-days window for "what changed" (other filters still apply, the date filter does not),
+    // the five latest trades, and the dropdown values. The database filters and computes per-trade results; metrics.ts aggregates.
+    [loaded, windowed, latest, options] = await Promise.all([
+      loadResults(db, scope.accountIds, cur, f, tz),
+      loadResults(db, scope.accountIds, cur, f, tz, { window: { start: d60, end: null } }),
+      loadLatest(db, scope.accountIds, cur, f, tz, 5),
+      loadFilterOptions(db, ctx.accounts),
+    ]);
   }
   catch (e) { console.error("dashboard load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
+  const { rows, excluded } = loaded;
+  const totalMatching = rows.length + excluded.open_or_partial.length + excluded.missing_fx.length + excluded.invalid.length;
   const bar = <FilterBar path="/app" filters={f} options={options!} switcherLabel={ctx.scope.label} />;
 
-  if (rows.length === 0 && !filtered) {
+  if (totalMatching === 0 && !filtered) {
     return (
       <div className="mx-auto max-w-3xl space-y-5">
         <PageHeader title={`Welcome${profile?.experience_level === "beginner" ? " — let’s get started" : ""}`} sub="Your dashboard fills in as you log trades." />
@@ -58,30 +66,24 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     );
   }
 
-  const all = toExt(windowRows, cur);
-  const ext = toExt(rows, cur);
-  const s = summarize(ext);
+  const s = summarizeResults(rows, excluded);
   const excludedN = s.excluded.open_or_partial.length + s.excluded.missing_fx.length + s.excluded.invalid.length;
 
-  // "What changed": last 30 days against the 30 days before (independent of the selected range).
-  const now = new Date(), d30 = new Date(now.getTime() - 30 * 86400000), d60 = new Date(now.getTime() - 60 * 86400000);
-  const closedOnly = all.filter((t) => t.closedAt);
-  const recent = summarize(inRange(closedOnly, d30)), prior = summarize(inRange(closedOnly, d60, d30));
+  // "What changed": last 30 days against the 30 days before (independent of the selected date filter).
+  const recent = summarizeResults(closedBetween(windowed.rows, d30, null)), prior = summarizeResults(closedBetween(windowed.rows, d60, d30));
 
   // "What to review"
   const noStop = s.rCoverage.total - s.rCoverage.withR;
-  const mistakes = Object.entries(tagSummary(ext, (t) => t.mistakes)).filter(([, m]) => m.tradeCount > 0).sort((a, b) => a[1].netPnl - b[1].netPnl);
+  const mistakes = Object.entries(tagResults(rows, (t) => t.mistakes)).filter(([, m]) => m.tradeCount > 0).sort((a, b) => a[1].netPnl - b[1].netPnl);
   const costliest = mistakes[0] && mistakes[0][1].netPnl < 0 ? mistakes[0] : null;
-  const worst = worstTrade(ext);
+  const worst = worstResult(rows);
   const reviewCount = (s.excluded.open_or_partial.length ? 1 : 0) + (s.excluded.missing_fx.length ? 1 : 0) + (noStop ? 1 : 0) + (costliest ? 1 : 0) + (worst ? 1 : 0);
-  const latest = [...ext].sort((a, b) => (a.openedAt < b.openedAt ? 1 : -1)).slice(0, 5);
 
   return (
     <div className="space-y-5">
       <PageHeader title="Dashboard" sub={<>{scope.label} · {cur} · {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}, {dateLabel(f)}</>} />
       {bar}
 
-      {truncated && <Notice kind="error">You have more than 10,000 trades. Statistics below use only the oldest 10,000 and are incomplete.</Notice>}
       {excludedN > 0 && (
         <Notice>
           {s.excluded.open_or_partial.length > 0 && <>{s.excluded.open_or_partial.length} open or partially-closed trade(s) are not included in these statistics. </>}
@@ -114,7 +116,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               <h2 className="text-sm font-medium">Equity curve <span className="font-normal text-muted">· cumulative net P&amp;L, {cur}</span></h2>
               <p className="text-xs text-muted">Longest win streak: {s.maxWinStreak} · longest losing streak: {s.maxLossStreak}</p>
             </div>
-            <EquityCurve points={s.equityCurve} currency={cur} />
+            <EquityCurve points={downsampleCurve(s.equityCurve)} total={s.equityCurve.length} currency={cur} />
           </Card>
 
           <Card>
@@ -136,9 +138,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                     <span className="block text-xs text-muted"><span className="fig text-loss">{signedMoney(costliest[1].netPnl, cur)}</span> across {costliest[1].tradeCount} tagged trade{costliest[1].tradeCount === 1 ? "" : "s"}. See all mistakes →</span></Link></li>
                 )}
                 {worst && (
-                  <li className="py-2.5"><Link href={`/app/journal/${worst.trade.id}`} className="group block">
-                    <span className="font-medium group-hover:underline">Largest loss: {worst.trade.symbol}</span>
-                    <span className="block text-xs text-muted"><span className="fig text-loss">{signedMoney(worst.netPnl, cur)}</span> on {shortDate(worst.trade.openedAt)}. Re-read your notes →</span></Link></li>
+                  <li className="py-2.5"><Link href={`/app/journal/${worst.id}`} className="group block">
+                    <span className="font-medium group-hover:underline">Largest loss: {worst.symbol}</span>
+                    <span className="block text-xs text-muted"><span className="fig text-loss">{signedMoney(worst.netPnl, cur)}</span> on {shortDate(worst.openedAt)}. Re-read your notes →</span></Link></li>
                 )}
                 {noStop > 0 && (
                   <li className="py-2.5"><span className="font-medium">{noStop} closed trade{noStop === 1 ? "" : "s"} without a stop</span>
@@ -165,13 +167,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <div className="flex items-baseline justify-between"><h2 className="text-sm font-medium">Latest trades</h2><Link href="/app/journal" className={`text-xs ${linkCls}`}>Open journal →</Link></div>
             <ul className="mt-2 divide-y divide-border text-sm">
               {latest.map((t) => {
-                const r = evaluateTrade(t), closed = typeof r !== "string";
+                const closed = t.status === "closed";
                 return (
                   <li key={t.id}><Link href={`/app/journal/${t.id}`} className="-mx-2 flex items-center gap-3 rounded px-2 py-2.5 hover:bg-raised/60">
                     <span className="w-20 shrink-0 text-xs text-muted">{shortDate(t.openedAt).replace(/ \d{4}$/, "")}</span>
                     <span className="min-w-0 flex-1 truncate font-medium">{t.symbol} <span className="font-normal capitalize text-muted">· {t.side}</span></span>
-                    <span className="fig hidden w-16 text-right text-muted sm:block">{closed ? signedR(r.r) : ""}</span>
-                    <span className={`fig w-28 text-right ${closed ? pnlClass(r.netPnl) : "text-muted"}`}>{closed ? signedMoney(r.netPnl, cur) : r === "missing_fx" ? "Needs FX" : "Open"}</span>
+                    <span className="fig hidden w-16 text-right text-muted sm:block">{closed ? signedR(t.r) : ""}</span>
+                    <span className={`fig w-28 text-right ${closed ? pnlClass(t.netPnl) : "text-muted"}`}>{closed ? signedMoney(t.netPnl, cur) : t.status === "missing_fx" ? "Needs FX" : "Open"}</span>
                   </Link></li>
                 );
               })}
@@ -180,7 +182,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </div>
 
         <div className="grid gap-3 lg:grid-cols-2">
-          <Breakdown title="By strategy" groups={groupSummary(ext, (t) => t.strategy)} cur={cur} limit={5} />
+          <Breakdown title="By strategy" groups={groupResults(rows, (t) => t.strategy)} cur={cur} limit={5} />
           <Card className="flex flex-col justify-between gap-4">
             <div>
               <h2 className="text-sm font-medium">Go deeper</h2>

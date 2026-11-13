@@ -2,13 +2,13 @@
 1. Entry/exit times from `datetime-local` are stored as UTC; weekday stats use UTC. Needs per-user timezone (profiles.timezone) — P1.
 2. ~~Journal delete has no confirmation dialog.~~ Fixed 2026-11-11 (two-step confirm).
 3. Trade detail page exists (read-only, 2026-11-11). **No edit yet**: wrong trades must be deleted and re-entered (docs/design/OPUS_FABLE_HANDOFF.md H-2).
-4. Screenshots, daily/weekly reviews, calendar view not built.
+4. ~~Screenshots, daily/weekly reviews, calendar view not built.~~ Screenshots shipped in Phase 1 (need owner storage setup); calendar and reviews are Phase 2 (see docs/BUILD_LOG.md).
 5. Fees is a single number in the trade's quote currency (commission + swap combined); converted with the same FX rate as P&L when the quote currency differs from the account currency.
 6. Forex lots assume standard 100,000 units; mini/micro lots must be entered as 0.1/0.01.
 7. Rate limiting exists only on auth endpoints (Better Auth, DB-backed: 30 requests/60s). App actions (trade creation etc.) are not rate limited.
 8. No error monitoring (Sentry) yet.
 9. Legal pages are drafts, unreviewed.
-10. Dashboard fetches all trades (≤10,000) per load; fine for launch, needs SQL aggregation later.
+10. ~~Dashboard fetches all trades (≤10,000) per load.~~ Fixed in Phase 2: filtering, joins and the per-trade result run in SQL (no row cap); aggregates stay in `metrics.ts`. Measured on local Postgres with 10,000 seeded trades: dashboard 214 ms, analytics 272 ms (median, full server response). Not measured: real Supabase network latency. Memory still grows linearly with the number of trades in the selected filter (about 1.2 s and 100,000 rows for a single query at 100k trades), so very large journals should use a date filter.
 11. ~~Billing is manual~~ Automated via HandyPay API + webhooks (2026-11-11), **pending one real test-mode run**; manual fallback remains when keys are absent. Previously: plan activation by owner SQL after confirming payment (DEPLOYMENT.md). No webhook, no automatic renewal/cancel, no founding coupon, no annual link.
 12. **Email is not configured**: until `RESEND_API_KEY` is set, email confirmation is OFF (anyone can register any address) and password reset is unavailable (UI says so). Because payments are matched by email, set up email BEFORE taking payment.
 13. `.npmrc` uses legacy-peer-deps (optional peer conflict, see DECISIONS).

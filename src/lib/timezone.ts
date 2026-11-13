@@ -5,14 +5,26 @@
  */
 export const DEFAULT_TZ = "UTC";
 
+/** Building an Intl.DateTimeFormat costs ~50-100 microseconds; analytics calls these helpers once per trade, so formatters and validity are cached per zone. */
+const validity = new Map<string, boolean>();
+const offsetFormats = new Map<string, Intl.DateTimeFormat>();
+const dateFormats = new Map<string, Intl.DateTimeFormat>();
+
 export function isValidTimeZone(tz: string): boolean {
   if (!tz || tz.length > 64) return false;
-  try { new Intl.DateTimeFormat("en-US", { timeZone: tz }); return true; } catch { return false; }
+  const known = validity.get(tz);
+  if (known !== undefined) return known;
+  let ok = true;
+  try { new Intl.DateTimeFormat("en-US", { timeZone: tz }); } catch { ok = false; }
+  if (validity.size < 500) validity.set(tz, ok);
+  return ok;
 }
 
 /** Offset of `tz` from UTC at instant `ms`, in milliseconds (e.g. New York in winter = -5h). */
 export function tzOffsetMs(ms: number, tz: string): number {
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date(ms));
+  let fmt = offsetFormats.get(tz);
+  if (!fmt) { fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }); if (offsetFormats.size < 500) offsetFormats.set(tz, fmt); }
+  const parts = fmt.formatToParts(new Date(ms));
   const g = (t: string) => Number(parts.find((p) => p.type === t)!.value);
   const asUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"), g("second"));
   return asUtc - Math.floor(ms / 1000) * 1000;
@@ -84,8 +96,10 @@ export const COMMON_TIMEZONES = [
 
 /** Local calendar date (YYYY-MM-DD) of a UTC instant in `tz`. */
 export function localDate(iso: string, tz = DEFAULT_TZ): string {
-  const p = new Intl.DateTimeFormat("en-CA", { timeZone: isValidTimeZone(tz) ? tz : "UTC", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
-  return p;
+  const zone = isValidTimeZone(tz) ? tz : "UTC";
+  let fmt = dateFormats.get(zone);
+  if (!fmt) { fmt = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }); if (dateFormats.size < 500) dateFormats.set(zone, fmt); }
+  return fmt.format(new Date(iso));
 }
 /** Local weekday (0 = Sunday) and hour of a UTC instant in `tz`. */
 export function localDayHour(iso: string, tz = DEFAULT_TZ): { day: number; hour: number } {

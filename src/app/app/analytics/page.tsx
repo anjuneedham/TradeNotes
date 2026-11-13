@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getContext, scopeFor } from "@/lib/app-context";
 import { parseFilters, withKnownAccount, activeFilterCount, filterHref, NO_FILTERS } from "@/lib/filters";
 import { FilterBar } from "@/components/FilterBar";
-import { summarize, groupSummary } from "@/lib/metrics";
-import { loadTrades, loadFilterOptions, toExt, tagSummary, type StatRow } from "@/lib/trades-data";
+import { summarizeResults, groupResults, tagResults } from "@/lib/metrics";
+import { loadResults, loadFilterOptions, type LoadedResults } from "@/lib/trades-data";
 import { signedMoney, pct, num, pnlClass } from "@/lib/format";
 import { localDayHour } from "@/lib/timezone";
 import { Notice, PageHeader, EmptyState, btnCls, linkCls } from "@/components/ui";
@@ -22,12 +22,12 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
 
-  let rows: StatRow[] = [], truncated = false, options;
-  try { [{ rows, truncated }, options] = await Promise.all([loadTrades(db, scope.accountIds, f, tz), loadFilterOptions(db, ctx.accounts)]); }
+  let loaded: LoadedResults, options;
+  try { [loaded, options] = await Promise.all([loadResults(db, scope.accountIds, cur, f, tz), loadFilterOptions(db, ctx.accounts)]); }
   catch (e) { console.error("analytics load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
-
-  const ext = toExt(rows, cur);
-  const s = summarize(ext);
+  const { rows, excluded } = loaded;
+  const s = summarizeResults(rows, excluded);
+  const totalMatching = rows.length + excluded.open_or_partial.length + excluded.missing_fx.length + excluded.invalid.length;
   const header = (<>
     <PageHeader title="Analytics" sub="Where your results come from. Every table uses closed trades only." />
     <FilterBar path="/app/analytics" filters={f} options={options!} switcherLabel={ctx.scope.label} />
@@ -37,8 +37,8 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
     return (
       <div className="space-y-5">
         {header}
-        <EmptyState title={rows.length === 0 && !filtered ? "No trades yet" : filtered ? "No closed trades match these filters" : "No closed trades yet"}
-          action={rows.length === 0 && !filtered ? <Link href="/app/journal/new" className={btnCls}>Log your first trade</Link> : filtered ? <Link href={filterHref("/app/analytics", NO_FILTERS)} className={linkCls}>Reset filters</Link> : undefined}>
+        <EmptyState title={totalMatching === 0 && !filtered ? "No trades yet" : filtered ? "No closed trades match these filters" : "No closed trades yet"}
+          action={totalMatching === 0 && !filtered ? <Link href="/app/journal/new" className={btnCls}>Log your first trade</Link> : filtered ? <Link href={filterHref("/app/analytics", NO_FILTERS)} className={linkCls}>Reset filters</Link> : undefined}>
           Breakdowns appear once at least one trade is fully closed.
         </EmptyState>
       </div>
@@ -48,7 +48,6 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-5">
       {header}
-      {truncated && <Notice kind="error">You have more than 10,000 trades. Statistics below use only the oldest 10,000 and are incomplete.</Notice>}
       {s.smallSample && <Notice kind="warn">Based on {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}. Groups with fewer than 30 trades are marked * — treat differences between them as noise for now. <Link href="/learn#sample-size" className="underline underline-offset-2">Why?</Link></Notice>}
 
       <section aria-label="Totals for this period" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -59,13 +58,13 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
       </section>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Breakdown title="By strategy" groups={groupSummary(ext, (t) => t.strategy)} cur={cur} />
-        <Breakdown title="By instrument" groups={groupSummary(ext, (t) => t.symbol)} cur={cur} />
-        <Breakdown title="By session" groups={groupSummary(ext, (t) => t.session)} cur={cur} />
-        <Breakdown title="By direction" groups={groupSummary(ext, (t) => cap(t.side))} cur={cur} />
-        <Breakdown title="By weekday" note={`By close time, ${tz}.`} groups={groupSummary(ext, (t) => (t.closedAt ? DAYS[localDayHour(t.closedAt, tz).day] : null))} cur={cur} />
-        <Breakdown id="mistakes" title="By mistake tag" note="Results of trades carrying each tag. A trade with several tags counts under each." groups={tagSummary(ext, (t) => t.mistakes)} cur={cur} />
-        <Breakdown title="By emotion" note="Results of trades carrying each tag. A trade with several tags counts under each." groups={tagSummary(ext, (t) => t.emotions)} cur={cur} />
+        <Breakdown title="By strategy" groups={groupResults(rows, (t) => t.strategy)} cur={cur} />
+        <Breakdown title="By instrument" groups={groupResults(rows, (t) => t.symbol)} cur={cur} />
+        <Breakdown title="By session" groups={groupResults(rows, (t) => t.session)} cur={cur} />
+        <Breakdown title="By direction" groups={groupResults(rows, (t) => cap(t.side))} cur={cur} />
+        <Breakdown title="By weekday" note={`By close time, ${tz}.`} groups={groupResults(rows, (t) => (t.closedAt ? DAYS[localDayHour(t.closedAt, tz).day] : null))} cur={cur} />
+        <Breakdown id="mistakes" title="By mistake tag" note="Results of trades carrying each tag. A trade with several tags counts under each." groups={tagResults(rows, (t) => t.mistakes)} cur={cur} />
+        <Breakdown title="By emotion" note="Results of trades carrying each tag. A trade with several tags counts under each." groups={tagResults(rows, (t) => t.emotions)} cur={cur} />
       </div>
       <p className="text-xs text-muted">* fewer than 30 trades in the group. Bars compare net P&amp;L within each table. Statistics describe your recorded past trades only and are not a prediction.</p>
     </div>
