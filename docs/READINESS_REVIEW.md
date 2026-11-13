@@ -1,3 +1,13 @@
+# Readiness rating: 2026-11-13, after Phase 3 (PR #7; my own judgement, local verification only, nothing measured in production)
+| Lens | Now | Was | Why |
+|---|---|---|---|
+| **Overall app** | **8.2** | 8.0 | Public demo, quick-log, share links, strategy comparison and a labelled backtest log; 329 unit/DB + 252 browser + 101 database checks, CI green. Money path and legal are still unproven in production |
+| **Industry-specific** | **7.2** | 6.7 | Demo mode, comparison and mobile quick-log close three gaps from the brief. Still missing: broker auto-sync, real-export-verified imports, MAE/MFE, replay (not approved). Target 8.0 is **not** reached |
+| **App-type-specific** | **7.9** | 7.9 | Unchanged: no payment, legal-review, monitoring or backup work in this phase |
+Scorecard rows that moved: analytics depth 7 to **7.5** (strategy comparison; no MAE/MFE), trust/speed/mobile 7.5 to **8** (demo, quick-log, 390px tested; no accessibility audit, no real-device test). Weighted about **6.5** on the brief's scale (was 6.3). Evidence: docs/QA_RESULTS_2026-11-13_phase3.md.
+Next, in order: verify imports with real broker exports; reminder emails and goals (review workflow); owner setup of real screenshot storage; accessibility pass and a real-phone install test; Phase 4 memos.
+
+---
 # Readiness rating: 2026-11-13, after Phase 1 + Phase 2 (PR #3; my own judgement, local verification only, nothing measured in production)
 | Lens | Now | Was | Why |
 |---|---|---|---|
