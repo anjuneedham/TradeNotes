@@ -114,6 +114,24 @@ describe.skipIf(!url)("SQL aggregation vs the metrics engine (real database, 10,
         && (r.mistakes.some((t) => f.tags.includes(t)) || r.emotions.some((t) => f.tags.includes(t))));
       expect(filt.a.tradeCount).toBeGreaterThan(5); expect(filt.a.tradeCount).toBeLessThan(all.n / 20); // the filter really narrowed the set
 
+      // --- playbook checklist answers load with the results (checks: true) and agree with a direct count
+      const strat = (await pool.query("select id from tradenotes.strategies where user_id = $1 and name = 'London breakout'", [A.userId])).rows[0].id as string;
+      const items = [] as string[];
+      for (const text of ["Wait for the retest", "Stop below the swing", "Risk at most 1%"]) items.push((await pool.query("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,$3) returning id", [A.userId, strat, text])).rows[0].id);
+      await pool.query(`insert into tradenotes.trade_checks (trade_id, item_id, user_id, followed)
+        select t.id, i, $1, (abs(hashtext(t.id::text || i::text)) % 3) <> 0 from tradenotes.trades t cross join unnest($3::uuid[]) i where t.user_id = $1 and t.strategy_id = $2`, [A.userId, strat, items]);
+      const direct = (await pool.query(`select t.id, count(*) filter (where c.followed)::int as done, count(*)::int as total from tradenotes.trades t join tradenotes.trade_checks c on c.trade_id = t.id where t.user_id = $1 group by t.id`, [A.userId])).rows;
+      const withChecks = await withUser(A.userId, (q) => loadResults((fn) => fn(q), [A.accountId], "USD", parseFilters({}), "UTC", { checks: true }));
+      const got = new Map(withChecks.rows.map((r) => [r.id, r]));
+      const checkedIds = direct.filter((d) => got.has(d.id));
+      expect(checkedIds.length).toBeGreaterThan(300);
+      for (const d of checkedIds) { expect(got.get(d.id)!.checksDone).toBe(d.done); expect(got.get(d.id)!.checksTotal).toBe(d.total); }
+      expect(withChecks.rows.filter((r) => r.checksTotal === null).length).toBe(withChecks.rows.length - checkedIds.length); // no answers => null, not 0
+      const noChecks = await withUser(A.userId, (q) => loadResults((fn) => fn(q), [A.accountId], "USD", parseFilters({}), "UTC"));
+      expect(noChecks.rows.every((r) => r.checksTotal === null)).toBe(true);
+      const bChecks = await withUser(B.userId, (q) => q("select count(*)::int n from tradenotes.trade_checks"));
+      expect((bChecks[0] as { n: number }).n).toBe(0); // B cannot see A's answers
+
       // --- the latest-trades query agrees with the oracle ordering
       const latest = await withUser(A.userId, (q) => loadLatest((fn) => fn(q), [A.accountId], "USD", parseFilters({}), "UTC", 5));
       const expLatest = raw.filter((r) => r.account_currency === "USD").sort((x, y) => (x.opened_at < y.opened_at ? 1 : x.opened_at > y.opened_at ? -1 : x.id < y.id ? -1 : 1)).slice(0, 5).map((r) => r.id);

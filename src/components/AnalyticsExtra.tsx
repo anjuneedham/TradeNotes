@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Card } from "./ui";
-import { INTENSITY_WORDS, intensityLevel, type RDistribution, type Heatmap, type MistakeCost, type DrawdownDetail } from "@/lib/analytics-extra";
+import { INTENSITY_WORDS, intensityLevel, type RDistribution, type Heatmap, type MistakeCost, type DrawdownDetail, type Adherence, type StrategyAdherence } from "@/lib/analytics-extra";
 import { money, signedMoney, pct, shortDate } from "@/lib/format";
 
 /**
@@ -145,6 +145,40 @@ export function DrawdownCard({ d, cur }: { d: DrawdownDetail; cur: string }) {
         </p>
       </>)}
       <p className="mt-2 border-t border-border pt-2 text-xs text-muted">Right now you are {d.current.fromPeak ? <><span className="fig text-fg">{money(d.current.drawdown, cur)}</span> below your highest point so far.</> : "at your highest point so far."}</p>
+    </Card>
+  );
+}
+
+export function AdherenceCard({ a, byStrategy, cur }: { a: Adherence; byStrategy: StrategyAdherence[]; cur: string }) {
+  return (
+    <Card id="adherence" className="scroll-mt-20 lg:col-span-2">
+      <h3 className="text-sm font-medium">Playbook adherence</h3>
+      <Note>Per trade: rules you followed ÷ rules you answered on its checklist. Only trades with a ticked checklist count; {a.unchecked} of {a.checked + a.unchecked} closed trades have none.</Note>
+      <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div><dt className="text-xs text-muted">Average adherence</dt><dd className="fig mt-0.5 text-xl font-medium">{pct(a.avgAdherence)}</dd></div>
+        <div><dt className="text-xs text-muted">Trades with a checklist</dt><dd className="fig mt-0.5 text-xl font-medium">{a.checked}</dd></div>
+        <div><dt className="text-xs text-muted">Coverage</dt><dd className="fig mt-0.5 text-xl font-medium">{pct(a.coverage)}</dd></div>
+      </dl>
+      <div className="relative mt-4 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-left text-xs text-muted"><tr><th scope="col" className="pb-1.5 font-normal">Rules followed</th><th scope="col" className="pb-1.5 text-right font-normal">Trades</th><th scope="col" className="pb-1.5 text-right font-normal">Win rate</th><th scope="col" className="pb-1.5 text-right font-normal">Avg / trade</th><th scope="col" className="pb-1.5 text-right font-normal">Net P&amp;L</th></tr></thead>
+          <tbody>{a.buckets.map((b) => (
+            <tr key={b.label} className="border-t border-border">
+              <th scope="row" className="py-2 pr-3 text-left font-normal">{b.label}</th>
+              <td className="fig py-2 text-right">{b.summary.tradeCount}{b.summary.tradeCount > 0 && b.summary.smallSample ? <span title="Fewer than 30 trades: treat with caution" className="text-muted">*</span> : null}</td>
+              <td className="fig py-2 text-right">{pct(b.summary.winRate)}</td>
+              <td className="fig py-2 text-right">{b.summary.expectancy === null ? "—" : signedMoney(b.summary.expectancy, cur)}</td>
+              <td className="fig py-2 text-right">{b.summary.tradeCount ? `${pnlGlyph(b.summary.netPnl)} ${signedMoney(b.summary.netPnl, cur)}` : "—"}</td>
+            </tr>))}</tbody>
+        </table>
+      </div>
+      {byStrategy.length > 0 && (
+        <div className="mt-4 border-t border-border pt-3">
+          <p className="text-xs font-medium">By strategy</p>
+          <ul className="mt-1.5 space-y-1 text-sm">{byStrategy.map((s) => <li key={s.strategy} className="flex justify-between gap-3"><span className="truncate">{s.strategy}</span><span className="fig text-muted">{pct(s.avgAdherence)} · {s.checkedTrades} trade{s.checkedTrades === 1 ? "" : "s"}</span></li>)}</ul>
+        </div>
+      )}
+      <p className="mt-3 text-xs text-muted">* fewer than 30 trades. This compares groups of your own past trades; it does not prove that following the rules caused the difference.</p>
     </Card>
   );
 }

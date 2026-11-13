@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rDistribution, weekdayHourHeatmap, intensityLevel, holdTimeBuckets, mistakeCost, drawdownDetail, profitFactorInfo } from "./analytics-extra";
+import { rDistribution, weekdayHourHeatmap, intensityLevel, holdTimeBuckets, mistakeCost, drawdownDetail, profitFactorInfo, adherenceAnalysis, adherenceByStrategy } from "./analytics-extra";
 import { summarizeResults, type TradeResult } from "./metrics";
 import { rng } from "../../scripts/lib/seed-trades.js";
 
@@ -159,4 +159,33 @@ describe("profitFactorInfo (never Infinity)", () => {
     expect(profitFactorInfo(mk(26, 3)).warning).toBe("small_sample");           // 29 trades: the small-sample warning takes precedence over few losses
   });
   it("no trades: no value, no warning", () => { expect(profitFactorInfo([])).toMatchObject({ value: null, warning: null, message: null, trades: 0 }); });
+});
+
+describe("adherence (playbook)", () => {
+  const ad = (id: string, net: number, done: number | null, total: number | null, strategy: string | null = "A") =>
+    ({ ...res(id, net, "2026-11-01T00:00:00Z"), checksDone: done, checksTotal: total, strategy });
+  const rows = [ad("a", 100, 4, 4), ad("b", 50, 3, 3), ad("c", -20, 3, 4), ad("d", -60, 1, 4), ad("e", -30, 0, 2), ad("f", 10, null, null), ad("g", 5, 0, 0)];
+  it("per-trade adherence = followed / answered; trades with no answers are unchecked", () => {
+    const a = adherenceAnalysis(rows);
+    expect([a.checked, a.unchecked]).toEqual([5, 2]);
+    expect(a.coverage).toBeCloseTo(5 / 7, 12);
+    // (1 + 1 + 0.75 + 0.25 + 0) / 5 = 0.6
+    expect(a.avgAdherence).toBeCloseTo(0.6, 12);
+  });
+  it("buckets: 100% | 50-99% | under 50%, with results per bucket", () => {
+    const a = adherenceAnalysis(rows);
+    expect(a.buckets.map((b) => b.summary.tradeCount)).toEqual([2, 1, 2]);
+    expect(a.buckets.map((b) => b.summary.netPnl)).toEqual([150, -20, -90]);
+    expect(a.buckets[0].summary.winRate).toBe(1);
+    expect(a.buckets[0].summary.expectancy).toBe(75);
+  });
+  it("exactly 50% is 'most followed'; nothing checked gives nulls", () => {
+    expect(adherenceAnalysis([ad("x", 1, 1, 2)]).buckets.map((b) => b.summary.tradeCount)).toEqual([0, 1, 0]);
+    const n = adherenceAnalysis([ad("x", 1, null, null)]);
+    expect(n.avgAdherence).toBeNull(); expect(n.checked).toBe(0); expect(adherenceAnalysis([]).coverage).toBeNull();
+  });
+  it("by strategy, best adherence first", () => {
+    const s = adherenceByStrategy([ad("a", 1, 4, 4, "Breakout"), ad("b", 1, 2, 4, "Breakout"), ad("c", 1, 4, 4, "Fade"), ad("d", 1, 1, 4, null), ad("e", 1, null, null, "Fade")]);
+    expect(s).toEqual([{ strategy: "Fade", checkedTrades: 1, avgAdherence: 1 }, { strategy: "Breakout", checkedTrades: 2, avgAdherence: 0.75 }, { strategy: "No strategy", checkedTrades: 1, avgAdherence: 0.25 }]);
+  });
 });

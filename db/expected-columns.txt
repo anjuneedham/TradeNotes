@@ -198,3 +198,15 @@ tradenotes.trades.target_price|numeric|YES|20|8|
 tradenotes.trades.timeframe|text|YES|||
 tradenotes.trades.updated_at|timestamp with time zone|NO|||
 tradenotes.trades.user_id|uuid|NO|||
+tradenotes.playbook_items.archived|boolean|NO|||
+tradenotes.playbook_items.created_at|timestamp with time zone|NO|||
+tradenotes.playbook_items.id|uuid|NO|||
+tradenotes.playbook_items.position|integer|NO|32|0|
+tradenotes.playbook_items.strategy_id|uuid|NO|||
+tradenotes.playbook_items.text|text|NO|||
+tradenotes.playbook_items.user_id|uuid|NO|||
+tradenotes.trade_checks.created_at|timestamp with time zone|NO|||
+tradenotes.trade_checks.followed|boolean|NO|||
+tradenotes.trade_checks.item_id|uuid|NO|||
+tradenotes.trade_checks.trade_id|uuid|NO|||
+tradenotes.trade_checks.user_id|uuid|NO|||

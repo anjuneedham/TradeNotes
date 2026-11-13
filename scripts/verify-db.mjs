@@ -24,13 +24,13 @@ const missing = expected.filter((e) => !actual.has(e));
 ok(`all ${expected.length} expected columns present with the right types`, missing.length === 0, missing.slice(0, 5).join(" ; "));
 
 const tables = await q(`select n.nspname s, c.relname t, c.relrowsecurity rls from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and (n.nspname='tradenotes' or (n.nspname='public' and c.relname like 'tn\\_%'))`);
-ok("20 TradeNotes tables exist", tables.length === 20, String(tables.length));
+ok("22 TradeNotes tables exist", tables.length === 22, String(tables.length));
 ok("row-level security enabled on every TradeNotes table", tables.every((t) => t.rls), tables.filter((t) => !t.rls).map((t) => t.t).join(","));
 const pol = await q(`select tablename t, count(*)::int k from pg_policies where schemaname='tradenotes' group by 1`);
 const polMap = Object.fromEntries(pol.map((r) => [r.t, r.k]));
-ok("policies: profiles=2, subscriptions=1, payments=1, 7 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions, JSON.stringify(polMap));
+ok("policies: profiles=2, subscriptions=1, payments=1, 9 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews","playbook_items","trade_checks"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions, JSON.stringify(polMap));
 const trg = (await q(`select tgname from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='tradenotes' and not t.tgisinternal`)).map((r) => r.tgname);
-const wantTrg = ["profiles_protect_admin","profiles_protect_counters","exits_owner","shots_owner","shots_count","trades_refs","imports_refs"];
+const wantTrg = ["profiles_protect_admin","profiles_protect_counters","exits_owner","shots_owner","shots_count","trades_refs","imports_refs","reviews_cap","playbook_items_refs","trade_checks_refs"];
 ok("safety triggers present", wantTrg.every((t) => trg.includes(t)), `have: ${trg.join(",")}`);
 const fns = await q(`select p.proname, p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='tradenotes'`);
 const fm = Object.fromEntries(fns.map((f) => [f.proname, f.prosecdef]));
@@ -93,6 +93,19 @@ try {
   ok("B sees none of A's reviews", (await n("select count(*)::int n from tradenotes.reviews")) === 0);
   ok("B cannot edit or delete A's reviews", (await c.query("update tradenotes.reviews set went_well = 'hacked'")).rowCount === 0 && (await c.query("delete from tradenotes.reviews")).rowCount === 0);
   ok("B cannot write a review as A", await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'day','2026-11-20')", [A]));
+  // Playbook (phase 2): items belong to a strategy of the same user; checks link a trade and an item of the same user.
+  await as(A);
+  const [pi] = await q("insert into tradenotes.playbook_items (user_id, strategy_id, text, position) values ($1,$2,'Wait for the retest',1) returning id", [A, st.id]);
+  ok("A can add a playbook item to own strategy and tick it on own trade", !(await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) values ($1,$2,$3,true)", [t.id, pi.id, A])));
+  ok("a check is one row per trade and item (a second insert is refused)", await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) values ($1,$2,$3,false)", [t.id, pi.id, A]));
+  ok("playbook item text must be 1 to 200 characters", (await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'')", [A, st.id])) && (await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,repeat('x',201))", [A, st.id])));
+  ok("a strategy cannot hold more than 80 playbook items", !(await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) select $1, $2, 'item ' || g from generate_series(1, 79) g", [A, st.id])) && (await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'one too many')", [A, st.id])));
+  await as(B);
+  ok("B sees none of A's playbook items or checks", (await n("select count(*)::int n from tradenotes.playbook_items")) === 0 && (await n("select count(*)::int n from tradenotes.trade_checks")) === 0);
+  ok("B cannot edit or delete A's playbook items or checks", (await c.query("update tradenotes.playbook_items set text = 'x'")).rowCount === 0 && (await c.query("delete from tradenotes.playbook_items")).rowCount === 0 && (await c.query("update tradenotes.trade_checks set followed = false")).rowCount === 0 && (await c.query("delete from tradenotes.trade_checks")).rowCount === 0);
+  ok("B cannot add an item to A's strategy", await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'hijack')", [B, st.id]));
+  ok("B cannot tick an item on A's trade, or tick A's item on own trade", (await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) values ($1,$2,$3,true)", [t.id, pi.id, B])) && (await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) select (select id from tradenotes.trades limit 1), $1, $2, true", [pi.id, B])));
+  ok("B cannot write a playbook row as A", (await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'forged')", [A, st.id])) && (await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) values ($1,$2,$3,true)", [t.id, pi.id, A])));
   ok("B cannot make themselves admin", await errors("update tradenotes.profiles set is_admin = true"));
   const upd = await (async () => { try { await c.query("savepoint su"); const r = await c.query("update tradenotes.subscriptions set plan='pro'"); await c.query("release savepoint su"); return r.rowCount; } catch { await c.query("rollback to savepoint su"); return 0; } })();
   ok("self-upgrade changed 0 rows", upd === 0, String(upd));

@@ -5,6 +5,7 @@ import { Card, PageHeader } from "@/components/ui";
 export const metadata = { title: "More — TradeNotes" };
 const LINKS = [
   { href: "/app/reviews", title: "Reviews", sub: "Daily, weekly and monthly reviews." },
+  { href: "/app/playbook", title: "Playbook", sub: "Entry checklists per strategy." },
   { href: "/app/accounts", title: "Accounts", sub: "Add and switch trading accounts." },
   { href: "/app/import", title: "Import trades", sub: "Bring in a broker export." },
   { href: "/app/settings", title: "Settings", sub: "Time zone, appearance, export, delete account." },

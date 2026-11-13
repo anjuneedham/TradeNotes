@@ -8,8 +8,8 @@ import { signedMoney, money, pct, num, pnlClass } from "@/lib/format";
 import { localDayHour } from "@/lib/timezone";
 import { Notice, PageHeader, EmptyState, btnCls, linkCls } from "@/components/ui";
 import { Stat, Breakdown } from "@/components/stats";
-import { RDistributionCard, HeatmapCard, MistakeCostCard, DrawdownCard } from "@/components/AnalyticsExtra";
-import { rDistribution, weekdayHourHeatmap, holdTimeBuckets, mistakeCost, drawdownDetail, profitFactorInfo } from "@/lib/analytics-extra";
+import { RDistributionCard, HeatmapCard, MistakeCostCard, DrawdownCard, AdherenceCard } from "@/components/AnalyticsExtra";
+import { rDistribution, weekdayHourHeatmap, holdTimeBuckets, mistakeCost, drawdownDetail, profitFactorInfo, adherenceAnalysis, adherenceByStrategy } from "@/lib/analytics-extra";
 
 export const metadata = { title: "Analytics — TradeNotes" };
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -25,11 +25,12 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   const showHelp = profile?.show_explanations ?? true;
 
   let loaded: LoadedResults, options;
-  try { [loaded, options] = await Promise.all([loadResults(db, scope.accountIds, cur, f, tz), loadFilterOptions(db, ctx.accounts)]); }
+  try { [loaded, options] = await Promise.all([loadResults(db, scope.accountIds, cur, f, tz, { checks: true }), loadFilterOptions(db, ctx.accounts)]); }
   catch (e) { console.error("analytics load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
   const { rows, excluded } = loaded;
   const s = summarizeResults(rows, excluded);
   const pf = profitFactorInfo(rows);
+  const adherence = adherenceAnalysis(rows);
   const totalMatching = rows.length + excluded.open_or_partial.length + excluded.missing_fx.length + excluded.invalid.length;
   const header = (<>
     <PageHeader title="Analytics" sub="Where your results come from. Every table uses closed trades only." />
@@ -74,6 +75,7 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
         <HeatmapCard h={weekdayHourHeatmap(rows, tz)} tz={tz} cur={cur} />
         <Breakdown title="By time held" note="How long the trade lasted (entry to close). Shorter rows first." groups={Object.fromEntries(holdTimeBuckets(rows).buckets.map((b) => [b.label, b.summary]))} cur={cur} keepOrder />
         <MistakeCostCard m={mistakeCost(rows)} cur={cur} />
+        {adherence.checked > 0 && <AdherenceCard a={adherence} byStrategy={adherenceByStrategy(rows)} cur={cur} />}
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

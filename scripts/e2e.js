@@ -548,6 +548,86 @@ async function phase2(browser, stamp) {
   t = await bodyOf(other);
   check('P2 isolation: B calendar (even with A\'s account id) shows no A trades', /Net P&L\s*·?\s*0|Closed trades\s*0/.test(t) && !t.includes('$690.00') && !t.includes('$590.00'), t.slice(0, 300));
 
+  // ---- 6. playbook (EURUSD long +1,000 and short -500 share the strategy London breakout; GBPUSD is Range fade)
+  await std.goto(BASE + '/app/playbook');
+  t = await bodyOf(std);
+  check('P2 playbook (Standard): strategies from the journal are listed, forms are shown', t.includes('London breakout') && t.includes('Range fade') && (await std.locator('input[name=text]').count()) >= 2);
+  const rules = ['Waited for the retest', 'Stop below the swing low', 'Risk at most 1 percent'];
+  for (const r of rules) {
+    const card = std.locator('div[id^="s-"]', { hasText: 'London breakout' }).first();
+    await card.locator('input[name=text]').fill(r);
+    await card.getByRole('button', { name: 'Add rule' }).click();
+    await std.locator('ol li', { hasText: r }).first().waitFor({ timeout: 10000 }); // the redirect URL is the same every time, so wait for the rule itself
+  }
+  t = await bodyOf(std);
+  check('P2 playbook: three rules added to London breakout, in order', rules.every((r) => t.includes(r)) && t.indexOf(rules[0]) < t.indexOf(rules[1]) && t.indexOf(rules[1]) < t.indexOf(rules[2]));
+  await std.goto(BASE + '/app/journal');
+  await std.locator('tbody tr', { hasText: '+$1,000.00' }).getByRole('link', { name: 'View' }).click();
+  await std.waitForURL(/\/app\/journal\/[0-9a-f-]{36}$/);
+  const winUrl = std.url();
+  t = await bodyOf(std);
+  check('P2 playbook: the trade page shows the strategy checklist', t.includes('Playbook checklist') && rules.every((r) => t.includes(r)));
+  for (const r of rules) await std.getByLabel(r).check();
+  await std.getByRole('button', { name: 'Save checklist' }).click();
+  await std.waitForURL(/\?checks=1$/); await std.getByText('Checklist saved.').waitFor({ timeout: 10000 });
+  t = await bodyOf(std);
+  check('P2 playbook: all three followed -> "Followed 3 of 3 (100.0%)"', t.includes('Checklist saved.') && t.includes('Followed 3 of 3 (100.0%)'), t.slice(0, 200));
+  await std.goto(BASE + '/app/journal');
+  await std.locator('tbody tr', { hasText: '-$500.00' }).getByRole('link', { name: 'View' }).click();
+  await std.waitForURL(/\/app\/journal\/[0-9a-f-]{36}$/);
+  const lossUrl = std.url();
+  await std.getByLabel(rules[0]).check();
+  await std.getByRole('button', { name: 'Save checklist' }).click();
+  await std.waitForURL(/\?checks=1$/); await std.getByText('Checklist saved.').waitFor({ timeout: 10000 });
+  check('P2 playbook: only one followed -> "Followed 1 of 3 (33.3%)"', (await bodyOf(std)).includes('Followed 1 of 3 (33.3%)'));
+  await std.goto(BASE + '/app/playbook');
+  t = await bodyOf(std);
+  check('P2 playbook: per-rule follow rate (rule 1: 2 of 2, rule 2: 1 of 2)', t.includes('followed 2 of 2 (100.0%)') && t.includes('followed 1 of 2 (50.0%)'), t.slice(0, 700));
+  await std.goto(BASE + '/app/analytics');
+  t = await bodyOf(std);
+  check('P2 analytics: adherence card: average 66.7% (1.0 and 0.333), 2 trades with a checklist, coverage 50.0%', t.includes('Playbook adherence') && /Average adherence\s*66\.7%/.test(t) && /Trades with a checklist\s*2/.test(t) && /Coverage\s*50\.0%/.test(t), t.slice(t.indexOf('Playbook adherence'), t.indexOf('Playbook adherence') + 500));
+  const adh = await std.locator('#adherence table tbody').innerText();
+  check('P2 analytics: adherence vs results: all followed = 1 trade +$1,000.00; few followed = 1 trade -$500.00', /All rules followed \(100%\)\s+1\*?\s+100\.0%\s+\+\$1,000\.00\s+▲ \+\$1,000\.00/.test(adh) && /Few followed \(under 50%\)\s+1\*?\s+0\.0%\s+-\$500\.00\s+▼ -\$500\.00/.test(adh) && /Most followed \(50% to 99%\)\s+0/.test(adh), adh);
+  // retire a rule: it leaves the active list but stays on trades that answered it
+  await std.goto(BASE + '/app/playbook');
+  await std.getByRole('button', { name: 'Retire rule: ' + rules[2] }).click();
+  await std.waitForURL('**/app/playbook?ok=archived');
+  await std.goto(winUrl);
+  check('P2 playbook: a retired rule stays on trades that answered it, marked as retired', (await bodyOf(std)).includes('(retired rule)'));
+  // the 20-rule cap (18 more rules seeded directly, 2 active already)
+  { const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+    const sid = (await c.query(`select id from tradenotes.strategies where user_id = $1 and name = 'London breakout'`, [seeded.user])).rows[0].id;
+    await c.query(`insert into tradenotes.playbook_items (user_id, strategy_id, text, position) select $1, $2, 'filler ' || g, 10 + g from generate_series(1, 18) g`, [seeded.user, sid]); await c.end(); }
+  await std.goto(BASE + '/app/playbook');
+  const cap = std.locator('div[id^="s-"]', { hasText: 'London breakout' }).first();
+  await cap.locator('input[name=text]').fill('one rule too many');
+  await cap.getByRole('button', { name: 'Add rule' }).click();
+  await std.waitForURL('**/app/playbook?error=limit'); await std.getByText('A strategy can have 20 active rules').waitFor({ timeout: 10000 });
+  check('P2 playbook: the 21st active rule is refused with a message', (await bodyOf(std)).includes('A strategy can have 20 active rules'));
+  // user B cannot see A's playbook or open A's trades
+  await other.goto(BASE + '/app/playbook');
+  t = await bodyOf(other);
+  check('P2 isolation: B sees none of A\'s strategies or rules', !t.includes('London breakout') && !t.includes(rules[0]));
+  const bOpen = await other.goto(winUrl);
+  check('P2 isolation: B cannot open A\'s trade (the checklist is not reachable by id)', bOpen.status() === 404);
+  // Free account that never paid: upgrade notice, no forms, no checklist card on trades
+  await free2.goto(BASE + '/app/playbook');
+  check('P2 playbook (Free): upgrade notice, no forms', (await bodyOf(free2)).includes('The playbook is part of Standard and Premium') && (await free2.locator('input[name=text]').count()) === 0 && (await free2.locator('input[name=name]').count()) === 0);
+  // Premium on a phone
+  await prem2.goto(BASE + '/app/playbook');
+  await prem2.locator('input[name=name]').fill('Opening drive');
+  await prem2.getByRole('button', { name: 'Add strategy' }).click();
+  await prem2.waitForURL('**/app/playbook?ok=strategy'); await prem2.getByText('Strategy added.').waitFor({ timeout: 10000 });
+  const pc = prem2.locator('div[id^="s-"]', { hasText: 'Opening drive' }).first();
+  await pc.locator('input[name=text]').fill('Only the first 30 minutes');
+  await pc.getByRole('button', { name: 'Add rule' }).click();
+  await prem2.waitForURL('**/app/playbook?ok=item'); await prem2.getByText('Rule added.').waitFor({ timeout: 10000 });
+  check('P2 playbook (Premium, 390px): strategy and rule added; no horizontal scroll', (await bodyOf(prem2)).includes('Only the first 30 minutes') && !(await prem2.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  // held-open checklist form, then the plan lapses: the server action must refuse (see section 5 for the downgrade)
+  globalThis.__lossUrl = lossUrl; globalThis.__winUrl = winUrl;
+  globalThis.__stale = await std.context().newPage();
+  await globalThis.__stale.goto(lossUrl);
+
   // ---- 5. reviews (week of Mon 2026-11-02: GBPUSD +590 and ES +100 = +$690.00; October: +1,000 and -500 with a Moved stop tag)
   await std.goto(BASE + '/app/reviews');
   check('P2 reviews (Standard): start-a-review shortcuts shown, history empty', (await bodyOf(std)).includes('Start a review') && (await bodyOf(std)).includes('No reviews yet'));
@@ -589,6 +669,18 @@ async function phase2(browser, stamp) {
   check('P2 reviews (Free): saved review readable, no editing form', t.includes('Waited for the retest') && (await std.locator('textarea').count()) === 0);
   await std.goto(BASE + '/app/reviews/week/2026-11-09');
   check('P2 reviews (Free, no review): upgrade notice only', (await bodyOf(std)).includes('The reviews page is part of Standard and Premium') && (await std.locator('textarea').count()) === 0);
+  await globalThis.__stale.getByLabel(rules[1]).check();
+  await globalThis.__stale.getByRole('button', { name: 'Save checklist' }).click();
+  await globalThis.__stale.waitForURL(/\?checks=plan$/);
+  check('P2 playbook (server gate): saving a checklist after the plan lapsed is refused', (await bodyOf(globalThis.__stale)).includes('Recording checklists is part of Standard and Premium') && (await bodyOf(globalThis.__stale)).includes('Followed 1 of 3'));
+  await std.goto(BASE + '/app/playbook');
+  t = await bodyOf(std);
+  check('P2 playbook (downgraded to Free): rules stay readable, no forms', t.includes(rules[0]) && t.includes('Editing the playbook is part of Standard and Premium') && (await std.locator('input[name=text]').count()) === 0);
+  await std.goto(winUrl);
+  t = await bodyOf(std);
+  check('P2 playbook (Free): recorded answers are shown read-only', t.includes('✓ Followed · ' + rules[0]) && (await std.locator('input[name=done]').count()) === 0, t.slice(0, 300));
+  await std.goto(BASE + '/app/analytics');
+  check('P2 analytics (Free): adherence stays readable', (await bodyOf(std)).includes('Playbook adherence'));
   await free2.goto(BASE + '/app/reviews');
   check('P2 reviews (Free, never paid): upgrade notice, no form, no history', (await bodyOf(free2)).includes('The reviews page is part of Standard and Premium') && (await free2.locator('textarea').count()) === 0);
   await free2.goto(BASE + '/app/reviews/week/2026-11-02');
@@ -618,5 +710,26 @@ async function phase2(browser, stamp) {
   check('P2 isolation: B dashboard with A\'s account id shows the empty welcome, no numbers', t.includes('Start in 3 steps') && !t.includes('$1,190.00'));
   await other.goto(BASE + '/app/analytics?account=all');
   check('P2 isolation: B analytics with account=all has no A data', !(await bodyOf(other)).includes('$1,190.00'));
+  // ---- account deletion removes reviews, playbook items and checklist answers too (cascade, no orphans)
+  const del = await newUser(browser, `del2${stamp}@e2e.test`);
+  await setPlan(`del2${stamp}@e2e.test`, 'starter');
+  const ds = await seed(`del2${stamp}@e2e.test`, [P2_TRADES[0]]);
+  { const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+    const sid = (await c.query(`select id from tradenotes.strategies where user_id = $1`, [ds.user])).rows[0].id;
+    const tid = (await c.query(`select id from tradenotes.trades where user_id = $1`, [ds.user])).rows[0].id;
+    const iid = (await c.query(`insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'rule') returning id`, [ds.user, sid])).rows[0].id;
+    await c.query(`insert into tradenotes.trade_checks (trade_id, item_id, user_id, followed) values ($1,$2,$3,true)`, [tid, iid, ds.user]);
+    await c.query(`insert into tradenotes.reviews (user_id, period, period_start, went_well) values ($1,'week','2026-11-02','x')`, [ds.user]);
+    await c.end(); }
+  await del.goto(BASE + '/app/settings');
+  await del.getByText('Delete my account', { exact: true }).click();
+  await del.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await del.getByLabel('Current password').fill('correct-horse-battery');
+  await del.getByRole('button', { name: 'Delete my account permanently' }).click();
+  await del.waitForURL(BASE + '/?deleted=1', { timeout: 15000 }).catch(() => {});
+  { const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+    const left = (await c.query(`select (select count(*) from tradenotes.playbook_items where user_id = $1)::int items, (select count(*) from tradenotes.trade_checks where user_id = $1)::int checks, (select count(*) from tradenotes.reviews where user_id = $1)::int reviews, (select count(*) from tradenotes.trades where user_id = $1)::int trades`, [ds.user])).rows[0];
+    check('P2 delete account: reviews, playbook items, checklist answers and trades are all gone', left.items === 0 && left.checks === 0 && left.reviews === 0 && left.trades === 0, JSON.stringify(left));
+    await c.end(); }
   await std.context().close(); await other.context().close(); await free2.context().close(); await prem2.context().close();
 }

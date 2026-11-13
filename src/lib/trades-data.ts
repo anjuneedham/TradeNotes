@@ -15,6 +15,8 @@ type Db = <T>(fn: (q: Q) => Promise<T>) => Promise<T>;
 export interface ResultRow extends TradeResult {
   symbol: string; side: "long" | "short"; session: string | null; strategy: string | null;
   openedAt: string; mistakes: string[]; emotions: string[];
+  /** Playbook checklist answers for the trade (rules followed / rules answered). Null unless loaded with `checks: true`. */
+  checksDone: number | null; checksTotal: number | null;
 }
 export type Excluded = Record<ExclusionReason, string[]>;
 export interface LoadedResults {
@@ -28,6 +30,7 @@ export interface LatestRow { id: string; symbol: string; side: "long" | "short";
 interface SqlRow {
   id: string; symbol: string; side: "long" | "short"; session: string | null; strategy: string | null; opened_at: string; closed_at: string | null;
   mistakes: string[]; emotions: string[]; status: "closed" | ExclusionReason; gross: number | null; fees: number | null; net: number | null; r: number | null;
+  checks_done?: number | null; checks_total?: number | null;
 }
 
 /**
@@ -36,10 +39,10 @@ interface SqlRow {
  *   r = net / initial_risk when initial_risk > 0; status precedence: over-exited (invalid) > not fully exited (open_or_partial) > no usable fx (missing_fx).
  *   Account in another currency than the display currency => missing_fx (never mixed). Outputs are rounded to 1e-8 like the engine.
  */
-export const RESULT_SELECT = `
+const SELECT_HEAD = `
   select t.id, t.symbol, t.side, t.session, s.name as strategy, t.opened_at, t.closed_at,
          coalesce(t.mistakes, '{}') as mistakes, coalesce(t.emotions, '{}') as emotions,
-         c.status, c.gross::float8 as gross, c.fees::float8 as fees, c.net::float8 as net, c.r::float8 as r
+         c.status, c.gross::float8 as gross, c.fees::float8 as fees, c.net::float8 as net, c.r::float8 as r__CHECKS_COLS__
   from tradenotes.trades t
   join tradenotes.accounts a on a.id = t.account_id
   left join tradenotes.strategies s on s.id = t.strategy_id
@@ -55,19 +58,28 @@ export const RESULT_SELECT = `
       round(k.g * k.fx, 8) as gross,
       round(t.fees * k.fx, 8) as fees,
       round(k.g * k.fx - t.fees * k.fx, 8) as net,
-      case when t.initial_risk > 0 then (k.g * k.fx - t.fees * k.fx) / t.initial_risk end as r) c`;
+      case when t.initial_risk > 0 then (k.g * k.fx - t.fees * k.fx) / t.initial_risk end as r) c__CHECKS_JOIN__`;
+
+const CHECKS_COLS = ", ck.done as checks_done, ck.total as checks_total";
+const CHECKS_JOIN = `
+  left join lateral (select (count(*) filter (where tc.followed))::int as done, count(*)::int as total from tradenotes.trade_checks tc where tc.trade_id = t.id) ck on true`;
+export const RESULT_SELECT = SELECT_HEAD.replace("__CHECKS_COLS__", "").replace("__CHECKS_JOIN__", "");
+/** Same query plus the playbook checklist answers per trade (one extra indexed lookup per trade; only analytics needs it). */
+export const RESULT_SELECT_WITH_CHECKS = SELECT_HEAD.replace("__CHECKS_COLS__", CHECKS_COLS).replace("__CHECKS_JOIN__", CHECKS_JOIN);
 
 const toRow = (r: SqlRow): ResultRow => ({
   id: r.id, netPnl: r.net as number, grossPnl: r.gross as number, fees: r.fees as number, r: r.r, closedAt: r.closed_at,
   symbol: r.symbol, side: r.side, session: r.session, strategy: r.strategy, openedAt: r.opened_at, mistakes: r.mistakes ?? [], emotions: r.emotions ?? [],
+  // no answers at all => null (the lateral count returns 0)
+  checksDone: r.checks_total ? (r.checks_done ?? 0) : null, checksTotal: r.checks_total ? r.checks_total : null,
 });
 
-export interface LoadOpts { skipDate?: boolean; window?: DateWindow }
+export interface LoadOpts { skipDate?: boolean; window?: DateWindow; /** also load the playbook checklist answers (analytics) */ checks?: boolean }
 
 /** All matching trades, split into counted results and exclusions. */
 export async function loadResults(db: Db, accountIds: string[] | null, currency: string, filters: Filters = NO_FILTERS, tz = "UTC", opts: LoadOpts = {}): Promise<LoadedResults> {
   const w = tradeWhere(filters, accountIds, tz, { ...opts, params: [currency] });
-  const sqlRows = await db((q) => q<SqlRow>(`${RESULT_SELECT} where ${w.sql} order by t.opened_at, t.id`, w.params));
+  const sqlRows = await db((q) => q<SqlRow>(`${opts.checks ? RESULT_SELECT_WITH_CHECKS : RESULT_SELECT} where ${w.sql} order by t.opened_at, t.id`, w.params));
   const rows: ResultRow[] = [];
   const excluded: Excluded = { open_or_partial: [], missing_fx: [], invalid: [] };
   for (const r of sqlRows) { if (r.status === "closed") rows.push(toRow(r)); else excluded[r.status].push(r.id); }

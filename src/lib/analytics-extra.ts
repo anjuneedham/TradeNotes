@@ -172,3 +172,46 @@ export function profitFactorInfo(rows: readonly Pick<TradeResult, "netPnl">[]): 
   const round = (x: number) => Math.round(x * 1e8) / 1e8;
   return { value, grossProfit: round(gp), grossLoss: round(gl), wins, losses, trades, warning, message };
 }
+
+// ---------------------------------------------------------------------------------------------------------------- playbook adherence
+export interface AdherenceInput { checksDone: number | null; checksTotal: number | null }
+export interface AdherenceBucket { label: string; summary: Summary }
+export interface Adherence {
+  /** trades that have at least one checklist answer / trades without any */
+  checked: number; unchecked: number;
+  /** checked / all trades (null with no trades) */
+  coverage: number | null;
+  /** mean of each checked trade's followed / answered (null when nothing is checked) */
+  avgAdherence: number | null;
+  /** results by how much of the checklist was followed; only checked trades appear here */
+  buckets: AdherenceBucket[];
+}
+export const ADHERENCE_BUCKETS = ["All rules followed (100%)", "Most followed (50% to 99%)", "Few followed (under 50%)"] as const;
+
+/** Per-trade adherence = rules followed / rules answered. Trades with no answers are "unchecked" and left out of the percentages. */
+export function adherenceAnalysis(rows: readonly (TradeResult & AdherenceInput)[]): Adherence {
+  const groups: TradeResult[][] = ADHERENCE_BUCKETS.map(() => []);
+  let checked = 0, sum = 0;
+  for (const t of rows) {
+    if (!t.checksTotal || t.checksTotal <= 0 || t.checksDone === null) continue;
+    const a = t.checksDone / t.checksTotal;
+    checked++; sum += a;
+    groups[a >= 1 ? 0 : a >= 0.5 ? 1 : 2].push(t);
+  }
+  return {
+    checked, unchecked: rows.length - checked, coverage: rows.length ? checked / rows.length : null, avgAdherence: checked ? sum / checked : null,
+    buckets: ADHERENCE_BUCKETS.map((label, i) => ({ label, summary: summarizeResults(groups[i]) })),
+  };
+}
+
+export interface StrategyAdherence { strategy: string; checkedTrades: number; avgAdherence: number }
+export function adherenceByStrategy(rows: readonly (TradeResult & AdherenceInput & { strategy: string | null })[]): StrategyAdherence[] {
+  const by = new Map<string, { n: number; sum: number }>();
+  for (const t of rows) {
+    if (!t.checksTotal || t.checksTotal <= 0 || t.checksDone === null) continue;
+    const k = t.strategy ?? "No strategy";
+    const e = by.get(k) ?? { n: 0, sum: 0 };
+    e.n++; e.sum += t.checksDone / t.checksTotal; by.set(k, e);
+  }
+  return [...by.entries()].map(([strategy, e]) => ({ strategy, checkedTrades: e.n, avgAdherence: e.sum / e.n })).sort((a, b) => b.avgAdherence - a.avgAdherence || a.strategy.localeCompare(b.strategy));
+}
