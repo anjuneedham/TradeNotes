@@ -40,3 +40,6 @@ Register as a data controller with the Jamaican Information Commissioner (see LE
 ## 2026-11-13: lawyer review recorded (owner instruction)
 - `counselReviewed` set to **true** on the owner's statement that a lawyer has reviewed the pages. Every legal page now shows "Reviewed by a lawyer" next to the effective date, the responsibility statement says the documents were reviewed (it no longer says "written without review"), and the partner terms line follows the flag. No review date or lawyer name is stored or shown (not provided).
 - **Check:** the Privacy Policy text added on 2026-11-13 (reviews, playbook, reminder emails, export/delete wording) and any refund/trial wording changed later must also have been seen by the lawyer. If not, send them the diff or set the flag back to false until they have.
+
+## 2026-11-13 (later): no review claim on the site
+- The owner asked for the pages to be live **without** saying they were reviewed. The "Reviewed by a lawyer" badge, the "reviewed" sentence in the responsibility statement and the partner-terms line were removed; the statement now only says Yardscale Digital accepts full responsibility. `counselReviewed` stays true in `legal.ts` as the owner's internal record and is not displayed.

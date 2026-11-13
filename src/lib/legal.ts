@@ -24,10 +24,10 @@ export const LEGAL = {
   /** Payment provider shown to customers. */
   paymentProvider: "Handypay",
   effectiveDate: "11 November 2026",
-  /** True only once a qualified lawyer has reviewed these pages. Set to true on 2026-11-13 on the owner's instruction (the owner states a lawyer has reviewed them). */
+  /** Owner's record that a lawyer has reviewed the pages (set 2026-11-13). Deliberately NOT shown on the site: the owner asked for the pages to be live without any review claim. */
   counselReviewed: true,
-  /** The operator states, in the pages themselves, that it accepts responsibility and whether a lawyer has reviewed the wording. */
-  responsibilityStatement: "Yardscale Digital (App Studio) accepts full responsibility for these documents and for how it handles your data. These documents have been reviewed by a lawyer; that review does not replace our responsibility. If anything here is unclear or you think it is wrong, tell us and we will fix it.",
+  /** The operator states, in the pages themselves, that it accepts responsibility and nothing about outside review (the owner chose not to state it on the site). */
+  responsibilityStatement: "Yardscale Digital (App Studio) accepts full responsibility for these documents and for how it handles your data. If anything here is unclear or you think it is wrong, tell us and we will fix it.",
 } as const;
 
 export const isFilled = (v: string) => v.trim() !== "" && !v.trim().toUpperCase().startsWith("TODO");

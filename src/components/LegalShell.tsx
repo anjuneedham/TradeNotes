@@ -6,7 +6,7 @@ export function LegalShell({ title, children }: { title: string; children: React
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 text-sm leading-relaxed">
       <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-1 text-xs text-muted">Effective {LEGAL.effectiveDate}{LEGAL.counselReviewed && <> · <span data-testid="reviewed-badge" className="font-medium text-fg">✓ Reviewed by a lawyer</span></>}</p>
+      <p className="mt-1 text-xs text-muted">Effective {LEGAL.effectiveDate}</p>
       {!legalComplete() && (
         <p role="alert" className="mt-4 rounded border border-loss/50 bg-loss/10 p-3">
           Some details on this page are not filled in yet ({missing.join(", ")}). Do not publish this page until they are.
