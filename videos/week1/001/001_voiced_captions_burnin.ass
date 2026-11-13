@@ -10,20 +10,20 @@ Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:00.12,0:00:03.81,Cap,,0,0,0,,You win seven out of ten\Ntrades. A {\c&H1EB0F2&}seventy{\c&HFAF7F5&}
-Dialogue: 0,0:00:03.83,0:00:07.88,Cap,,0,0,0,,percent win rate. Your\Naccount is still going
-Dialogue: 0,0:00:07.90,0:00:08.59,Cap,,0,0,0,,{\c&H1EB0F2&}down.{\c&HFAF7F5&}
-Dialogue: 0,0:00:08.86,0:00:12.26,Cap,,0,0,0,,Here's why. Each win\Nmade {\c&H1EB0F2&}thirty{\c&HFAF7F5&} dollars.
-Dialogue: 0,0:00:12.28,0:00:14.74,Cap,,0,0,0,,Seven wins, two hundred\Nand ten.
-Dialogue: 0,0:00:15.01,0:00:18.72,Cap,,0,0,0,,Each loss costs a\N{\c&H1EB0F2&}hundred.{\c&HFAF7F5&} Three losses,
-Dialogue: 0,0:00:18.74,0:00:20.78,Cap,,0,0,0,,minus three {\c&H1EB0F2&}hundred.{\c&HFAF7F5&}
-Dialogue: 0,0:00:21.05,0:00:25.52,Cap,,0,0,0,,Net, minus {\c&H1EB0F2&}ninety{\c&HFAF7F5&}\Ndollars. Win rate
-Dialogue: 0,0:00:25.54,0:00:29.80,Cap,,0,0,0,,doesn't pay you. The\N{\c&H1EB0F2&}size{\c&HFAF7F5&} of your wins and
-Dialogue: 0,0:00:29.82,0:00:31.20,Cap,,0,0,0,,losses does.
-Dialogue: 0,0:00:31.47,0:00:35.49,Cap,,0,0,0,,That's why every trade\Nin my journal gets an {\c&H1EB0F2&}R{\c&HFAF7F5&}
-Dialogue: 0,0:00:35.51,0:00:39.56,Cap,,0,0,0,,number. Your result\Ndivided by what you
-Dialogue: 0,0:00:39.58,0:00:40.28,Cap,,0,0,0,,risked.
-Dialogue: 0,0:00:40.55,0:00:45.55,Cap,,0,0,0,,Each win was plus zero\Npoint three R. Each
-Dialogue: 0,0:00:45.57,0:00:49.51,Cap,,0,0,0,,loss, minus one R.\N{\c&H1EB0F2&}Average{\c&HFAF7F5&} R, minus zero
-Dialogue: 0,0:00:49.53,0:00:51.32,Cap,,0,0,0,,point zero nine R.
-Dialogue: 0,0:00:51.59,0:00:53.83,Cap,,0,0,0,,Check your {\c&H1EB0F2&}average{\c&HFAF7F5&} R.\NNot your win rate.
+Dialogue: 0,0:00:00.23,0:00:03.55,Cap,,0,0,0,,You win seven out of ten\Ntrades. A {\c&H1EB0F2&}seventy{\c&HFAF7F5&}
+Dialogue: 0,0:00:03.57,0:00:07.04,Cap,,0,0,0,,percent win rate. Your\Naccount is still going
+Dialogue: 0,0:00:07.06,0:00:07.68,Cap,,0,0,0,,{\c&H1EB0F2&}down.{\c&HFAF7F5&}
+Dialogue: 0,0:00:07.95,0:00:11.68,Cap,,0,0,0,,Here's why. Each win\Nmade {\c&H1EB0F2&}thirty{\c&HFAF7F5&} dollars.
+Dialogue: 0,0:00:11.70,0:00:14.31,Cap,,0,0,0,,Seven wins, two hundred\Nand ten.
+Dialogue: 0,0:00:14.58,0:00:18.10,Cap,,0,0,0,,Each loss cost a\N{\c&H1EB0F2&}hundred.{\c&HFAF7F5&} Three losses,
+Dialogue: 0,0:00:18.12,0:00:20.18,Cap,,0,0,0,,minus three {\c&H1EB0F2&}hundred.{\c&HFAF7F5&}
+Dialogue: 0,0:00:20.45,0:00:23.51,Cap,,0,0,0,,Net, minus {\c&H1EB0F2&}ninety{\c&HFAF7F5&}\Ndollars. Win rate
+Dialogue: 0,0:00:23.53,0:00:26.93,Cap,,0,0,0,,doesn't pay you. The\N{\c&H1EB0F2&}size{\c&HFAF7F5&} of your wins and
+Dialogue: 0,0:00:26.95,0:00:27.97,Cap,,0,0,0,,losses does.
+Dialogue: 0,0:00:28.24,0:00:31.08,Cap,,0,0,0,,That's why every trade\Nin my journal gets an {\c&H1EB0F2&}R{\c&HFAF7F5&}
+Dialogue: 0,0:00:31.10,0:00:34.51,Cap,,0,0,0,,number. Your result\Ndivided by what you
+Dialogue: 0,0:00:34.53,0:00:35.09,Cap,,0,0,0,,risk.
+Dialogue: 0,0:00:35.26,0:00:41.07,Cap,,0,0,0,,Each win was plus zero\Npoint three R. Each
+Dialogue: 0,0:00:41.09,0:00:45.71,Cap,,0,0,0,,loss, minus one R.\N{\c&H1EB0F2&}Average{\c&HFAF7F5&} R, minus zero
+Dialogue: 0,0:00:45.73,0:00:47.57,Cap,,0,0,0,,point zero nine R.
+Dialogue: 0,0:00:47.84,0:00:50.35,Cap,,0,0,0,,Check your {\c&H1EB0F2&}average{\c&HFAF7F5&} R.\NNot your win rate.
