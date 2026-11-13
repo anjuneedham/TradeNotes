@@ -27,10 +27,12 @@ const built: [string, string][] = [
   ["Equity curve", "Cumulative result trade by trade, with your longest winning and losing streaks."],
   ["Risk in R", "Record a stop and every result is also shown in units of what you planned to risk."],
   ["Mistake and emotion tags", "See what trades tagged “Moved stop” or “FOMO” actually added up to."],
+  ["Filters everywhere", "Narrow the dashboard, analytics and journal by date, account, strategy, instrument, direction, tag and session."],
+  ["Deeper analytics", "Drawdown and recovery, the spread of your results in R, which weekday and hour you trade best, results by time held, and what each mistake cost."],
   ["A review list", "Open trades, your largest loss and your costliest mistake, surfaced on the dashboard."],
   ["Explanations you can switch off", "Every figure links to a plain-English guide. Experienced traders can hide them."],
 ];
-const devList = () => [...(screenshotsLive() ? [] : ["Trade screenshots"]), "Calendar view and weekly reviews", "Backtesting with historical replay"];
+const devList = () => [...(screenshotsLive() ? [] : ["Trade screenshots"]), "Strategy comparison", "Backtesting with historical replay"];
 
 export const metadata = pageMeta({ title: "TradeNotes — Trading Journal & Performance Analytics", description: "A trading journal that shows where your results come from: log trades, tag mistakes, and track win rate, expectancy and drawdown. Free plan, no card.", path: "/" });
 

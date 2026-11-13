@@ -67,5 +67,5 @@ jobs:
       - name: Re-apply (must be idempotent)
         run: node scripts/migrate.mjs
       - run: node scripts/verify-db.mjs
-      - name: DB integration tests (founding seats, affiliate flow)
-        run: npx vitest run src/lib/founding.db.test.ts src/lib/affiliate.db.test.ts
+      - name: DB integration tests (founding seats, affiliate flow, SQL aggregation on 10,000 seeded trades)
+        run: npx vitest run src/lib/founding.db.test.ts src/lib/affiliate.db.test.ts src/lib/aggregate.db.test.ts

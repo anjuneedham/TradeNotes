@@ -15,3 +15,8 @@ Migrations: `0000_reset_old_tradenotes_schema.sql` (one-time, shared project onl
 **Other**: `trades.unique(account_id, fingerprint)` = cross-import dedupe; deleting an `imports` row cascades its trades; deleting a `public."user"` row cascades all of that user's data (erasure).
 **Attribution:** `profiles.signup_source` stores the first `?src=` tag (validated `[a-z0-9-]{1,24}`) set at first sign-in.
 **Backups:** per the Supabase plan of the host project. **Moving hosts:** dump `tradenotes` + `public.tn_*`.
+
+## Phase 2 additions (2026-11-13)
+- `db/paste/12_analytics_indexes.sql`: `trades_user_closed (user_id, closed_at)`. Date filters are written on plain columns because `coalesce(...)` can never use an index under row-level security.
+- `db/paste/13_reviews.sql`: `reviews.period` now allows `month`; template columns, `stats` snapshot, length/shape checks, 2,000 reviews per user.
+- `db/paste/14_playbook.sql`: new tables `playbook_items` and `trade_checks` (**22 tables** now): RLS `own_rows`, no `anon`/`authenticated` grants, owner-check triggers, caps (200 characters, 80 rules per strategy).

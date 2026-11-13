@@ -6,6 +6,8 @@
   --bg: #0d0f11; --panel: #14171a; --raised: #1c2024; --border: #272c32; --border-strong: #3a414a; --field: #5f6975;
   --fg: #e8eaed; --muted: #98a1ac; --accent: #86a4f7; --accent-fg: #0d0f11;
   --win: #45d083; --loss: #f47070; --warn: #e2b34f;
+  /* Colour-blind-safe pair for heatmap and calendar tints (blue = profit, orange = loss); the sign is always written too. */
+  --cb-gain: #7ea6ff; --cb-loss: #f59a4a;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
@@ -13,6 +15,7 @@
     --bg: #f6f5f1; --panel: #ffffff; --raised: #efede7; --border: #dfdcd3; --border-strong: #c4c0b5; --field: #8a857a;
     --fg: #17191c; --muted: #5a626d; --accent: #2c50c4; --accent-fg: #ffffff;
     --win: #14753a; --loss: #bf2b2b; --warn: #8f5a06;
+    --cb-gain: #2f5fd0; --cb-loss: #d4601a;
     color-scheme: light;
   }
 }
@@ -20,6 +23,7 @@
   --bg: #f6f5f1; --panel: #ffffff; --raised: #efede7; --border: #dfdcd3; --border-strong: #c4c0b5; --field: #8a857a;
   --fg: #17191c; --muted: #5a626d; --accent: #2c50c4; --accent-fg: #ffffff;
   --win: #14753a; --loss: #bf2b2b; --warn: #8f5a06;
+  --cb-gain: #2f5fd0; --cb-loss: #d4601a;
   color-scheme: light;
 }
 @theme inline {

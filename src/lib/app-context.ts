@@ -27,6 +27,16 @@ export function resolveScope(accounts: Account[], cookie: string | undefined): S
   return { id: "all", accountIds: null, currency, label: "All accounts", mixed: accounts.some((a) => a.currency !== currency) };
 }
 
+/**
+ * The scope a page uses once the URL filter is considered: `?account=<id>` or `?account=all` overrides the switcher for that
+ * page. An id that is not one of the user's accounts is ignored (the switcher's choice stays), never widened to "all".
+ */
+export function scopeFor(accounts: Account[], switcherScope: Scope, accountFilter: string | null): Scope {
+  if (accountFilter === "all") return accounts.length === 1 ? resolveScope(accounts, accounts[0].id) : resolveScope(accounts, "all");
+  if (accountFilter && accounts.some((a) => a.id === accountFilter)) return resolveScope(accounts, accountFilter);
+  return switcherScope;
+}
+
 /** Validates the session, loads the user's context (under row-level security) and returns a `db` helper bound to that user. */
 export async function getContext({ requireOnboarded = true } = {}) {
   const session = await currentSession();

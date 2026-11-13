@@ -1,3 +1,37 @@
+# Readiness rating: 2026-11-13, after Phase 1 + Phase 2 (PR #3; my own judgement, local verification only, nothing measured in production)
+| Lens | Now | Was | Why |
+|---|---|---|---|
+| **Overall app** | **8.0** | 7.6 | Much deeper product, 260 unit + 174 browser + 72 database checks, CI green; money path and legal are still unproven in production |
+| **Industry-specific** (retail trading journal) | **6.7** | 5.3 | Filters, real analytics, calendar, reviews, playbook, accounts, broker import. Still missing what buyers weigh most: broker auto-sync, demo mode, real-export-verified imports, MAE/MFE. Target of 8.0 is **not** reached |
+| **App-type-specific** (paid B2C subscription app) | **7.9** | 7.9 | Unchanged: nothing here touched payments, legal review, monitoring or backups |
+
+## Scorecard from docs/NEXT_BUILD_BRIEF.md section 2, re-scored with evidence
+| Area (weight) | Was | Now | Target | Evidence and what is missing |
+|---|---|---|---|---|
+| Data capture and import (25%) | 4 | **6** | 8 | 12 broker presets with auto-detect, time zones, futures/options specs, roll-back (Phase 1). Fixtures are synthetic, none verified against a real export; fees are one number; no import validation report beyond the totals check |
+| Analytics depth and filtering (25%) | 5 | **7** | 8 | Filters on 4 views; expectancy, profit factor with warnings, drawdown + recovery, R distribution, weekday x hour heatmap, time held, streaks, mistake cost; 10,000 trades in 0.2 to 0.4 s locally with no row cap. Missing: MAE/MFE, strategy comparison, saved views, timing on real Supabase |
+| Review and journaling workflow (20%) | 4 | **6** | 8 | Calendar, day/week/month reviews with auto-filled stats, playbook + adherence analytics. Missing: reminder emails, goals, free-form daily journal, checklist inside the new-trade form |
+| Visual evidence (10%) | 0 | **4** | 8 | Screenshots built and tested with a fake store; real Supabase Storage untested and off until the owner creates the bucket and env vars |
+| Multiple accounts and organisation (10%) | 3 | **7** | 8 | Switcher, per-account and combined view, limits enforced; no currency conversion in the combined view |
+| Trust, speed, mobile UX (10%) | 7 | **7.5** | 9 | Measured speed, 390px tested, colour-blind-safe tints. No demo mode, no quick-log, no accessibility audit |
+Weighted: about **6.3** on this scale (was about 4.6). The brief's aim (every row at target) is not met; the biggest remaining gaps by weight are capture (real exports), review workflow (reminders, goals) and visual evidence (owner setup).
+
+# What to do next (recommended order)
+**You (owner), before or right after merging**
+1. Merging to `main` may trigger a Vercel production build, and the build runs migrations 12 to 14 on the production Supabase database (additive, idempotent, tested twice locally and in CI, `verify-db` runs after them). Watch that first build; if `verify-db` fails the build fails safely before deploying.
+2. Confirm the **playbook tier** (I put it on Standard and Premium) and whether calendar/reviews stay Standard+.
+3. Create the private `trade-screenshots` bucket and the two Vercel env vars (docs/OWNER_SETUP_STORAGE.md); until then screenshots stay "in development" on pricing.
+4. Still open from before: one real payment and refund, Sentry event check, branch protection on `main`, Production Branch = `main`, lawyer review and Jamaican data-controller registration.
+5. Decide on reminder emails: they need a scheduler that is free (a Vercel cron on your plan is the likely candidate); tell me and I will build them with opt-in, caps and unsubscribe.
+
+**Next build session (Phase 3, in this order)**
+1. Verify imports with 2 or 3 **real** broker exports (you provide anonymised files); that is the biggest credibility gap for the capture score.
+2. Public **demo mode** at `/demo` (static sample journal): the cheapest way to lift conversion.
+3. Strategy comparison (Premium), shareable read-only report links, mobile quick-log.
+4. Small debts: run `scripts/viewport-check.js` and an accessibility pass, include reviews and playbook in the data export, fix the billing e2e founding-price expectation, time the pages against real Supabase, decide MAE/MFE.
+5. Phase 4 memos only (broker sync aggregator, AI weekly summaries): cost, privacy and go/no-go; nothing built without your written approval.
+
+---
 **SEO (2026-11-12):** 6.5/10, up from 4, see `docs/SEO.md`.
 
 # Projection: if the owner-side items below are done (estimate, not measured)
