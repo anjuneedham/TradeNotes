@@ -12,9 +12,9 @@ Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,1
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 0,0:00:00.10,0:00:03.30,Cap,,0,0,0,,Let's journal a {\c&H1EB0F2&}losing{\c&HFAF7F5&}\Ntrade. Properly. This is
 Dialogue: 0,0:00:03.30,0:00:06.90,Cap,,0,0,0,,sample data, but it's\Nthe same steps I use.
-Dialogue: 0,0:00:07.20,0:00:10.40,Cap,,0,0,0,,EURUSD, long, one lot.\NEntry, one point oh
-Dialogue: 0,0:00:10.40,0:00:14.40,Cap,,0,0,0,,eight five oh. Stop, one\Npoint oh eight two oh.
-Dialogue: 0,0:00:14.40,0:00:15.60,Cap,,0,0,0,,That's {\c&H1EB0F2&}thirty{\c&HFAF7F5&} pips,
+Dialogue: 0,0:00:07.20,0:00:10.40,Cap,,0,0,0,,EURUSD, long, one lot.\NEntry, one point zero
+Dialogue: 0,0:00:10.40,0:00:14.00,Cap,,0,0,0,,eight five zero. Stop,\None point zero eight two
+Dialogue: 0,0:00:14.00,0:00:15.60,Cap,,0,0,0,,zero. That's {\c&H1EB0F2&}thirty{\c&HFAF7F5&}\Npips,
 Dialogue: 0,0:00:15.90,0:00:18.70,Cap,,0,0,0,,so I'm risking {\c&H1EB0F2&}three{\c&HFAF7F5&}\Nhundred dollars. Price
 Dialogue: 0,0:00:18.70,0:00:19.90,Cap,,0,0,0,,hit my stop.
 Dialogue: 0,0:00:20.20,0:00:24.20,Cap,,0,0,0,,Did I follow my plan?\N{\c&H1EB0F2&}No.{\c&HFAF7F5&} I entered before my

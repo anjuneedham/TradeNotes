@@ -18,38 +18,42 @@ Sample data here. The
 exit goes from one point
 
 5
-00:00:11,500 --> 00:00:15,900
-oh nine five oh to one
-point oh nine one oh.
+00:00:11,500 --> 00:00:15,500
+zero nine five zero to
+one point zero nine one
 
 6
+00:00:15,500 --> 00:00:15,900
+zero.
+
+7
 00:00:16,200 --> 00:00:18,600
 The result drops from
 nine hundred
 
-7
+8
 00:00:18,600 --> 00:00:20,600
 ninety-three dollars to
 five hundred
 
-8
+9
 00:00:20,600 --> 00:00:21,000
 ninety-three.
 
-9
+10
 00:00:21,300 --> 00:00:25,300
 P and L, R and the
 dashboard all update. No
 
-10
+11
 00:00:25,300 --> 00:00:25,700
 re-entering.
 
-11
+12
 00:00:26,000 --> 00:00:29,600
 An accurate journal is a
 useful journal. Try it
 
-12
+13
 00:00:29,600 --> 00:00:31,200
 free. Link in bio.

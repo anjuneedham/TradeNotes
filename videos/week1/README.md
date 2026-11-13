@@ -28,3 +28,10 @@ MP4s are **not committed** (`.gitignore`); they were delivered to the founder di
 - Package fixes from `docs/content/voiceover/README.md` applied on screen: 001 chips +0.3R/-1R with avg -0.09R; 003 "stop 30 pips"; 005 risk amounts shown; 007 card reads LOSS; 008 end card "Size changes your risk."; 010 Analytics "By session" with Avg R visible; 011 no "this week" range implied; 013 $993 to $593; 014 "The fix: trades you skip".
 - Style: navy #0A0F1A, one amber accent, Inter Display, 0.22 s dip transitions, no zoom, captions max 24 chars x 2 lines, "Not financial advice." on screen throughout, end card of at least 2 s, no music.
 - CTAs on 010 and 013: https://tradenotes.dev/signup returned HTTP 200 ("Create account") on 2026-11-13. A full production sign-up was not tested.
+
+## Founder answers applied (2026-11-13, from the voiceover brief page)
+- 001: line changed to "every trade in a journal needs an R number" (not first person).
+- 003 and 013: prices read as "one point zero eight five zero" style (not "oh").
+- Kept as written: 002 "thirty seconds", 003 "same steps I use", 004 personal rule and tagging, 006 twenty trades and "most beginners", 007, 008.
+- Voice: founder records own voice, one file per video (001.wav etc.), sent in chat. No music. Thumbnails: founder will supply a photo. EURUSD is spoken "euro U-S-D".
+- Open: live sign-up not yet tested, so the 010 and 013 CTAs must not post until it is. The script review (ready / needs changes) on the brief page was left blank; the end-card handle is empty.

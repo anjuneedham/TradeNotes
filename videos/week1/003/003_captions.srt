@@ -11,16 +11,17 @@ the same steps I use.
 3
 00:00:07,200 --> 00:00:10,400
 EURUSD, long, one lot.
-Entry, one point oh
+Entry, one point zero
 
 4
-00:00:10,400 --> 00:00:14,400
-eight five oh. Stop, one
-point oh eight two oh.
+00:00:10,400 --> 00:00:14,000
+eight five zero. Stop,
+one point zero eight two
 
 5
-00:00:14,400 --> 00:00:15,600
-That's thirty pips,
+00:00:14,000 --> 00:00:15,600
+zero. That's thirty
+pips,
 
 6
 00:00:15,900 --> 00:00:18,700
