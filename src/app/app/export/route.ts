@@ -1,14 +1,8 @@
 import { getAuth } from "@/lib/auth";
 import { withUser } from "@/lib/db";
+import { csvCell as cell } from "@/lib/csv-out";
 
 export const dynamic = "force-dynamic";
-
-const cell = (v: unknown): string => {
-  if (v === null || v === undefined) return "";
-  let s = Array.isArray(v) ? v.join("; ") : String(v);
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // neutralise spreadsheet formula injection
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
 
 /** CSV export of the signed-in user's own trades (one row per trade, exits flattened). Row-level security scopes every query. */
 export async function GET(req: Request) {

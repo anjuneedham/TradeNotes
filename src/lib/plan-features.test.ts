@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PLANS } from "./plans";
-import { FEATURES_NOW, FEATURES_DEV, featuresNow, featuresDev, paidAddsText, PLAN_BLURB } from "./plan-features";
+import { FEATURES_NOW, FEATURES_DEV, featuresNow, featuresDev, paidAddsText, premiumAddsText, PLAN_BLURB } from "./plan-features";
 
 const row = (label: string) => FEATURES_NOW.find((f) => f.label === label)!;
 
@@ -19,7 +19,32 @@ describe("plan copy matches what is enforced", () => {
   it("nothing that shipped is still advertised as 'in development'", () => {
     const dev = FEATURES_DEV.map((f) => f.label.toLowerCase()).join(" | ");
     expect(dev).not.toMatch(/calendar|review|playbook|filter/);
-    expect(featuresDev().map((f) => f.label)).toEqual(expect.arrayContaining(["Backtesting with historical replay", "Strategy comparison"]));
+    // Strategy comparison and the manual backtest log shipped in Phase 3; chart replay is not built, not approved (needs paid market data), and not listed at all.
+    expect(featuresDev().map((f) => f.label)).not.toEqual(expect.arrayContaining(["Strategy comparison"]));
+    expect(FEATURES_DEV).toEqual([]);
+  });
+  it("Phase 3 features are listed as available now, with every cell taken from the PLANS flags the server enforces", () => {
+    expect(row("Strategy comparison").cells).toEqual({ free: false, starter: false, pro: true });
+    expect(row("Manual backtest log").cells).toEqual({ free: false, starter: false, pro: true });
+    expect(row("Strategy comparison").cells).toEqual({ free: PLANS.free.comparison, starter: PLANS.starter.comparison, pro: PLANS.pro.comparison });
+    expect(row("Manual backtest log").cells).toEqual({ free: PLANS.free.backtesting, starter: PLANS.starter.backtesting, pro: PLANS.pro.backtesting });
+    expect(row("Share links").cells).toEqual({ free: PLANS.free.shareLinks, starter: PLANS.starter.shareLinks, pro: PLANS.pro.shareLinks });
+    expect(row("Mobile quick-log").cells).toEqual({ free: true, starter: true, pro: true });
+  });
+  it("the backtest row says hypothetical results are separate and that no market data or playback is supplied; screenshots are mentioned only when screenshots are on", () => {
+    const d = row("Manual backtest log").detail!;
+    expect(d).toMatch(/HYPOTHETICAL/); expect(d).toMatch(/apart from your real results/); expect(d).toMatch(/does not supply market data/);
+    const saved = { u: process.env.SUPABASE_URL, k: process.env.SUPABASE_SERVICE_ROLE_KEY };
+    delete process.env.SUPABASE_URL; delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    expect(featuresNow().find((f) => f.label === "Manual backtest log")!.detail).not.toMatch(/screenshot/i);
+    process.env.SUPABASE_URL = "https://x.supabase.co"; process.env.SUPABASE_SERVICE_ROLE_KEY = "k";
+    expect(featuresNow().find((f) => f.label === "Manual backtest log")!.detail).toMatch(/count toward your screenshot storage/);
+    if (saved.u === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = saved.u;
+    if (saved.k === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = saved.k;
+  });
+  it("the Premium blurb and text name what Premium adds", () => {
+    expect(PLAN_BLURB.pro).toMatch(/strategy comparison/i); expect(PLAN_BLURB.pro).toMatch(/backtest log/i);
+    expect(premiumAddsText()).toMatch(/strategy comparison/); expect(premiumAddsText()).toMatch(/backtest log/);
   });
   it("nothing is double-listed as both available and in development", () => {
     const now = new Set(featuresNow().map((f) => f.label));

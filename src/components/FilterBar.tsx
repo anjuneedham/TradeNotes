@@ -14,8 +14,8 @@ const Lbl = ({ label, children }: { label: string; children: ReactNode }) => (
  * `extra` renders page-specific controls inside the same form (e.g. the journal's search box); `keep` carries params the
  * page needs across a filter change (e.g. the calendar's month).
  */
-export function FilterBar({ path, filters, options, switcherLabel, extra, keep = {}, showAccount = true, showDate = true }: {
-  path: string; filters: Filters; options: FilterOptions; switcherLabel: string; extra?: ReactNode; keep?: Record<string, string | undefined>; showAccount?: boolean; showDate?: boolean;
+export function FilterBar({ path, filters, options, switcherLabel, extra, keep = {}, showAccount = true, showDate = true, showStrategy = true, forceOpen = false }: {
+  path: string; filters: Filters; options: FilterOptions; switcherLabel: string; extra?: ReactNode; keep?: Record<string, string | undefined>; showAccount?: boolean; showDate?: boolean; showStrategy?: boolean; forceOpen?: boolean;
 }) {
   const active = activeFilterCount(filters);
   const custom = Boolean(filters.from || filters.to);
@@ -23,7 +23,7 @@ export function FilterBar({ path, filters, options, switcherLabel, extra, keep =
   const symbols = filters.symbol && !options.symbols.includes(filters.symbol) ? [filters.symbol, ...options.symbols] : options.symbols;
   const sessions = filters.session && !(SESSIONS as readonly string[]).includes(filters.session) ? [filters.session, ...SESSIONS] : SESSIONS;
   return (
-    <details className="group rounded-lg border border-border bg-panel" open={active > 0} data-testid="filter-bar">
+    <details className="group rounded-lg border border-border bg-panel" open={active > 0 || forceOpen} data-testid="filter-bar">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">Filters {active > 0 && <Badge tone="accent">{active} active</Badge>}</span>
         <span aria-hidden="true" className="text-muted group-open:rotate-180">▾</span>
@@ -49,12 +49,12 @@ export function FilterBar({ path, filters, options, switcherLabel, extra, keep =
               </select>
             </Lbl>
           )}
-          <Lbl label="Strategy">
+          {showStrategy && (<Lbl label="Strategy">
             <select name="strategy" defaultValue={filters.strategy ?? ""} className={inputCls}>
               <option value="">All strategies</option>
               {strategies.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-          </Lbl>
+          </Lbl>)}
           <Lbl label="Instrument">
             <select name="symbol" defaultValue={filters.symbol ?? ""} className={inputCls}>
               <option value="">All instruments</option>

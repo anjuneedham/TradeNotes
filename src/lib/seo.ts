@@ -6,8 +6,11 @@ export const SITE_NAME = "TradeNotes";
 export const SITE_TAGLINE = "Trading journal & performance analytics";
 
 /** Public, indexable pages. The sitemap and tests read this list; anything not here is not advertised to search engines. */
-export const PUBLIC_PATHS = ["/", "/pricing", "/learn", "/partners", "/legal/terms", "/legal/privacy", "/legal/disclaimer", "/legal/subscription"] as const;
-/** Paths crawlers must not fetch. */
+export const PUBLIC_PATHS = ["/", "/pricing", "/demo", "/demo/analytics", "/learn", "/partners", "/legal/terms", "/legal/privacy", "/legal/disclaimer", "/legal/subscription"] as const;
+/**
+ * Not listed on purpose: /demo/trades/* (single sample trades are thin pages, set to noindex) and /r/<token> (private share links: noindex, nofollow,
+ * noarchive, 404 once revoked or expired; not in robots.txt, so a crawler that finds one can read its noindex instead of guessing).
+ * Paths crawlers must not fetch. */
 export const DISALLOWED_PATHS = ["/app", "/api", "/partners/stats", "/login", "/signup", "/forgot-password", "/reset-password", "/check-email"] as const;
 
 /** Page metadata with a canonical URL, Open Graph and Twitter tags. `index: false` for pages that must stay out of search. */

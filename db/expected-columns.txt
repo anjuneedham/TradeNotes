@@ -212,3 +212,42 @@ tradenotes.trade_checks.trade_id|uuid|NO|||
 tradenotes.trade_checks.user_id|uuid|NO|||
 tradenotes.profiles.review_reminders|boolean|NO|||
 tradenotes.profiles.review_reminder_sent_at|timestamp with time zone|YES|||
+tradenotes.backtest_screenshots.backtest_id|uuid|NO|||
+tradenotes.backtest_screenshots.caption|text|YES|||
+tradenotes.backtest_screenshots.content_type|text|NO|||
+tradenotes.backtest_screenshots.created_at|timestamp with time zone|NO|||
+tradenotes.backtest_screenshots.id|uuid|NO|||
+tradenotes.backtest_screenshots.size_bytes|integer|NO|32|0|
+tradenotes.backtest_screenshots.storage_path|text|NO|||
+tradenotes.backtest_screenshots.user_id|uuid|NO|||
+tradenotes.backtest_trades.asset_class|text|YES|||
+tradenotes.backtest_trades.closed_at|timestamp with time zone|YES|||
+tradenotes.backtest_trades.created_at|timestamp with time zone|NO|||
+tradenotes.backtest_trades.entry_price|numeric|NO|20|8|
+tradenotes.backtest_trades.exits|jsonb|NO|||
+tradenotes.backtest_trades.fees|numeric|NO|18|2|
+tradenotes.backtest_trades.id|uuid|NO|||
+tradenotes.backtest_trades.initial_risk|numeric|YES|18|2|
+tradenotes.backtest_trades.lessons|text|YES|||
+tradenotes.backtest_trades.multiplier|numeric|NO|20|8|
+tradenotes.backtest_trades.opened_at|timestamp with time zone|NO|||
+tradenotes.backtest_trades.post_trade_notes|text|YES|||
+tradenotes.backtest_trades.pre_trade_notes|text|YES|||
+tradenotes.backtest_trades.quantity|numeric|NO|20|8|
+tradenotes.backtest_trades.session|text|YES|||
+tradenotes.backtest_trades.side|text|NO|||
+tradenotes.backtest_trades.stop_price|numeric|YES|20|8|
+tradenotes.backtest_trades.strategy|text|YES|||
+tradenotes.backtest_trades.symbol|text|NO|||
+tradenotes.backtest_trades.target_price|numeric|YES|20|8|
+tradenotes.backtest_trades.timeframe|text|YES|||
+tradenotes.backtest_trades.updated_at|timestamp with time zone|NO|||
+tradenotes.backtest_trades.user_id|uuid|NO|||
+tradenotes.share_links.created_at|timestamp with time zone|NO|||
+tradenotes.share_links.expires_at|timestamp with time zone|NO|||
+tradenotes.share_links.id|uuid|NO|||
+tradenotes.share_links.label|text|YES|||
+tradenotes.share_links.revoked_at|timestamp with time zone|YES|||
+tradenotes.share_links.scope|text|NO|||
+tradenotes.share_links.token_hash|text|NO|||
+tradenotes.share_links.user_id|uuid|NO|||

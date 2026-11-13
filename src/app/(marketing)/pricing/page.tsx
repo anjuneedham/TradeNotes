@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/plans";
-import { PLAN_ORDER, PLAN_BLURB, planHeadline, featuresDev, paidAddsText } from "@/lib/plan-features";
+import { PLAN_ORDER, PLAN_BLURB, planHeadline, featuresDev, paidAddsText, premiumAddsText } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { pageMeta, jsonLd } from "@/lib/seo";
 import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
@@ -11,7 +11,7 @@ export const metadata = pageMeta({ title: "Pricing — TradeNotes", description:
 export const revalidate = 60; // seat count refreshes at most once a minute
 
 const faq = (): [string, string][] => [
-  ["What do I get for paying today?", `${paidAddsText().charAt(0).toUpperCase()}${paidAddsText().slice(1)}. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date.`],
+  ["What do I get for paying today?", `${paidAddsText().charAt(0).toUpperCase()}${paidAddsText().slice(1)}. Premium adds ${premiumAddsText()}. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date.`],
   ["Is there a free trial?", `Yes. Every paid plan (Standard and Premium, monthly or annual) starts with a ${TRIAL_DAYS}-day free trial. You enter your card at checkout and are charged when the trial ends; cancel before then and you pay nothing. The limited founding-member price has no trial. The Free plan needs no card and has no time limit.`],
   ["How does upgrading work?", "You subscribe through Handypay's hosted checkout using the same email as your TradeNotes account. We confirm the payment and switch your plan on by hand, usually within a few hours and within one business day."],
   ["When am I charged?", "When your 14-day free trial ends (the founding-member price is charged when you subscribe), then automatically each month (or each year, if you choose annual and get 2 months free) on the same date until you cancel. Prices are in US dollars; taxes may apply."],
@@ -27,6 +27,7 @@ export default async function Pricing() {
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Start free. Pay when your journal outgrows it.</h1>
         <p className="mt-3 text-muted">Three plans, billed monthly or yearly in US dollars. Pay yearly and get 2 months free. No card needed for Free. Cancel any time.</p>
+        <p className="mt-3 text-sm text-muted">Want to look first? <Link href="/demo" className={linkCls}>Open the demo</Link>: a fictional sample journal with the real dashboard, analytics and trade pages. No account needed.</p>
       </div>
 
       <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -62,7 +63,7 @@ export default async function Pricing() {
       </div>
 
       <p className="mt-5 rounded-md border border-border bg-raised px-4 py-3 text-sm leading-relaxed">
-        <strong className="font-medium">Plain terms:</strong> today the paid plans add {paidAddsText()}. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
+        <strong className="font-medium">Plain terms:</strong> today the paid plans add {paidAddsText()}, and {PLANS.pro.name} also adds {premiumAddsText()}. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
       </p>
       <p className="mt-3 text-sm text-muted">
         <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months (Starter ${foundingPriceCents("starter") / 100}/mo, Pro ${foundingPriceCents("pro") / 100}/mo), applied automatically at checkout, in exchange for honest feedback. After {FOUNDING_OFFER.months} months the normal price applies. {seats === null ? "" : seats > 0 ? `${seats} of ${FOUNDING_OFFER.seats} seats left.` : "All founding seats are taken."}

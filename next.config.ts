@@ -15,7 +15,15 @@ const nextConfig: NextConfig = {
   // CSV import posts the file text through a server action (5 MB cap enforced in the action); default limit is 1 MB.
   experimental: { serverActions: { bodySizeLimit: "6mb" } },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Public share-link reports: never indexed, never cached by a browser or CDN, and the address (which holds the token) is never sent to another site.
+      { source: "/r/:path*", headers: [
+        { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        { key: "Cache-Control", value: "private, no-store, max-age=0" },
+        { key: "Referrer-Policy", value: "no-referrer" },
+      ] },
+    ];
   },
 };
 
