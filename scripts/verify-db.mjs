@@ -71,7 +71,10 @@ try {
   ok("a 6th screenshot on one trade is refused by the database", await errors("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path) values ($1,$2,$3)", [t.id, A, shot(A, t.id)]));
   ok("uploads are counted per user (rate window = 5 after 5 uploads)", (await n("select shot_window_count::int n from tradenotes.profiles where id = $1", [A])) === 5);
   ok("a user cannot reset their own upload counter", await errors("update tradenotes.profiles set shot_window_count = 0 where id = $1", [A]));
-  ok("app_user can read total storage used (aggregate only)", Number((await q("select tradenotes.storage_used_bytes() as b"))[0].b) >= 1040);
+  // On plain Postgres this falls back to our own screenshot rows (>= 1040 here); on Supabase it reads the project's real storage, which can be
+  // empty (0). Either way the call must work for app_user and return a non-negative number.
+  const used = Number((await q("select tradenotes.storage_used_bytes() as b"))[0].b);
+  ok("app_user can read total storage used (aggregate only)", Number.isFinite(used) && used >= 0, String(used));
   await as(B);
   ok("B sees none of A's screenshots", (await n("select count(*)::int n from tradenotes.trade_screenshots")) === 0);
   ok("B cannot attach a screenshot to A's trade", await errors("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path) values ($1,$2,$3)", [t.id, B, shot(B, t.id)]));
