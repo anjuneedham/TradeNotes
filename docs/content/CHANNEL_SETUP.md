@@ -18,7 +18,7 @@ Core line: *A trading journal for newer traders. Free plan. Not financial advice
 
 | Platform | Limit **[VERIFY]** | Bio text | Chars |
 |---|---|---|---|
-| TikTok | 80 (one source says 160; trust what the app shows) | `Trading journal for newer traders. Free plan. Not financial advice.` | 66 |
+| TikTok | 160 (owner confirmed; third-party guides mostly say 80, so trust the counter in the app) | `A trading journal for newer traders. Track R, tag your mistakes, review your week. One idea a day. Free plan, no card. Not financial advice.` | 140 |
 | Instagram | 150 | `A trading journal for newer traders: track R, tag mistakes, review your week.\nFree plan. Not financial advice.` | ~108 |
 | YouTube (channel description, "About") | 1,000 **[VERIFY]**; keep it short | `One idea a day about journaling your trades and fixing repeat mistakes. TradeNotes is a trading journal with a free plan. It does not give trading advice or promise results. Not financial advice.` | ~195 |
 
@@ -80,7 +80,7 @@ Known gaps to tell the owner plainly:
 ## 7. Platform limits to verify (summary)
 | Item | Value found | Source quality |
 |---|---|---|
-| TikTok bio / username / display name | 80 / 24 / 30 chars | Third-party, consistent; one source says bio 160 |
+| TikTok bio / username / display name | 160 (owner) / 24 / 30 chars | Owner says 160; most guides say 80 |
 | TikTok caption | 2,200 (some say 4,000) | Conflicting |
 | Instagram bio / username / display name | 150 / 30 / 30 | Third-party, consistent |
 | Instagram bio links | up to 5 | Two third-party sources |
