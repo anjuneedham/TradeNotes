@@ -1,4 +1,6 @@
 import type { Q } from "./db";
+import { NO_FILTERS, type Filters, type FilterOptions } from "./filters";
+import { tradeWhere } from "./trade-filter-sql";
 import { evaluateTrade, summarize, type Summary, type TradeInput } from "./metrics";
 import { toTradeInputs, type TradeRow, type ExitRow } from "./trade-schema";
 
@@ -15,15 +17,25 @@ export type Ext = TradeInput & { symbol: string; session: string | null; strateg
 
 export const TRADE_LIMIT = 10000;
 
-export async function loadTrades(db: <T>(fn: (q: Q) => Promise<T>) => Promise<T>, accountIds: string[] | null = null): Promise<{ rows: StatRow[]; truncated: boolean }> {
+export async function loadTrades(db: <T>(fn: (q: Q) => Promise<T>) => Promise<T>, accountIds: string[] | null = null, filters: Filters = NO_FILTERS, tz = "UTC", opts: { skipDate?: boolean } = {}): Promise<{ rows: StatRow[]; truncated: boolean }> {
+  const w = tradeWhere(filters, accountIds, tz, opts);
   const all = await db((q) => q<StatRow>(
     `select t.id, t.side, t.quantity, t.entry_price, t.fees, t.multiplier, t.initial_risk, t.currency, t.fx_to_account, t.closed_at, t.opened_at, t.symbol, t.session, t.mistakes, t.emotions, s.name as strategy_name,
        t.account_id, a.currency as account_currency,
        coalesce((select json_agg(json_build_object('trade_id', e.trade_id, 'quantity', e.quantity, 'price', e.price)) from tradenotes.trade_exits e where e.trade_id = t.id), '[]'::json) as exits
      from tradenotes.trades t join tradenotes.accounts a on a.id = t.account_id left join tradenotes.strategies s on s.id = t.strategy_id
-     where ($1::uuid[] is null or t.account_id = any($1)) order by t.opened_at limit ${TRADE_LIMIT + 1}`, [accountIds]));
+     where ${w.sql} order by t.opened_at limit ${TRADE_LIMIT + 1}`, w.params));
   const truncated = all.length > TRADE_LIMIT;
   return { rows: truncated ? all.slice(0, TRADE_LIMIT) : all, truncated };
+}
+
+/** Values for the filter bar's dropdowns (the user's own strategies and instruments; row-level security applies). */
+export async function loadFilterOptions(db: <T>(fn: (q: Q) => Promise<T>) => Promise<T>, accounts: { id: string; name: string }[]): Promise<FilterOptions> {
+  const { strategies, symbols } = await db(async (q) => ({
+    strategies: await q<{ name: string }>("select name from tradenotes.strategies order by lower(name) limit 200"),
+    symbols: await q<{ symbol: string }>("select distinct symbol from tradenotes.trades order by symbol limit 300"),
+  }));
+  return { accounts: accounts.map((a) => ({ id: a.id, name: a.name })), strategies: strategies.map((r) => r.name), symbols: symbols.map((r) => r.symbol) };
 }
 
 /**
@@ -39,20 +51,6 @@ export function toExt(rows: StatRow[], displayCurrency: string): Ext[] {
   return inputs.map((t, i) => ({ ...t, symbol: rows[i].symbol, session: rows[i].session, strategy: rows[i].strategy_name, openedAt: rows[i].opened_at, mistakes: rows[i].mistakes ?? [], emotions: rows[i].emotions ?? [] }));
 }
 
-export const RANGES = [
-  { value: "all", label: "All time" },
-  { value: "ytd", label: "This year" },
-  { value: "90d", label: "90 days" },
-  { value: "30d", label: "30 days" },
-] as const;
-export type RangeId = (typeof RANGES)[number]["value"];
-export const parseRange = (v: string | undefined): RangeId => (RANGES.some((r) => r.value === v) ? (v as RangeId) : "all");
-
-export function rangeStart(range: RangeId, now = new Date()): Date | null {
-  if (range === "all") return null;
-  if (range === "ytd") return new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
-  return new Date(now.getTime() - (range === "90d" ? 90 : 30) * 86400000);
-}
 /** Keep trades closed on/after `start`. Trades with no close time are kept so they are still disclosed as open. */
 export function inRange<T extends TradeInput>(trades: T[], start: Date | null, end?: Date): T[] {
   if (!start && !end) return trades;

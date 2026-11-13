@@ -8,6 +8,11 @@ export const signedR = (n: number | null) => (n === null ? "—" : `${n > 0 ? "+
 export const pnlClass = (n: number | null) => (n === null || n === 0 ? "" : n > 0 ? "text-win" : "text-loss");
 /** Trade times are stored and shown in UTC (see KNOWN_ISSUES #1). */
 export const dateTime = (iso: string) => new Date(iso).toISOString().slice(0, 16).replace("T", " ");
+/** Date and time in a given IANA zone as "YYYY-MM-DD HH:MM" (falls back to UTC for an invalid zone). */
+export const dateTimeIn = (iso: string, tz: string) => {
+  try { return new Intl.DateTimeFormat("sv-SE", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(iso)); }
+  catch { return dateTime(iso); }
+};
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 export const shortDate = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 /** Trim trailing zeros from DB numerics for display (1.08500000 -> 1.085). */

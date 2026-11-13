@@ -101,7 +101,7 @@ async function logTrade(page, o) {
   check('analytics: mistake-tag breakdown shows the tagged trade', an.includes('By mistake tag') && an.includes('Moved stop'));
   check('analytics: by instrument present', an.includes('By instrument') && an.includes('EURUSD'));
   await A.goto(BASE + '/app?range=30d');
-  check('dashboard: date range keeps valid totals or says none', /\$293\.00|No closed trades in this period/.test(await A.locator('body').innerText()));
+  check('dashboard: date range keeps valid totals or says none', /\$293\.00|No closed trades match these filters/.test(await A.locator('body').innerText()));
   await A.goto(BASE + '/app/journal?status=open');
   const openRows = await A.locator('tbody').innerText();
   check('journal: status=open shows only the open trade', openRows.includes('GBPUSD') && !openRows.includes('EURUSD'), openRows);
@@ -248,6 +248,7 @@ async function logTrade(page, o) {
   check('no browser JS errors', errors.length === 0, errors.join(' | '));
 
   await phase1(browser, stamp);
+  await phase2(browser, stamp);
 
   await browser.close();
   const failed = results.filter(r => !r[1]).length;
@@ -397,3 +398,99 @@ async function phase1(browser, stamp) {
   await c.end();
 }
 
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Phase 2 (analytics and review). Trades are seeded straight into the database (owner connection) so the expected numbers are exact.
+//   1 EURUSD long  London breakout  1.1000 -> 1.1100 x1 lot (x100000)           net +1,000.00  risk 500   closed 2026-10-05 10:00Z
+//   2 EURUSD short London breakout  1.1000 -> 1.1050 x1 lot, tag Moved stop      net   -500.00             closed 2026-10-12 14:00Z
+//   3 GBPUSD long  Range fade       1.3000 -> 1.3030 x2 lots, fees 10           net   +590.00             closed 2026-11-03 09:30Z
+//   4 ES (future)  long, session New York  5000 -> 5002 x1 (x50)                net   +100.00             closed 2026-11-04 15:00Z
+//   5 USDJPY open (no exit)
+// All closed together: net 1,190.00 over 4 trades.
+async function seed(email, rows) {
+  const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
+  const u = (await c.query('select id from public.tn_user where email = $1', [email])).rows[0].id;
+  await c.query('select 1');
+  const acct = (await c.query('select id from tradenotes.accounts where user_id = $1 order by created_at limit 1', [u])).rows[0].id;
+  for (const r of rows) {
+    let sid = null;
+    if (r.strategy) sid = (await c.query('insert into tradenotes.strategies (user_id, name) values ($1, $2) on conflict (user_id, name) do update set name = excluded.name returning id', [u, r.strategy])).rows[0].id;
+    const t = (await c.query(`insert into tradenotes.trades (user_id, account_id, strategy_id, symbol, asset_class, side, quantity, entry_price, multiplier, fees, initial_risk, opened_at, closed_at, session, mistakes, emotions)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) returning id`,
+      [u, acct, sid, r.symbol, r.asset || 'forex', r.side, r.qty, r.entry, r.mult ?? 1, r.fees ?? 0, r.risk ?? null, r.open, r.close ?? null, r.session ?? null, r.mistakes ?? [], r.emotions ?? []])).rows[0].id;
+    if (r.exit) await c.query('insert into tradenotes.trade_exits (trade_id, user_id, quantity, price, exited_at) values ($1,$2,$3,$4,$5)', [t, u, r.exitQty ?? r.qty, r.exit, r.close]);
+  }
+  await c.end();
+  return { user: u, account: acct };
+}
+const P2_TRADES = [
+  { symbol: 'EURUSD', side: 'long', qty: 1, entry: 1.1, exit: 1.11, mult: 100000, risk: 500, strategy: 'London breakout', open: '2026-10-05T08:00:00Z', close: '2026-10-05T10:00:00Z' },
+  { symbol: 'EURUSD', side: 'short', qty: 1, entry: 1.1, exit: 1.105, mult: 100000, strategy: 'London breakout', mistakes: ['Moved stop'], open: '2026-10-12T12:00:00Z', close: '2026-10-12T14:00:00Z' },
+  { symbol: 'GBPUSD', side: 'long', qty: 2, entry: 1.3, exit: 1.303, mult: 100000, fees: 10, strategy: 'Range fade', open: '2026-11-03T08:00:00Z', close: '2026-11-03T09:30:00Z' },
+  { symbol: 'ES', asset: 'future', side: 'long', qty: 1, entry: 5000, exit: 5002, mult: 50, session: 'New York', open: '2026-11-04T14:00:00Z', close: '2026-11-04T15:00:00Z' },
+  { symbol: 'USDJPY', side: 'long', qty: 1, entry: 150, open: '2026-11-05T08:00:00Z' },
+];
+const bodyOf = async (page) => page.locator('body').innerText();
+async function applyBar(page, fields) {
+  const bar = page.locator('[data-testid=filter-bar]');
+  if (!(await bar.evaluate((e) => e.open))) await bar.locator('summary').click();
+  for (const [name, value] of Object.entries(fields)) await page.locator(`[data-testid=filter-bar] select[name=${name}]`).selectOption(value);
+  await page.getByRole('button', { name: 'Apply filters' }).click();
+  await page.waitForLoadState('networkidle');
+}
+async function phase2(browser, stamp) {
+  if (!process.env.DATABASE_URL) { check('phase 2 e2e needs DATABASE_URL (skipped)', false); return; }
+  const std = await newUser(browser, `s2${stamp}@e2e.test`);
+  const other = await newUser(browser, `o2${stamp}@e2e.test`);
+  await setPlan(`s2${stamp}@e2e.test`, 'starter');
+  const seeded = await seed(`s2${stamp}@e2e.test`, P2_TRADES);
+
+  // ---- 1. filter bar
+  await std.goto(BASE + '/app');
+  let t = await bodyOf(std);
+  check('P2 filters: unfiltered dashboard = net $1,190.00 over 4 closed trades', t.includes('$1,190.00') && /4 closed trades/.test(t), t.slice(0, 300));
+  await std.goto(BASE + '/app?strategy=London+breakout');
+  t = await bodyOf(std);
+  check('P2 filters (URL): strategy London breakout -> net $500.00, 2 closed trades', t.includes('+$500.00') && /2 closed trades/.test(t), t.slice(0, 300));
+  await std.goto(BASE + '/app');
+  await applyBar(std, { strategy: 'London breakout' });
+  check('P2 filters (bar): choosing a strategy puts it in the URL and changes the totals', std.url().includes('strategy=London') && (await bodyOf(std)).includes('+$500.00'));
+  await applyBar(std, { side: 'long' });
+  t = await bodyOf(std);
+  check('P2 filters (bar): strategy + long -> net $1,000.00, 1 closed trade (two filters change the totals)', t.includes('+$1,000.00') && /1 closed trade,/.test(t) && std.url().includes('side=long'), t.slice(0, 300));
+  check('P2 filters: active-filter badge shows 2 active', /2 active/i.test(await std.locator('[data-testid=filter-bar] summary').innerText()));
+  await std.goto(BASE + '/app/analytics?strategy=London+breakout&side=long');
+  t = await bodyOf(std);
+  check('P2 filters: analytics honours the same filters (+$1,000.00, 1 closed trade)', t.includes('+$1,000.00') && /Closed trades\s*1\b/.test(t), t.slice(0, 300));
+  await std.goto(BASE + '/app/journal?strategy=London+breakout&side=long');
+  t = await bodyOf(std);
+  const rowsText = await std.locator('tbody').innerText();
+  check('P2 filters: journal honours the same filters (1 trade, EURUSD only)', /1 trade matches your filters/.test(t) && rowsText.includes('EURUSD') && !rowsText.includes('GBPUSD'), rowsText.slice(0, 300));
+  await std.goto(BASE + '/app/journal?tag=Moved+stop');
+  t = await bodyOf(std);
+  check('P2 filters: tag filter finds the one tagged trade', /1 trade matches your filters/.test(t), t.slice(0, 200));
+  await std.goto(BASE + '/app?from=2026-11-01&to=2026-11-30');
+  t = await bodyOf(std);
+  check('P2 filters: custom dates (Nov 2026) -> GBPUSD + ES = +$690.00, 2 closed trades', t.includes('+$690.00') && /2 closed trades/.test(t), t.slice(0, 300));
+  await std.goto(BASE + '/app?symbol=EURUSD&side=short');
+  check('P2 filters: instrument + direction -> -$500.00', (await bodyOf(std)).includes('-$500.00'));
+  await std.goto(BASE + '/app?symbol=NOPE');
+  t = await bodyOf(std);
+  check('P2 filters: nothing matches -> clear message and a reset link, not the welcome screen', t.includes('No closed trades match these filters') && !t.includes('Start in 3 steps'));
+  const rg = await std.goto(BASE + '/app?side=sideways&from=banana&to=2026-02-30&account=zzz&range=forever&tag=%3Cscript%3E&strategy=' + 'x'.repeat(200));
+  t = await bodyOf(std);
+  check('P2 filters: garbage values are ignored (page renders, totals unchanged)', rg.status() === 200 && t.includes('$1,190.00'), String(rg.status()));
+  await std.goto(BASE + '/app?side=short&side=long');
+  check('P2 filters: repeated single-valued param takes the first valid value (short -> -$500.00)', (await bodyOf(std)).includes('-$500.00'));
+
+  // ---- user isolation through the filter parameters (guessing ids / names)
+  const guessed = await other.goto(BASE + `/app/journal?account=${seeded.account}&strategy=London+breakout&symbol=EURUSD`);
+  t = await bodyOf(other);
+  check('P2 isolation: B passing A\'s account id, strategy and symbol sees nothing (and the id is ignored, not widened)', guessed.status() === 200 && t.includes('No trades match those filters') && (await other.locator('tbody').count()) === 0, t.slice(0, 300));
+  await other.goto(BASE + `/app?account=${seeded.account}`);
+  t = await bodyOf(other);
+  check('P2 isolation: B dashboard with A\'s account id shows the empty welcome, no numbers', t.includes('Start in 3 steps') && !t.includes('$1,190.00'));
+  await other.goto(BASE + '/app/analytics?account=all');
+  check('P2 isolation: B analytics with account=all has no A data', !(await bodyOf(other)).includes('$1,190.00'));
+  await std.context().close(); await other.context().close();
+}

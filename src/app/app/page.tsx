@@ -1,25 +1,36 @@
 import Link from "next/link";
-import { getContext } from "@/lib/app-context";
+import { getContext, scopeFor } from "@/lib/app-context";
+import { parseFilters, withKnownAccount, activeFilterCount, dateLabel, filterHref, NO_FILTERS } from "@/lib/filters";
+import { FilterBar } from "@/components/FilterBar";
 import { summarize, groupSummary, evaluateTrade } from "@/lib/metrics";
-import { loadTrades, toExt, inRange, rangeStart, parseRange, RANGES, tagSummary, worstTrade, type StatRow } from "@/lib/trades-data";
+import { loadTrades, loadFilterOptions, toExt, inRange, tagSummary, worstTrade, type StatRow } from "@/lib/trades-data";
 import { money, signedMoney, signedR, pct, num, pnlClass, shortDate } from "@/lib/format";
-import { Card, Notice, Badge, PageHeader, Segmented, btnCls, linkCls } from "@/components/ui";
+import { Card, Notice, Badge, PageHeader, btnCls, linkCls } from "@/components/ui";
 import { Stat, Breakdown } from "@/components/stats";
 import EquityCurve from "@/components/EquityCurve";
 
 export const metadata = { title: "Dashboard — TradeNotes" };
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const { db, profile, scope } = await getContext();
-  const range = parseRange((await searchParams).range);
+export default async function Dashboard({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const ctx = await getContext();
+  const { db, profile, tz } = ctx;
+  const f = withKnownAccount(parseFilters(await searchParams), ctx.accounts.map((a) => a.id));
+  const scope = scopeFor(ctx.accounts, ctx.scope, f.account);
+  const filtered = activeFilterCount(f) > 0;
   const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
 
-  let rows: StatRow[] = [], truncated = false;
-  try { ({ rows, truncated } = await loadTrades(db, scope.accountIds)); }
+  let rows: StatRow[] = [], truncated = false, options;
+  let windowRows: StatRow[] = [];
+  try {
+    [{ rows, truncated }, options] = await Promise.all([loadTrades(db, scope.accountIds, f, tz), loadFilterOptions(db, ctx.accounts)]);
+    // "What changed" compares the last 30 days with the 30 before, whatever date filter is chosen (other filters still apply).
+    windowRows = (f.range === "all" && !f.from && !f.to) ? rows : (await loadTrades(db, scope.accountIds, f, tz, { skipDate: true })).rows;
+  }
   catch (e) { console.error("dashboard load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
+  const bar = <FilterBar path="/app" filters={f} options={options!} switcherLabel={ctx.scope.label} />;
 
-  if (rows.length === 0) {
+  if (rows.length === 0 && !filtered) {
     return (
       <div className="mx-auto max-w-3xl space-y-5">
         <PageHeader title={`Welcome${profile?.experience_level === "beginner" ? " — let’s get started" : ""}`} sub="Your dashboard fills in as you log trades." />
@@ -47,8 +58,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     );
   }
 
-  const all = toExt(rows, cur);
-  const ext = inRange(all, rangeStart(range));
+  const all = toExt(windowRows, cur);
+  const ext = toExt(rows, cur);
   const s = summarize(ext);
   const excludedN = s.excluded.open_or_partial.length + s.excluded.missing_fx.length + s.excluded.invalid.length;
 
@@ -63,14 +74,12 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const costliest = mistakes[0] && mistakes[0][1].netPnl < 0 ? mistakes[0] : null;
   const worst = worstTrade(ext);
   const reviewCount = (s.excluded.open_or_partial.length ? 1 : 0) + (s.excluded.missing_fx.length ? 1 : 0) + (noStop ? 1 : 0) + (costliest ? 1 : 0) + (worst ? 1 : 0);
-  const latest = [...all].sort((a, b) => (a.openedAt < b.openedAt ? 1 : -1)).slice(0, 5);
-  const rangeLabel = RANGES.find((r) => r.value === range)!.label.toLowerCase();
+  const latest = [...ext].sort((a, b) => (a.openedAt < b.openedAt ? 1 : -1)).slice(0, 5);
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Dashboard" sub={<>{scope.label} · {cur} · {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}, {rangeLabel}</>}>
-        <Segmented label="Date range" value={range} options={RANGES.map((r) => ({ ...r, href: r.value === "all" ? "/app" : `/app?range=${r.value}` }))} />
-      </PageHeader>
+      <PageHeader title="Dashboard" sub={<>{scope.label} · {cur} · {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}, {dateLabel(f)}</>} />
+      {bar}
 
       {truncated && <Notice kind="error">You have more than 10,000 trades. Statistics below use only the oldest 10,000 and are incomplete.</Notice>}
       {excludedN > 0 && (
@@ -82,7 +91,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       )}
 
       {s.tradeCount === 0 ? (
-        <Card><p className="text-sm text-muted">{range === "all" ? "Statistics appear once you have at least one closed trade." : <>No closed trades in this period. <Link href="/app" className={linkCls}>Show all time</Link></>}</p></Card>
+        <Card><p className="text-sm text-muted">{!filtered ? "Statistics appear once you have at least one closed trade." : <>No closed trades match these filters. <Link href={filterHref("/app", NO_FILTERS)} className={linkCls}>Reset filters</Link></>}</p></Card>
       ) : (<>
         {s.smallSample && (
           <Notice kind="warn">Based on {s.tradeCount} closed trade{s.tradeCount === 1 ? "" : "s"}. Under 30 trades, results are mostly luck — don&apos;t draw conclusions yet. <Link href="/learn#sample-size" className="underline underline-offset-2">Why?</Link></Notice>
@@ -177,7 +186,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               <h2 className="text-sm font-medium">Go deeper</h2>
               <p className="mt-1 text-sm text-muted">Compare results by instrument, session, direction, weekday, mistake and emotion.</p>
             </div>
-            <Link href={range === "all" ? "/app/analytics" : `/app/analytics?range=${range}`} className={`${linkCls} text-sm`}>Open analytics →</Link>
+            <Link href={filterHref("/app/analytics", f)} className={`${linkCls} text-sm`}>Open analytics →</Link>
           </Card>
         </div>
         <p className="text-xs text-muted">* fewer than 30 trades in the group. Statistics describe your recorded past trades only and are not a prediction.</p>

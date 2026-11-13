@@ -1,40 +1,44 @@
 import Link from "next/link";
-import { getContext } from "@/lib/app-context";
+import { getContext, scopeFor } from "@/lib/app-context";
+import { parseFilters, withKnownAccount, activeFilterCount, filterHref, NO_FILTERS } from "@/lib/filters";
+import { FilterBar } from "@/components/FilterBar";
 import { summarize, groupSummary } from "@/lib/metrics";
-import { loadTrades, toExt, inRange, rangeStart, parseRange, RANGES, tagSummary, type StatRow } from "@/lib/trades-data";
+import { loadTrades, loadFilterOptions, toExt, tagSummary, type StatRow } from "@/lib/trades-data";
 import { signedMoney, pct, num, pnlClass } from "@/lib/format";
 import { localDayHour } from "@/lib/timezone";
-import { Notice, PageHeader, Segmented, EmptyState, btnCls, linkCls } from "@/components/ui";
+import { Notice, PageHeader, EmptyState, btnCls, linkCls } from "@/components/ui";
 import { Stat, Breakdown } from "@/components/stats";
 
 export const metadata = { title: "Analytics — TradeNotes" };
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export default async function Analytics({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const { db, profile, scope, tz } = await getContext();
-  const range = parseRange((await searchParams).range);
+export default async function Analytics({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const ctx = await getContext();
+  const { db, profile, tz } = ctx;
+  const f = withKnownAccount(parseFilters(await searchParams), ctx.accounts.map((a) => a.id));
+  const scope = scopeFor(ctx.accounts, ctx.scope, f.account);
+  const filtered = activeFilterCount(f) > 0;
   const cur = scope.currency;
   const showHelp = profile?.show_explanations ?? true;
 
-  let rows: StatRow[] = [], truncated = false;
-  try { ({ rows, truncated } = await loadTrades(db, scope.accountIds)); }
+  let rows: StatRow[] = [], truncated = false, options;
+  try { [{ rows, truncated }, options] = await Promise.all([loadTrades(db, scope.accountIds, f, tz), loadFilterOptions(db, ctx.accounts)]); }
   catch (e) { console.error("analytics load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
 
-  const ext = inRange(toExt(rows, cur), rangeStart(range));
+  const ext = toExt(rows, cur);
   const s = summarize(ext);
-  const header = (
-    <PageHeader title="Analytics" sub="Where your results come from. Every table uses closed trades only.">
-      <Segmented label="Date range" value={range} options={RANGES.map((r) => ({ ...r, href: r.value === "all" ? "/app/analytics" : `/app/analytics?range=${r.value}` }))} />
-    </PageHeader>
-  );
+  const header = (<>
+    <PageHeader title="Analytics" sub="Where your results come from. Every table uses closed trades only." />
+    <FilterBar path="/app/analytics" filters={f} options={options!} switcherLabel={ctx.scope.label} />
+  </>);
 
   if (s.tradeCount === 0) {
     return (
       <div className="space-y-5">
         {header}
-        <EmptyState title={rows.length === 0 ? "No trades yet" : range === "all" ? "No closed trades yet" : "No closed trades in this period"}
-          action={rows.length === 0 ? <Link href="/app/journal/new" className={btnCls}>Log your first trade</Link> : range !== "all" ? <Link href="/app/analytics" className={linkCls}>Show all time</Link> : undefined}>
+        <EmptyState title={rows.length === 0 && !filtered ? "No trades yet" : filtered ? "No closed trades match these filters" : "No closed trades yet"}
+          action={rows.length === 0 && !filtered ? <Link href="/app/journal/new" className={btnCls}>Log your first trade</Link> : filtered ? <Link href={filterHref("/app/analytics", NO_FILTERS)} className={linkCls}>Reset filters</Link> : undefined}>
           Breakdowns appear once at least one trade is fully closed.
         </EmptyState>
       </div>

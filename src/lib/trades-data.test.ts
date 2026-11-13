@@ -1,18 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { inRange, parseRange, rangeStart, tagSummary, worstTrade } from "./trades-data";
+import { inRange, tagSummary, worstTrade } from "./trades-data";
 import type { TradeInput } from "./metrics";
 
 const t = (id: string, exit: number, closedAt: string | null, extra: Partial<TradeInput> = {}): TradeInput & { tags: string[] } =>
   ({ id, side: "long", quantity: 1, entryPrice: 100, exits: closedAt ? [{ quantity: 1, price: exit }] : [], fees: 0, closedAt, tags: [], ...extra });
 
-describe("range helpers", () => {
-  it("parses unknown ranges as all", () => { expect(parseRange("nope")).toBe("all"); expect(parseRange("30d")).toBe("30d"); });
-  it("computes range starts in UTC", () => {
-    const now = new Date("2026-11-11T12:00:00Z");
-    expect(rangeStart("all", now)).toBeNull();
-    expect(rangeStart("ytd", now)!.toISOString()).toBe("2026-01-01T00:00:00.000Z");
-    expect(rangeStart("30d", now)!.toISOString()).toBe("2026-10-12T12:00:00.000Z");
-  });
+describe("inRange", () => {
   it("keeps open trades and trades closed inside the window", () => {
     const ts = [t("old", 110, "2026-01-01T00:00:00Z"), t("new", 110, "2026-11-01T00:00:00Z"), t("open", 0, null)];
     expect(inRange(ts, new Date("2026-10-01T00:00:00Z")).map((x) => x.id)).toEqual(["new", "open"]);
