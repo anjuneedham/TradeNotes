@@ -10,7 +10,7 @@ Run 2026-11-13 on commit after `777a3ff` (merged with `main` @ 1aee3cb). All run
 | `scripts/test-paste.sh` | PASS | 40 isolation checks; second run of every file succeeds |
 | `verify-db.mjs` | PASS | 53 passed, 0 failed (was 43; +10 cover screenshots, upload counters, time zone) |
 | `next build` + smoke test | PASS | local and CI; all public routes 200 incl. new SEO routes |
-| GitHub CI run 43339934841 | PASS | both jobs green. CI had been failing on every run since June-era commit 29e8aaa because `ci.yml` was invalid YAML; fixed in this PR |
+| GitHub CI run 43339934841 | PASS | both jobs green. CI had failed on every `main` run I could inspect (runs 6 to 36) because `ci.yml` was invalid YAML; fixed in this PR |
 | Browser e2e `scripts/e2e.js` | PASS 86/86 | 30 original + new Phase 1 flows (below) |
 | Money-path e2e `scripts/e2e-billing.js` | 42/43, same as `main` | The one failure ("checkout $12/month") also fails on unmodified `main` with a fresh DB: the founding offer (10 seats, $6) is active, so the test sees $6. Not caused by this PR. Needs the test or seed fixed by whoever owns the founding offer |
 

@@ -17,7 +17,7 @@ Note: the session branch was created from an older commit (1458f71) that lacks t
 
 ### 2026-11-13: Phase 1
 - Built all four parts; code review (10 findings) and security review done; see docs/QA_RESULTS_2026-11-13.md for evidence and the honest gap list.
-- CI had failed on every run since commit 29e8aaa: `.github/workflows/ci.yml` had `${{ }}` inside an unquoted flow mapping (invalid YAML, so GitHub started no jobs). Fixed in PR #1; first green run 43339934841.
+- CI had failed on every `main` run I could inspect (runs 6 to 36): `.github/workflows/ci.yml` had `${{ }}` inside an unquoted flow mapping (invalid YAML, so GitHub started no jobs). Fixed in PR #1; first green run 43339934841.
 - Found while testing: `e2e-billing.js` has one failing check on unmodified `main` too (founding price $6 shown where the test expects $12 on a fresh DB). Not fixed here; belongs to the founding-offer owner.
 - Merged `main` (SEO work) into the branch; one import conflict in the landing page.
 - Next: owner merges PR #1 (after reviewing legal text), then Phase 2 on a new branch from `main`.
