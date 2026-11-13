@@ -548,6 +548,67 @@ async function phase2(browser, stamp) {
   t = await bodyOf(other);
   check('P2 isolation: B calendar (even with A\'s account id) shows no A trades', /Net P&L\s*·?\s*0|Closed trades\s*0/.test(t) && !t.includes('$690.00') && !t.includes('$590.00'), t.slice(0, 300));
 
+  // ---- 5. reviews (week of Mon 2026-11-02: GBPUSD +590 and ES +100 = +$690.00; October: +1,000 and -500 with a Moved stop tag)
+  await std.goto(BASE + '/app/reviews');
+  check('P2 reviews (Standard): start-a-review shortcuts shown, history empty', (await bodyOf(std)).includes('Start a review') && (await bodyOf(std)).includes('No reviews yet'));
+  const odd = await std.goto(BASE + '/app/reviews/week/2026-11-04');
+  check('P2 reviews: a mid-week date is redirected to that week\'s Monday', std.url().endsWith('/app/reviews/week/2026-11-02') && odd.status() === 200, std.url());
+  t = await bodyOf(std);
+  check('P2 reviews: auto-filled stats for the week (+$690.00, 2 trades, 2W / 0L, win rate 100.0%)', t.includes('▲ +$690.00') && t.includes('2 (2W / 0L)') && t.includes('100.0%'), t.slice(0, 600));
+  check('P2 reviews: the five template boxes are there', ['What worked', 'What to repeat', 'Mistakes', 'Rule breaks', 'Next plan'].every((x) => t.includes(x)));
+  await std.getByRole('button', { name: 'Save review' }).click();
+  check('P2 reviews: saving an empty review is refused with a message', await std.getByText('Write something in at least one box before saving.').first().waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await std.getByLabel('What worked').fill('Waited for the retest on GBPUSD.');
+  await std.getByLabel('Rule breaks').fill('None this week.');
+  await std.getByLabel('Next plan').fill('Keep size at 1 lot.');
+  await std.getByRole('button', { name: 'Save review' }).click();
+  await std.waitForURL('**/app/reviews?saved=1');
+  t = await bodyOf(std);
+  check('P2 reviews: saved, shows in history with its date range, snapshot figure and first answer', t.includes('Review saved.') && t.includes('Week of Nov 2 – 8, 2026') && t.includes('+$690.00') && t.includes('Waited for the retest'), t.slice(0, 500));
+  await std.goto(BASE + '/app/reviews/week/2026-11-02');
+  check('P2 reviews: reopening pre-fills what was written', (await std.getByLabel('What worked').inputValue()) === 'Waited for the retest on GBPUSD.');
+  await std.getByLabel('Next plan').fill('Keep size at 1 lot. Review stops on Friday.');
+  await std.getByRole('button', { name: 'Save review' }).click();
+  await std.waitForURL('**/app/reviews?saved=1');
+  check('P2 reviews: editing updates the same review (still one entry for the week)', (await std.locator('section[aria-label="Review history"] li').count()) === 1);
+  await std.goto(BASE + '/app/reviews/month/2026-10');
+  t = await bodyOf(std);
+  check('P2 reviews: monthly review for October: +$500.00, costliest mistake Moved stop', t.includes('▲ +$500.00') && /Moved stop \(-\$500\.00, 1\)/.test(t), t.slice(0, 600));
+  check('P2 reviews: garbage periods and dates are 404', (await std.goto(BASE + '/app/reviews/year/2026-01-01')).status() === 404 && (await std.goto(BASE + '/app/reviews/week/banana')).status() === 404 && (await std.goto(BASE + '/app/reviews/day/2026-02-30')).status() === 404);
+  // downgrade while a form is open: the server must still refuse the write
+  await std.goto(BASE + '/app/reviews/day/2026-11-03');
+  await std.getByLabel('What worked').fill('Written after the plan lapsed.');
+  await setPlan(`s2${stamp}@e2e.test`, 'free');
+  await std.getByRole('button', { name: 'Save review' }).click();
+  check('P2 reviews (server gate): saving after the plan lapsed is refused', await std.getByText(/Reviews are part of Standard and Premium/).waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await std.goto(BASE + '/app/reviews');
+  t = await bodyOf(std);
+  check('P2 reviews (downgraded to Free): existing review stays readable; writing is blocked', t.includes('Week of Nov 2 – 8, 2026') && t.includes('Writing reviews is part of Standard and Premium') && !t.includes('Start a review'), t.slice(0, 400));
+  await std.goto(BASE + '/app/reviews/week/2026-11-02');
+  t = await bodyOf(std);
+  check('P2 reviews (Free): saved review readable, no editing form', t.includes('Waited for the retest') && (await std.locator('textarea').count()) === 0);
+  await std.goto(BASE + '/app/reviews/week/2026-11-09');
+  check('P2 reviews (Free, no review): upgrade notice only', (await bodyOf(std)).includes('The reviews page is part of Standard and Premium') && (await std.locator('textarea').count()) === 0);
+  await free2.goto(BASE + '/app/reviews');
+  check('P2 reviews (Free, never paid): upgrade notice, no form, no history', (await bodyOf(free2)).includes('The reviews page is part of Standard and Premium') && (await free2.locator('textarea').count()) === 0);
+  await free2.goto(BASE + '/app/reviews/week/2026-11-02');
+  check('P2 reviews (Free): editor has no form', (await free2.locator('textarea').count()) === 0);
+  await other.goto(BASE + '/app/reviews');
+  check('P2 isolation: B sees none of A\'s reviews', (await bodyOf(other)).includes('No reviews yet') && !(await bodyOf(other)).includes('Waited for the retest'));
+  await other.goto(BASE + '/app/reviews/week/2026-11-02');
+  check('P2 isolation: B opening the same week sees an empty form, not A\'s text, and no A numbers', (await other.getByLabel('What worked').inputValue()) === '' && !(await bodyOf(other)).includes('$690.00'));
+  // Premium on a phone
+  await prem2.goto(BASE + '/app/reviews/week/2026-11-02');
+  check('P2 reviews (Premium, 390px): editor has no horizontal scroll', !(await prem2.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await prem2.locator('textarea[name=to_improve]').fill('Moved my stop on Tuesday.');
+  await prem2.getByRole('button', { name: 'Save review' }).click();
+  await prem2.waitForURL('**/app/reviews?saved=1');
+  check('P2 reviews (Premium, 390px): saved; history fits the screen', !(await prem2.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) && (await bodyOf(prem2)).includes('Moved my stop'));
+  await prem2.locator('section[aria-label="Review history"] li').first().getByRole('button', { name: /^Delete/ }).click();
+  await prem2.locator('section[aria-label="Review history"] li').first().getByRole('button', { name: /Confirm delete/ }).click();
+  await prem2.waitForURL('**/app/reviews?deleted=1');
+  check('P2 reviews: delete works (two-step)', (await bodyOf(prem2)).includes('Review deleted.') && (await bodyOf(prem2)).includes('No reviews yet'));
+
   // ---- user isolation through the filter parameters (guessing ids / names)
   const guessed = await other.goto(BASE + `/app/journal?account=${seeded.account}&strategy=London+breakout&symbol=EURUSD`);
   t = await bodyOf(other);

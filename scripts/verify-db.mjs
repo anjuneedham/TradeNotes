@@ -80,6 +80,19 @@ try {
   ok("B cannot attach a screenshot to A's trade", await errors("insert into tradenotes.trade_screenshots (trade_id,user_id,storage_path) values ($1,$2,$3)", [t.id, B, shot(B, t.id)]));
   ok("B cannot delete or relabel A's screenshots", (await c.query("delete from tradenotes.trade_screenshots")).rowCount === 0 && (await c.query("update tradenotes.trade_screenshots set caption='x'")).rowCount === 0);
   ok("B cannot change A's time zone or see A's profile", (await c.query("update tradenotes.profiles set timezone='UTC' where id=$1", [A])).rowCount === 0);
+  // Reviews (phase 2): per-user rows; period day/week/month; week starts Monday, month on the 1st; text caps; 2,000 per user.
+  await as(A);
+  ok("A can save a day, a week and a month review", !(await errors("insert into tradenotes.reviews (user_id, period, period_start, went_well) values ($1,'day','2026-11-11','a'), ($1,'week','2026-11-09','b'), ($1,'month','2026-11-01','c')", [A])));
+  ok("a second review for the same period is refused (one per period)", await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'week','2026-11-09')", [A]));
+  ok("a week must start on a Monday and a month on the 1st; unknown periods are refused", (await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'week','2026-11-10')", [A])) && (await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'month','2026-11-15')", [A])) && (await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'year','2026-01-01')", [A])));
+  ok("over-long review text is refused", await errors("insert into tradenotes.reviews (user_id, period, period_start, went_well) values ($1,'day','2026-11-12',repeat('x', 5001))", [A]));
+  const upd1 = await c.query("update tradenotes.reviews set rule_breaks = 'edited' where period = 'day'");
+  ok("A can edit own review", upd1.rowCount === 1);
+  ok("a user cannot hold more than 2,000 reviews", !(await errors("insert into tradenotes.reviews (user_id, period, period_start) select $1, 'day', date '2000-01-01' + g from generate_series(0, 1996) g", [A])) && (await n("select count(*)::int n from tradenotes.reviews")) === 2000 && (await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'day','1999-01-01')", [A])));
+  await as(B);
+  ok("B sees none of A's reviews", (await n("select count(*)::int n from tradenotes.reviews")) === 0);
+  ok("B cannot edit or delete A's reviews", (await c.query("update tradenotes.reviews set went_well = 'hacked'")).rowCount === 0 && (await c.query("delete from tradenotes.reviews")).rowCount === 0);
+  ok("B cannot write a review as A", await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'day','2026-11-20')", [A]));
   ok("B cannot make themselves admin", await errors("update tradenotes.profiles set is_admin = true"));
   const upd = await (async () => { try { await c.query("savepoint su"); const r = await c.query("update tradenotes.subscriptions set plan='pro'"); await c.query("release savepoint su"); return r.rowCount; } catch { await c.query("rollback to savepoint su"); return 0; } })();
   ok("self-upgrade changed 0 rows", upd === 0, String(upd));
