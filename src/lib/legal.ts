@@ -1,7 +1,7 @@
 /**
  * Single source of truth for the facts the legal pages need. Fill these in; the pages render from here.
  * Values starting with "TODO" are treated as NOT filled (the pages show a visible warning and `npm run check:legal` fails).
- * NOTE: this is not legal advice. `counselReviewed` stays false until a qualified lawyer has reviewed the wording.
+ * NOTE: this is not legal advice. `counselReviewed` is true only when a qualified lawyer has reviewed the wording.
  */
 export const LEGAL = {
   productName: "TradeNotes",
@@ -24,10 +24,10 @@ export const LEGAL = {
   /** Payment provider shown to customers. */
   paymentProvider: "Handypay",
   effectiveDate: "11 November 2026",
-  /** Set to true only after a qualified lawyer has reviewed these pages (it has NOT been reviewed). */
-  counselReviewed: false,
-  /** The operator states, in the pages themselves, that it accepts responsibility and that no lawyer has reviewed the wording. */
-  responsibilityStatement: "Yardscale Digital (App Studio) accepts full responsibility for these documents and for how it handles your data. These documents were written without review by a lawyer. If anything here is unclear or you think it is wrong, tell us and we will fix it.",
+  /** True only once a qualified lawyer has reviewed these pages. Set to true on 2026-11-13 on the owner's instruction (the owner states a lawyer has reviewed them). */
+  counselReviewed: true,
+  /** The operator states, in the pages themselves, that it accepts responsibility and whether a lawyer has reviewed the wording. */
+  responsibilityStatement: "Yardscale Digital (App Studio) accepts full responsibility for these documents and for how it handles your data. These documents have been reviewed by a lawyer; that review does not replace our responsibility. If anything here is unclear or you think it is wrong, tell us and we will fix it.",
 } as const;
 
 export const isFilled = (v: string) => v.trim() !== "" && !v.trim().toUpperCase().startsWith("TODO");

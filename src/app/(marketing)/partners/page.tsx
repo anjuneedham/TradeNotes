@@ -38,7 +38,7 @@ export default function Partners() {
         <li>We can pause or end a partnership, and cancel commissions earned through breaking these rules. Already-paid commission on a payment that is later refunded may be deducted from your next payout.</li>
         <li>You are responsible for your own taxes. This program is not a job, employment or partnership.</li>
       </ul>
-      <p className="text-xs text-muted">Terms are a plain-English draft and have not been reviewed by a lawyer. We may change them with notice by email.</p>
+      <p className="text-xs text-muted">Terms are written in plain English{LEGAL.counselReviewed ? " and have been reviewed by a lawyer" : " and have not been reviewed by a lawyer"}. We may change them with notice by email.</p>
     </LegalShell>
   );
 }

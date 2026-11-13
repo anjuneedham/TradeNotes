@@ -7,7 +7,7 @@
 6. Forex lots assume standard 100,000 units; mini/micro lots must be entered as 0.1/0.01.
 7. Rate limiting exists only on auth endpoints (Better Auth, DB-backed: 30 requests/60s). App actions (trade creation etc.) are not rate limited.
 8. No error monitoring (Sentry) yet.
-9. Legal pages are drafts, unreviewed.
+9. ~~Legal pages are drafts, unreviewed.~~ Per the owner (2026-11-13) a lawyer has reviewed them; `counselReviewed` is true and every legal page shows "Reviewed by a lawyer". Confirm the lawyer saw the 2026-11-13 additions (reviews, playbook, reminder emails in the Privacy Policy).
 10. ~~Dashboard fetches all trades (≤10,000) per load.~~ Fixed in Phase 2: filtering, joins and the per-trade result run in SQL (no row cap); aggregates stay in `metrics.ts`. Measured on local Postgres with 10,000 seeded trades: dashboard 214 ms, analytics 272 ms (median, full server response). Not measured: real Supabase network latency. Memory still grows linearly with the number of trades in the selected filter (about 1.2 s and 100,000 rows for a single query at 100k trades), so very large journals should use a date filter.
 11. ~~Billing is manual~~ Automated via HandyPay API + webhooks (2026-11-11), **pending one real test-mode run**; manual fallback remains when keys are absent. Previously: plan activation by owner SQL after confirming payment (DEPLOYMENT.md). No webhook, no automatic renewal/cancel, no founding coupon, no annual link.
 12. **Email is not configured**: until `RESEND_API_KEY` is set, email confirmation is OFF (anyone can register any address) and password reset is unavailable (UI says so). Because payments are matched by email, set up email BEFORE taking payment.
@@ -17,7 +17,7 @@
 16. **Supabase TLS is encrypted but not certificate-verified** unless `DATABASE_SSL_CA` is set (Supabase's pooler uses a private CA). Set the CA PEM to close this.
 17. ~~TradeNotes shares a Supabase project with Agriloop.~~ Per the owner (2026-11-13) TradeNotes now has its own database. DEPLOYMENT.md and older docs may still describe the shared project; verify and update them.
 18. Attribution cookie `tn_src` is first-party, `httpOnly`, 30 days; the privacy policy doesn't mention it yet — add before launch.
-19. The live-site legal pages carry a visible DRAFT banner until counsel reviews them.
+19. ~~DRAFT banner until counsel reviews them.~~ Replaced by the "Reviewed by a lawyer" notation (2026-11-13).
 20. Vercel blocks deployments of known-vulnerable Next.js versions (happened on 15.5.4). Keep `next` current within 15.5.x and re-check `npm audit --omit=dev`; two `sharp` advisories remain (image optimisation only; we don't use next/image).
 21. Vercel Deployment Protection is on for `*.vercel.app`; preview/branch URLs need a Vercel login. Custom domains are public.
 22. If the email provider rejects a send (unverified domain, bad key), signup still says "Check your email" and nothing is sent; only a Vercel log line records it. Mitigated by on-page guidance; no alerting yet (see email/RESEND_SETUP.md).
