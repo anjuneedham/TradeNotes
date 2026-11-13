@@ -9,7 +9,7 @@ Note: the session branch was created from an older commit (1458f71) that lacks t
 | Phase | Branch | Scope | Status |
 |---|---|---|---|
 | 1 Capture and evidence | `phase1-capture` (PR #1) | broker presets + auto-detect + fixtures; timezone setting; fill grouping; instrument specs; multiple accounts (switcher, limits, combined view); screenshots (Supabase Storage adapter + in-memory fake, caps, quotas) | built, reviewed, CI green; awaiting owner merge |
-| 2 Analytics and review | `phase2-analytics` | global filter bar; expectancy/drawdown/R distribution/heatmap/hold time/streaks/MAE-MFE/mistake cost; calendar; daily journal + weekly/monthly reviews; playbook adherence; 10k-trade performance | todo |
+| 2 Analytics and review | `claude/phase2-analytics-qa4aj3` (session-assigned name) | global filter bar; expectancy/drawdown/R distribution/heatmap/hold time/streaks/MAE-MFE/mistake cost; calendar; daily journal + weekly/monthly reviews; playbook adherence; 10k-trade performance | in progress (see Phase 2 below) |
 | 3 Differentiation | `phase3-growth` | strategy comparison; manual backtest log; /demo; share links; mobile quick-log | todo |
 | 4 Memos | `phase4-memos` | broker sync, AI summaries, replay data licensing (memos only) | todo |
 
@@ -21,3 +21,19 @@ Note: the session branch was created from an older commit (1458f71) that lacks t
 - Found while testing: `e2e-billing.js` has one failing check on unmodified `main` too (founding price $6 shown where the test expects $12 on a fresh DB). Not fixed here; belongs to the founding-offer owner.
 - Merged `main` (SEO work) into the branch; one import conflict in the landing page.
 - Next: owner merges PR #1 (after reviewing legal text), then Phase 2 on a new branch from `main`.
+
+### 2026-11-13: Phase 2 plan (branch `claude/phase2-analytics-qa4aj3`, from main @ 8af47d1)
+Baseline on this branch before any change (local Postgres 16, simulated Supabase roles): `npm ci` ok · lint exit 0 · `tsc --noEmit` exit 0 · `npm test` 171 passed / 2 skipped ·
+`test-paste.sh` 40 PASS + re-run OK · `migrate.mjs` 20 tables · `verify-db.mjs` 53 passed, 0 failed.
+The branch name is the one this session was assigned (the owner's prompt said `phase2-analytics`); it is the Phase 2 branch.
+
+| # | Task | Notes / decisions | Status |
+|---|---|---|---|
+| 1 | Filter bar + `src/lib/filters.ts` | URL state, invalid values ignored, first valid value wins for repeated single params, `tag` may repeat (any-of). Server-rendered GET form (works without JS). Dashboard, analytics, journal, calendar. | todo |
+| 2 | SQL aggregation + indexes (`db/paste/12_*.sql`) | SQL does filtering, joins, exit aggregation and the per-trade result (same formula as `evaluateTrade`, equality asserted on a seeded 10,000-trade set). `metrics.ts` keeps every aggregate formula (new `summarizeResults`). No row cap. | todo |
+| 3 | `src/lib/analytics-extra.ts` | R buckets, weekday x hour heatmap (entry time, user zone), hold-time buckets, mistake cost, drawdown with recovery, profit factor + sample warning. MAE/MFE: NOT built (owner has not asked). | todo |
+| 4 | `/app/calendar` | Month grid in user zone, weekly totals, click-through to filtered journal, colour-blind-safe (sign + intensity labels), 390px. Standard and up (tier matrix: "Calendar + weekly review"). | todo |
+| 5 | `/app/reviews` | `13_reviews.sql`: period `month`, template columns, stats snapshot. Standard and up, gated on the server; data stays readable after a downgrade. Reminder emails NOT built (no owner confirmation of a free scheduler). | todo |
+| 6 | Playbook | `playbook_items`, `trade_checks` (new tables: RLS, trigger ownership checks, isolation checks; 20 -> 22 tables). Plan: Standard and up (ASSUMPTION, no tier given in the brief: flagged for the owner). | todo |
+| 7 | Plan copy | FEATURES_DEV -> FEATURES_NOW, PLANS flags, pricing, billing, landing, tests, privacy page + LEGAL_FILL_IN. | todo |
+| 8 | After the phase | PR, CI, code-review (high), security-review (new tables), plan matrix, 10k timings, `docs/QA_RESULTS_<date>.md`. | todo |
