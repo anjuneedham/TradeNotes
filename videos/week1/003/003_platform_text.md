@@ -1,0 +1,30 @@
+# 003 · Logging a losing trade with me: posting text
+Slot: Day 3 19:30 (same video to all three). Upload `TradeNotes_003_silent.mp4` (captions are burned in; `003_captions.srt` is optional for YouTube).
+
+**Voice disclosure:** this cut is silent. If you add a synthetic (TTS) voice, switch on the AI-generated / altered content label on TikTok, Instagram and YouTube before posting. Not needed for your own recorded voice.
+
+## TikTok
+Journaling a losing trade the right way (sample data). #tradingjournal #forex
+
+#tradingjournal #forextrader #losingtrades #tradingprocess #tradenotes #notfinancialadvice
+
+## Instagram Reels
+Most traders only screenshot wins. Here's how to log a loss so it actually teaches you something. Not financial advice.
+
+#tradingjournal #forextrader #losingtrades #tradingprocess #tradenotes #notfinancialadvice
+
+## YouTube Shorts
+**Title:** How to journal a losing trade (step by step)
+
+**Description:** Let's journal a losing trade. Properly. Sample data only. TradeNotes is a trading journal. It doesn't give trading advice or promise results. Not financial advice.
+
+#tradingjournal #forextrader #losingtrades #tradingprocess #tradenotes #notfinancialadvice
+
+## Pinned comment (one-line takeaway)
+Free to start: TradeNotes, link in bio. (Free plan stores up to 50 trades.)
+
+## Thumbnail / cover
+`003_thumbnail.png`: "Log a / loss" (3 words). No photo slot filled: add your photo if you want one (brief: one UI card + your photo).
+
+## Changes from the package text
+- "Most traders only screenshot wins" is an unsourced generalisation: keep as opinion or soften to "A lot of traders".
