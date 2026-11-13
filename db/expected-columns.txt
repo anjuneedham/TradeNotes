@@ -210,3 +210,5 @@ tradenotes.trade_checks.followed|boolean|NO|||
 tradenotes.trade_checks.item_id|uuid|NO|||
 tradenotes.trade_checks.trade_id|uuid|NO|||
 tradenotes.trade_checks.user_id|uuid|NO|||
+tradenotes.profiles.review_reminders|boolean|NO|||
+tradenotes.profiles.review_reminder_sent_at|timestamp with time zone|YES|||

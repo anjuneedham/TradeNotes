@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, type TemplateId } from "./email-templates";
 
-const ALL: TemplateId[] = ["welcome", "verify_email", "reset_password", "subscription_confirmed", "payment_failed", "cancellation_scheduled", "subscription_ended", "account_notice"];
+const ALL: TemplateId[] = ["welcome", "verify_email", "reset_password", "subscription_confirmed", "payment_failed", "cancellation_scheduled", "subscription_ended", "account_notice", "review_reminder"];
 describe("email templates", () => {
   it.each(ALL)("%s renders subject, html and text", (id) => {
     const m = render(id, { url: "https://tradenotes.dev/x?token=abc", plan: "starter", periodEnd: "2026-12-01T00:00:00Z", message: "Hello" });
@@ -19,6 +19,11 @@ describe("email templates", () => {
     const m = render("account_notice", { message: '<script>alert(1)</script>' });
     expect(m.html).not.toContain("<script>");
     expect(m.html).toContain("&lt;script&gt;");
+  });
+  it("the review reminder carries a link and an unsubscribe link, and no trading figures", () => {
+    const m = render("review_reminder", { url: "https://a.test/app/reviews/week/2026-11-02", unsubscribeUrl: "https://a.test/reminders/unsubscribe?t=abc" });
+    expect(m.text).toContain("https://a.test/app/reviews/week/2026-11-02"); expect(m.text).toContain("https://a.test/reminders/unsubscribe?t=abc");
+    expect(m.text).not.toMatch(/[$€£]\s?\d|net|win rate|P&L/i);
   });
   it("never promises profits", () => {
     for (const id of ALL) expect(render(id, { url: "u", plan: "pro" }).text).not.toMatch(/guarantee|profit/i);

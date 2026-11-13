@@ -9,14 +9,18 @@ import { pool } from "@/lib/db";
 import { handypayEnabled, cancelAtPeriodEnd } from "@/lib/billing/handypay";
 import { isValidTimeZone } from "@/lib/timezone";
 import { getStore } from "@/lib/storage";
+import { PLANS } from "@/lib/plans";
+import { remindersLive } from "@/lib/reminders";
 
 /** Preferences: explanation toggle (profiles.show_explanations, own row under RLS) and a per-device appearance cookie. */
 export async function savePreferences(formData: FormData) {
-  const { db, user } = await getContext();
+  const { db, user, plan } = await getContext();
   const show = formData.get("show_explanations") === "on";
+  // The reminder is opt-in, needs a plan with reviews (checked here, on the server) and only exists where the scheduler is configured.
+  const reminders = formData.get("review_reminders") === "on" && PLANS[plan].reviews && remindersLive();
   const tzRaw = String(formData.get("timezone") ?? "UTC");
   const tz = isValidTimeZone(tzRaw) ? tzRaw : "UTC";
-  await db((q) => q("update tradenotes.profiles set show_explanations = $1, timezone = $3 where id = $2", [show, user.id, tz]));
+  await db((q) => q("update tradenotes.profiles set show_explanations = $1, timezone = $3, review_reminders = case when $5::boolean then $4::boolean else review_reminders end where id = $2", [show, user.id, tz, reminders, formData.get("reminders_shown") === "1"]));
   const theme = String(formData.get("theme") ?? "system");
   const jar = await cookies();
   if (theme === "light" || theme === "dark") jar.set("tn_theme", theme, { maxAge: 60 * 60 * 24 * 365, path: "/", sameSite: "lax", httpOnly: true });

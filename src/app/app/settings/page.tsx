@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getContext } from "@/lib/app-context";
 import { PLANS } from "@/lib/plans";
 import { emailEnabled } from "@/lib/email";
+import { remindersLive } from "@/lib/reminders";
 import { LEGAL, isFilled } from "@/lib/legal";
 import { logout } from "../../(auth)/actions";
 import { savePreferences, deleteAccount } from "./actions";
@@ -78,6 +79,13 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             </select>
             <span className="mt-1 block text-xs text-muted">Used to read broker files whose times have no time zone, and for calendar days and time-of-day stats. Trades are stored in UTC.</span>
           </label>
+          {remindersLive() && PLANS[plan].reviews && (
+            <label className="flex cursor-pointer items-start gap-3 text-sm">
+              <input type="hidden" name="reminders_shown" value="1" />
+              <input type="checkbox" name="review_reminders" defaultChecked={profile?.review_reminders ?? false} className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
+              <span><span className="font-medium">Email me a weekly review reminder</span><span className="mt-0.5 block text-xs text-muted">One short email a week (Monday), only if you have not written last week&apos;s review. It contains a link and no trading figures, and every email has an unsubscribe link. Off by default.</span></span>
+            </label>
+          )}
           <fieldset>
             <legend className="text-sm font-medium">Appearance <span className="font-normal text-muted">· on this device</span></legend>
             <div className="mt-2 grid max-w-sm grid-cols-3 gap-2">

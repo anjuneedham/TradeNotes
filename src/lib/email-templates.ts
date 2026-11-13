@@ -7,8 +7,8 @@ import { sendEmail } from "./email";
 import { LEGAL, isFilled } from "./legal";
 import { PLANS, type PlanId } from "./plans";
 
-export type TemplateId = "welcome" | "verify_email" | "reset_password" | "subscription_confirmed" | "payment_failed" | "cancellation_scheduled" | "subscription_ended" | "account_notice";
-export interface TemplateData { url?: string; plan?: PlanId; periodEnd?: string | null; message?: string }
+export type TemplateId = "welcome" | "verify_email" | "reset_password" | "subscription_confirmed" | "payment_failed" | "cancellation_scheduled" | "subscription_ended" | "account_notice" | "review_reminder";
+export interface TemplateData { url?: string; plan?: PlanId; periodEnd?: string | null; message?: string; unsubscribeUrl?: string }
 
 const C = { bg: "#f6f5f1", panel: "#ffffff", border: "#dfdcd3", fg: "#17191c", muted: "#5a626d", accent: "#2c50c4" };
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -22,6 +22,10 @@ function content(id: TemplateId, d: TemplateData): Content {
   const end = day(d.periodEnd);
   const billing = `${site()}/app/billing`;
   switch (id) {
+    case "review_reminder": return { subject: "Time for your weekly review", heading: "Time for your weekly review",
+      paras: ["Last week is over. Five minutes to write down what worked, what to repeat and what to fix is how a journal turns into improvement.", "Your numbers for the week are already filled in for you."],
+      cta: { label: "Open your weekly review", url: d.url! },
+      foot: `You are getting this because you turned on weekly review reminders in Settings. Turn it off any time in Settings${d.unsubscribeUrl ? `, or in one click: ${d.unsubscribeUrl}` : "."}` };
     case "welcome": return { subject: "Welcome to TradeNotes", heading: "Your journal is ready",
       paras: ["Thanks for signing up. The fastest way to get value from TradeNotes is to log your last few trades — even the ones you'd rather forget.",
         "After about 20 closed trades your numbers start to mean something, and every statistic explains what it means and when it is too early to trust it.",
@@ -82,5 +86,5 @@ ${c.foot ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:${C.m
 
 export async function sendTemplate(to: string, id: TemplateId, d: TemplateData = {}) {
   const m = render(id, d);
-  await sendEmail(to, m.subject, m.text, m.html);
+  await sendEmail(to, m.subject, m.text, m.html, d.unsubscribeUrl ? { "List-Unsubscribe": `<${d.unsubscribeUrl}>` } : undefined);
 }
