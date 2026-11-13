@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
-import { PLANS, CHECKOUT_URLS, ANNUAL_MONTHS_FREE, isInterval } from "@/lib/plans";
+import { PLANS, checkoutLink, TRIAL_DAYS, ANNUAL_MONTHS_FREE, isInterval } from "@/lib/plans";
 import { PLAN_ORDER, PLAN_BLURB, planHeadline } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { Card, Notice, Badge, Meter, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/ui";
@@ -99,6 +99,7 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
             <Card key={id} className={`flex flex-col ${want === id && plan !== id ? "border-fg" : ""}`}>
               <div className="flex items-center justify-between"><h3 className="font-medium">{PLANS[id].name}</h3>{plan === id && <Badge tone="accent">Your plan</Badge>}</div>
               <p className="fig mt-2 text-2xl font-medium">{offer && id !== "free" && <s className="mr-2 text-base text-muted">${yearly ? PLANS[id].annual : PLANS[id].monthly}</s>}${offer && id !== "free" ? foundingPriceCents(id, interval) / 100 : yearly && id !== "free" ? PLANS[id].annual : PLANS[id].monthly}<span className="font-sans text-sm font-normal text-muted"> / {yearly && id !== "free" ? "year" : "month"}</span></p>
+              {id !== "free" && !offer && <p className="mt-1 text-xs font-medium">{TRIAL_DAYS}-day free trial, then billed {yearly ? "yearly" : "monthly"}.</p>}
               {yearly && id !== "free" && <p className="mt-1 text-xs text-muted">{ANNUAL_MONTHS_FREE} months free (${(PLANS[id].annual / 12).toFixed(0)}/mo equivalent). Billed once a year.</p>}
               <p className="mt-2 text-sm font-medium">{planHeadline(id)}</p>
               <p className="mt-1 text-xs leading-relaxed text-muted">{PLAN_BLURB[id]}</p>
@@ -107,7 +108,7 @@ export default async function Billing({ searchParams }: { searchParams: Promise<
                   : id === "free" ? <p className="text-xs text-muted">To move to Free, cancel your subscription (see below). You keep paid access until the period you paid for ends.</p>
                   : paid ? <p className="text-xs leading-relaxed text-muted">To switch to {PLANS[id].name}, {support ? `email ${support}` : "contact support"} so we can move your existing subscription. Subscribing again here would start a second one.</p>
                   : auto ? <form action={startCheckout}><input type="hidden" name="plan" value={id} /><input type="hidden" name="interval" value={interval} /><button className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}</button></form>
-                  : <a href={CHECKOUT_URLS[id]} target="_blank" rel="noopener noreferrer" className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}<span className="sr-only"> (opens Handypay checkout in a new tab)</span> ↗</a>}
+                  : <a href={checkoutLink(id, interval)} target="_blank" rel="noopener noreferrer" className={`${want === id ? btnCls : btnGhostCls} w-full`}>Subscribe to {PLANS[id].name}<span className="sr-only"> (opens Handypay checkout in a new tab)</span> ↗</a>}
               </div>
             </Card>
           ))}

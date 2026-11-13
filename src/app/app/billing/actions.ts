@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getContext } from "@/lib/app-context";
 import { pool } from "@/lib/db";
-import { CHECKOUT_URLS, isInterval, type PlanId } from "@/lib/plans";
+import { checkoutLink, isInterval, type PlanId } from "@/lib/plans";
 import { emailEnabled } from "@/lib/email";
 import { sendTemplate } from "@/lib/email-templates";
 import { report } from "@/lib/monitor";
@@ -23,7 +23,7 @@ export async function startCheckout(formData: FormData) {
   if (want !== "starter" && want !== "pro") redirect("/app/billing");
   const interval = isInterval(formData.get("interval")) ? (formData.get("interval") as "month" | "year") : "month";
   if (plan !== "free") redirect("/app/billing?error=already-subscribed");
-  if (!handypayEnabled()) redirect(CHECKOUT_URLS[want]); // static links are monthly only
+  if (!handypayEnabled()) redirect(checkoutLink(want, interval)); // static links (14-day trial), monthly and annual
   let url: string;
   try {
     // Founding offer: reserve a seat (race-safe, max 10) and charge the discounted price; otherwise the normal price.
