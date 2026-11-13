@@ -62,7 +62,7 @@ export async function importTrades(_prev: ImportState, formData: FormData): Prom
       const [imp] = await q<{ id: string }>(
         "insert into tradenotes.imports (user_id, account_id, file_name, rows_total, rows_failed, preset) values ($1, $2, $3, $4, $5, $6) returning id",
         [user.id, accountId, fileName, result.trades.length + result.errors.length, result.errors.length, presetUsed]);
-      let imported = 0, skipped = 0;
+      let imported = 0, skipped = result.duplicatesInFile;
       for (const t of result.trades) {
         const rows = await q<{ id: string }>(
           `insert into tradenotes.trades (user_id, account_id, import_id, symbol, asset_class, side, quantity, entry_price, multiplier, fees, opened_at, closed_at, fingerprint)

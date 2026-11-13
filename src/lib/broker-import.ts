@@ -27,7 +27,7 @@ export interface ImportedTrade {
 }
 export interface RowError { row: number; message: string }
 export interface Ctx { tz: string; dateOrder: DateOrder }
-export interface ParseResult { trades: ImportedTrade[]; errors: RowError[]; warnings: string[]; openPositions: number; ignoredRows: number }
+export interface ParseResult { trades: ImportedTrade[]; errors: RowError[]; warnings: string[]; openPositions: number; ignoredRows: number; /** Identical rows within the file itself (counted as skipped duplicates on import). */ duplicatesInFile: number }
 type Row = Record<string, string>;
 
 export interface Preset {
@@ -459,9 +459,9 @@ export function parseWithPreset(text: string, presetId: string, ctx: Ctx): { pre
     const warnings = [...(out.warnings ?? [])];
     if (dups) warnings.push(`${dups} duplicate row(s) in the file were skipped.`);
     warnings.push(...unknownFuturesWarning(trades));
-    return { preset: p.id === "metatrader4" ? metatrader : p, result: { trades, errors: out.errors, warnings, openPositions, ignoredRows: out.ignoredRows ?? 0 } };
+    return { preset: p.id === "metatrader4" ? metatrader : p, result: { trades, errors: out.errors, warnings, openPositions, ignoredRows: out.ignoredRows ?? 0, duplicatesInFile: dups } };
   }
-  return { preset: null, result: { trades: [], errors: [{ row: 0, message: presetId === "auto" ? "We didn't recognise this file. Use manual column mapping." : "This file doesn't match the chosen broker format." }], warnings: [], openPositions: 0, ignoredRows: 0 } };
+  return { preset: null, result: { trades: [], errors: [{ row: 0, message: presetId === "auto" ? "We didn't recognise this file. Use manual column mapping." : "This file doesn't match the chosen broker format." }], warnings: [], openPositions: 0, ignoredRows: 0, duplicatesInFile: 0 } };
 }
 
 /** Manual mapping (generic CSV, one row per round trip) converted to the same shape; naive times read in the user's time zone. */
@@ -473,7 +473,7 @@ export function parseManual(text: string, mapping: ColumnMapping, assetClass: As
     openedAt: t.openedAt, closedAt: t.closedAt ?? t.openedAt, fees: t.fees, assetClass, multiplier: defaultMultiplierFor(assetClass, t.symbol), brokerNet: null,
   }, t.fingerprint));
   const warnings = [...(p.duplicatesInFile ? [`${p.duplicatesInFile} duplicate row(s) in the file were skipped.`] : []), ...unknownFuturesWarning(trades)];
-  return { trades, errors: p.errors, warnings, openPositions: 0, ignoredRows: 0 };
+  return { trades, errors: p.errors, warnings, openPositions: 0, ignoredRows: 0, duplicatesInFile: p.duplicatesInFile };
 }
 
 /** Validation report: totals by our engine vs the broker's own net P&L where the export states it. */
