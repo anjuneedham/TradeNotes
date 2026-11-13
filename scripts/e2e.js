@@ -442,8 +442,11 @@ async function phase2(browser, stamp) {
   if (!process.env.DATABASE_URL) { check('phase 2 e2e needs DATABASE_URL (skipped)', false); return; }
   const std = await newUser(browser, `s2${stamp}@e2e.test`);
   const other = await newUser(browser, `o2${stamp}@e2e.test`);
-  await setPlan(`s2${stamp}@e2e.test`, 'starter');
+  const free2 = await newUser(browser, `fr2${stamp}@e2e.test`);
+  const prem2 = await newUser(browser, `pr2${stamp}@e2e.test`, { viewport: { width: 390, height: 844 } });
+  await setPlan(`s2${stamp}@e2e.test`, 'starter'); await setPlan(`o2${stamp}@e2e.test`, 'starter'); await setPlan(`pr2${stamp}@e2e.test`, 'pro');
   const seeded = await seed(`s2${stamp}@e2e.test`, P2_TRADES);
+  await seed(`fr2${stamp}@e2e.test`, P2_TRADES); await seed(`pr2${stamp}@e2e.test`, P2_TRADES);
 
   // ---- 1. filter bar
   await std.goto(BASE + '/app');
@@ -504,6 +507,47 @@ async function phase2(browser, stamp) {
   check('P2 analytics: no horizontal page scroll at 390px (heatmap scrolls inside its card)', !(await std.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
   await std.setViewportSize({ width: 1280, height: 900 });
 
+  // ---- 4. calendar (November 2026 in the default zone UTC: GBPUSD +590.00 on Tue Nov 3, ES +100.00 on Wed Nov 4; October: +1,000.00 on Oct 5, -500.00 on Oct 12)
+  await std.goto(BASE + '/app/calendar?month=2026-11');
+  t = await bodyOf(std);
+  check('P2 calendar (Standard): November net +$690.00, 2 closed trades, 2 trading days', /Net P&L\s*▲ \+\$690\.00/.test(t) && /Closed trades\s*2/.test(t) && /Trading days\s*2/.test(t), t.slice(0, 500));
+  check('P2 calendar: Nov 3 cell says trade count, sign, colour word and size in text', (await std.locator('a[aria-label^="Tuesday Nov 3:"]').getAttribute('aria-label')).startsWith('Tuesday Nov 3: 1 trade, +$590.00, profit, large'));
+  check('P2 calendar: Nov 4 is a smaller profit than Nov 3', /Wednesday Nov 4: 1 trade, \+\$100\.00, profit, small/.test(await std.locator('a[aria-label^="Wednesday Nov 4:"]').getAttribute('aria-label')));
+  check('P2 calendar: weekly total for Nov 2 - 8 is +$690.00 (1280px shows the Week column)', await std.locator('td', { hasText: 'Nov 2 – Nov 8' }).first().innerText().then((x) => x.includes('+$690.00') && x.includes('2 trades'), () => false));
+  check('P2 calendar: the colour legend writes out blue = profit, orange = loss', t.includes('blue = profit') && t.includes('orange = loss'));
+  await std.locator('a[aria-label^="Wednesday Nov 4:"]').click();
+  await std.waitForURL(/\/app\/journal\?/);
+  const jr = await std.locator('tbody').innerText();
+  check('P2 calendar: clicking a day opens the journal filtered to that day (ES only)', std.url().includes('from=2026-11-04') && std.url().includes('to=2026-11-04') && jr.includes('ES') && !jr.includes('GBPUSD') && !jr.includes('EURUSD'), std.url() + ' ' + jr.slice(0, 200));
+  await std.goto(BASE + '/app/calendar?month=2026-10');
+  t = await bodyOf(std);
+  check('P2 calendar: October net +$500.00; Oct 12 is a loss with its sign', /Net P&L\s*▲ \+\$500\.00/.test(t) && /Monday Oct 12: 1 trade, -\$500\.00, loss/.test(await std.locator('a[aria-label^="Monday Oct 12:"]').getAttribute('aria-label')));
+  await std.goto(BASE + '/app/calendar?month=2026-10&side=short');
+  check('P2 calendar: the filter bar applies (short only: -$500.00)', /Net P&L\s*▼ -\$500\.00/.test(await bodyOf(std)));
+  await std.goto(BASE + '/app/calendar?month=2026-10&side=short&from=2020-01-01&to=2020-01-02');
+  check('P2 calendar: a date filter in the URL does not override the month', /Net P&L\s*▼ -\$500\.00/.test(await bodyOf(std)));
+  const gm = await std.goto(BASE + '/app/calendar?month=banana');
+  check('P2 calendar: garbage month falls back to the current month (no error)', gm.status() === 200 && /\b(January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b/.test(await std.locator('h2[aria-live]').innerText()));
+  await std.goto(BASE + '/app/calendar?month=2026-11');
+  check('P2 calendar: in the desktop sidebar', await std.locator('nav[aria-label=App] a[href="/app/calendar"]').first().isVisible());
+  // plan matrix: Free is refused on the server, Premium works
+  await free2.goto(BASE + '/app/calendar?month=2026-11');
+  t = await bodyOf(free2);
+  check('P2 calendar (Free): upgrade notice, no grid, none of their own numbers on the page', t.includes('The calendar is part of Standard and Premium') && (await free2.locator('table').count()) === 0 && !t.includes('$590.00'), t.slice(0, 300));
+  await prem2.goto(BASE + '/app/calendar?month=2026-11');
+  t = await bodyOf(prem2);
+  check('P2 calendar (Premium, 390px): grid and totals shown', /Net P&L\s*▲ \+\$690\.00/.test(t) && (await prem2.locator('table').count()) >= 1);
+  check('P2 calendar (Premium, 390px): no horizontal scroll', !(await prem2.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  check('P2 calendar (390px): weekly totals list replaces the Week column', await prem2.getByText('Weekly totals').isVisible());
+  check('P2 nav (390px): bottom bar has Calendar and More', await prem2.locator('nav[aria-label=App] a[href="/app/calendar"]').last().isVisible() && await prem2.locator('nav[aria-label=App] a[href="/app/more"]').last().isVisible());
+  await prem2.locator('nav[aria-label=App] a[href="/app/more"]').last().click();
+  await prem2.waitForURL('**/app/more');
+  const moreText = await prem2.locator('main').innerText();
+  check('P2 nav (390px): More lists Accounts, Import, Settings, Billing', ['Accounts', 'Import trades', 'Settings', 'Plan and billing'].every((x) => moreText.includes(x)), moreText);
+  await other.goto(BASE + `/app/calendar?month=2026-11&account=${seeded.account}`);
+  t = await bodyOf(other);
+  check('P2 isolation: B calendar (even with A\'s account id) shows no A trades', /Net P&L\s*·?\s*0|Closed trades\s*0/.test(t) && !t.includes('$690.00') && !t.includes('$590.00'), t.slice(0, 300));
+
   // ---- user isolation through the filter parameters (guessing ids / names)
   const guessed = await other.goto(BASE + `/app/journal?account=${seeded.account}&strategy=London+breakout&symbol=EURUSD`);
   t = await bodyOf(other);
@@ -513,5 +557,5 @@ async function phase2(browser, stamp) {
   check('P2 isolation: B dashboard with A\'s account id shows the empty welcome, no numbers', t.includes('Start in 3 steps') && !t.includes('$1,190.00'));
   await other.goto(BASE + '/app/analytics?account=all');
   check('P2 isolation: B analytics with account=all has no A data', !(await bodyOf(other)).includes('$1,190.00'));
-  await std.context().close(); await other.context().close();
+  await std.context().close(); await other.context().close(); await free2.context().close(); await prem2.context().close();
 }

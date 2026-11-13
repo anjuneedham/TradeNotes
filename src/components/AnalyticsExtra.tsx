@@ -11,7 +11,7 @@ import { money, signedMoney, pct, shortDate } from "@/lib/format";
 const STEP = [0, 12, 28, 48] as const; // % of the colour mixed into the panel background; text stays the normal text colour (contrast checked in both themes)
 export function pnlTint(value: number, level: 0 | 1 | 2 | 3): { background?: string } {
   if (level === 0) return {};
-  const v = value > 0 ? "var(--accent)" : "var(--warn)";
+  const v = value > 0 ? "var(--cb-gain)" : "var(--cb-loss)";
   return { background: `color-mix(in srgb, ${v} ${STEP[level]}%, transparent)` };
 }
 export const pnlGlyph = (v: number) => (v > 0 ? "▲" : v < 0 ? "▼" : "·");

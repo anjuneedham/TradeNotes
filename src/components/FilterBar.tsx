@@ -14,8 +14,8 @@ const Lbl = ({ label, children }: { label: string; children: ReactNode }) => (
  * `extra` renders page-specific controls inside the same form (e.g. the journal's search box); `keep` carries params the
  * page needs across a filter change (e.g. the calendar's month).
  */
-export function FilterBar({ path, filters, options, switcherLabel, extra, keep = {}, showAccount = true }: {
-  path: string; filters: Filters; options: FilterOptions; switcherLabel: string; extra?: ReactNode; keep?: Record<string, string | undefined>; showAccount?: boolean;
+export function FilterBar({ path, filters, options, switcherLabel, extra, keep = {}, showAccount = true, showDate = true }: {
+  path: string; filters: Filters; options: FilterOptions; switcherLabel: string; extra?: ReactNode; keep?: Record<string, string | undefined>; showAccount?: boolean; showDate?: boolean;
 }) {
   const active = activeFilterCount(filters);
   const custom = Boolean(filters.from || filters.to);
@@ -31,13 +31,15 @@ export function FilterBar({ path, filters, options, switcherLabel, extra, keep =
       <form method="get" action={path} role="search" aria-label="Filter trades" className="border-t border-border p-3.5">
         {Object.entries(keep).map(([k, v]) => (v ? <input key={k} type="hidden" name={k} value={v} /> : null))}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          <Lbl label="Period">
-            <select name="range" defaultValue={custom ? "all" : filters.range} className={inputCls}>
-              {RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </select>
-          </Lbl>
-          <Lbl label="From (your time zone)"><input type="date" name="from" defaultValue={filters.from ?? ""} className={inputCls} /></Lbl>
-          <Lbl label="To (inclusive)"><input type="date" name="to" defaultValue={filters.to ?? ""} className={inputCls} /></Lbl>
+          {showDate && (<>
+            <Lbl label="Period">
+              <select name="range" defaultValue={custom ? "all" : filters.range} className={inputCls}>
+                {RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+              </select>
+            </Lbl>
+            <Lbl label="From (your time zone)"><input type="date" name="from" defaultValue={filters.from ?? ""} className={inputCls} /></Lbl>
+            <Lbl label="To (inclusive)"><input type="date" name="to" defaultValue={filters.to ?? ""} className={inputCls} /></Lbl>
+          </>)}
           {showAccount && options.accounts.length > 1 && (
             <Lbl label="Account">
               <select name="account" defaultValue={filters.account ?? ""} className={inputCls}>
@@ -83,7 +85,7 @@ export function FilterBar({ path, filters, options, switcherLabel, extra, keep =
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <button className={btnCls}>Apply filters</button>
           {active > 0 && <Link href={filterHref(path, NO_FILTERS, keep)} className={`${btnGhostCls} border-transparent text-muted`}>Reset</Link>}
-          {custom && <span className="text-xs text-muted">Custom dates override the period.</span>}
+          {showDate && custom && <span className="text-xs text-muted">Custom dates override the period.</span>}
         </div>
       </form>
     </details>
