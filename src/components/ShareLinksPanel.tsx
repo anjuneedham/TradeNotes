@@ -8,14 +8,14 @@ export interface LinkRow { id: string; label: string | null; scope: string; expi
 const day = (iso: string) => iso.slice(0, 10);
 
 /** Settings > Sharing: create and revoke read-only report links. The new link is shown once; afterwards only its label and dates exist. */
-export function ShareLinksPanel({ links }: { links: LinkRow[] }) {
+export function ShareLinksPanel({ links, currency, otherCurrencies }: { links: LinkRow[]; currency: string; otherCurrencies: boolean }) {
   const [state, action, pending] = useActionState<ShareState, FormData>(createShareLink, {});
   const [copied, setCopied] = useState(false);
   const url = state.path && typeof window !== "undefined" ? `${window.location.origin}${state.path}` : state.path;
   const active = links.filter((l) => l.status === "active").length;
   return (
     <div className="space-y-4 text-sm">
-      <p className="text-muted">A share link opens a read-only page with your <strong className="font-medium text-fg">totals and equity curve only</strong>: number of trades, win rate, profit and loss, profit factor, expectancy, average R, drawdown. It never shows notes, instruments, strategy or account names, your email, screenshots or the dates of individual trades. Anyone who has the link can open it until it expires or you revoke it.</p>
+      <p className="text-muted">A share link opens a read-only page with your <strong className="font-medium text-fg">totals and equity curve only</strong>: number of trades, win rate, profit and loss, profit factor, expectancy, average R, drawdown. It never shows notes, instruments, strategy or account names, your email, screenshots or the dates of individual trades. Anyone who has the link can open it until it expires or you revoke it. Amounts are shown in {currency}{otherCurrencies ? <>, and <strong className="font-medium text-fg">your accounts in other currencies are not included</strong> (they are not converted)</> : null}.</p>
 
       {state.error && <Notice kind="error">{state.error}</Notice>}
       {url && (

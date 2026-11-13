@@ -15,16 +15,22 @@ export const HYPOTHETICAL_DETAIL = "These are simulated entries you typed in. Th
 export const MAX_BACKTESTS = 2000;
 export const MAX_BACKTEST_EXITS = 10;
 
-export interface BacktestRow {
+/** Everything the metrics and the list need (no notes: the list page never reads the long text columns). */
+export interface BacktestCore {
   id: string; symbol: string; asset_class: string | null; side: "long" | "short";
   quantity: string | number; entry_price: string | number; stop_price: string | number | null; target_price: string | number | null;
   multiplier: string | number; fees: string | number; initial_risk: string | number | null;
   opened_at: string; closed_at: string | null; exits: { quantity: number; price: number }[];
-  strategy: string | null; timeframe: string | null; session: string | null;
+  strategy: string | null;
+}
+export interface BacktestRow extends BacktestCore {
+  timeframe: string | null; session: string | null;
   pre_trade_notes: string | null; post_trade_notes: string | null; lessons: string | null;
 }
+/** The columns the list page reads. */
+export const BACKTEST_CORE_COLS = "id, symbol, asset_class, side, quantity, entry_price, stop_price, target_price, multiplier, fees, initial_risk, opened_at, closed_at, exits, strategy";
 
-export function backtestInput(r: BacktestRow): TradeInput {
+export function backtestInput(r: BacktestCore): TradeInput {
   return {
     id: r.id, side: r.side, quantity: Number(r.quantity), entryPrice: Number(r.entry_price),
     exits: (r.exits ?? []).map((e) => ({ quantity: Number(e.quantity), price: Number(e.price) })),
@@ -33,9 +39,9 @@ export function backtestInput(r: BacktestRow): TradeInput {
     sameCurrencyAsAccount: true, closedAt: r.closed_at,
   };
 }
-export const summarizeBacktests = (rows: readonly BacktestRow[]): Summary => summarize(rows.map(backtestInput));
+export const summarizeBacktests = (rows: readonly BacktestCore[]): Summary => summarize(rows.map(backtestInput));
 /** Per-trade result, or why it is not counted (open / partly closed). */
-export const backtestResult = (r: BacktestRow): TradeResult | "open_or_partial" | "missing_fx" | "invalid" => evaluateTrade(backtestInput(r));
+export const backtestResult = (r: BacktestCore): TradeResult | "open_or_partial" | "missing_fx" | "invalid" => evaluateTrade(backtestInput(r));
 
 /** The database columns for a validated form, in a fixed order. The account fields of a real trade do not exist here. */
 export function backtestColumns(d: BacktestForm): [string, unknown][] {

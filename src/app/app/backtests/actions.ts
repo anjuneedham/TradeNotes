@@ -6,9 +6,8 @@ import { backtestFormSchema } from "@/lib/trade-schema";
 import { backtestColumns, MAX_BACKTESTS } from "@/lib/backtest";
 import { PLANS } from "@/lib/plans";
 import { removeObjects } from "@/lib/storage/cleanup";
-import type { FormState } from "../journal/actions";
+import { UUID, type FormState } from "@/lib/trade-save";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PLAN_MSG = `The backtest log is part of ${PLANS.pro.name}. Nothing was saved.`;
 
 function parse(formData: FormData) {
@@ -36,7 +35,7 @@ export async function createBacktest(_prev: FormState, formData: FormData): Prom
       await q(`insert into tradenotes.backtest_trades (${cols.map(([c]) => c).join(", ")}) values (${cols.map(([c], i) => (c === "exits" ? `$${i + 1}::jsonb` : `$${i + 1}`)).join(", ")})`, cols.map(([, v]) => v));
     });
   } catch (e) {
-    if (e instanceof Error && e.message === "limit") return { message: `You can keep up to ${MAX_BACKTESTS.toLocaleString("en-US")} hypothetical trades. Delete some to add more.`, values: p.raw };
+    if (e instanceof Error && (e.message === "limit" || /backtest trade limit reached/.test(e.message))) return { message: `You can keep up to ${MAX_BACKTESTS.toLocaleString("en-US")} hypothetical trades. Delete some to add more.`, values: p.raw };
     console.error("createBacktest failed", e instanceof Error ? e.message : e);
     return { message: "Could not save the hypothetical trade. Nothing was saved — please try again.", values: p.raw };
   }

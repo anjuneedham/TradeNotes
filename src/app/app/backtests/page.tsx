@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
 import { PLANS } from "@/lib/plans";
-import { summarizeBacktests, backtestResult, MAX_BACKTESTS, type BacktestRow } from "@/lib/backtest";
+import { summarizeBacktests, backtestResult, MAX_BACKTESTS, BACKTEST_CORE_COLS, type BacktestCore } from "@/lib/backtest";
 import { downsampleCurve } from "@/lib/curve";
 import { money, signedMoney, signedR, pct, num, pnlClass, shortDate } from "@/lib/format";
 import { Card, Notice, Badge, PageHeader, EmptyState, btnCls, btnGhostCls, linkCls, inputCls } from "@/components/ui";
@@ -11,7 +11,6 @@ import { HypotheticalBanner } from "@/components/Hypothetical";
 import { UpgradeNotice } from "@/components/UpgradeNotice";
 
 export const metadata = { title: "Backtests — TradeNotes" };
-const COLS = "id, symbol, asset_class, side, quantity, entry_price, stop_price, target_price, multiplier, fees, initial_risk, opened_at, closed_at, exits, strategy, timeframe, session, pre_trade_notes, post_trade_notes, lessons";
 
 export default async function Backtests({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; strategy?: string | string[] }> }) {
   const ctx = await getContext();
@@ -24,7 +23,7 @@ export default async function Backtests({ searchParams }: { searchParams: Promis
 
   // Plan gate on the server. A plan without the log loads nothing unless the user already has hypothetical trades (they stay readable after a downgrade).
   const all = canWrite || (await db((q) => q<{ n: number }>("select count(*)::int as n from tradenotes.backtest_trades")))[0].n > 0
-    ? await db((q) => q<BacktestRow>(`select ${COLS} from tradenotes.backtest_trades order by opened_at, id`))
+    ? await db((q) => q<BacktestCore>(`select ${BACKTEST_CORE_COLS} from tradenotes.backtest_trades order by opened_at, id`))
     : null;
   if (all === null) {
     return (

@@ -90,6 +90,12 @@ describe("the hypothetical CSV export", () => {
     const open = backtestCsv([row({ id: "o", exits: [], closed_at: null })]).split("\r\n")[2];
     expect(open).toMatch(/,,,/);
   });
+  it("a losing trade's negative numbers stay numbers (no apostrophe), so spreadsheet totals add up: HYPO2 net -1 and R -0.5", () => {
+    const hypo2 = lines.find((l) => l.includes("HYPO2"))!;
+    expect(hypo2).toContain(",-1,-0.5,");
+    expect(hypo2).not.toContain("'-");
+    expect(backtestCsv(HYPO).includes("'-")).toBe(false);
+  });
   it("neutralises spreadsheet formulas typed into notes", () => {
     const csv = backtestCsv([row({ id: "f", pre_trade_notes: "=HYPERLINK(\"http://evil\")", lessons: "@SUM(A1)" })]);
     expect(csv).toContain("\"'=HYPERLINK(\"\"http://evil\"\")\""); expect(csv).toContain("'@SUM(A1)");
@@ -101,6 +107,7 @@ describe("csvCell", () => {
     expect(csvCell(null)).toBe(""); expect(csvCell(undefined)).toBe(""); expect(csvCell(5)).toBe("5");
     expect(csvCell("a,b")).toBe("\"a,b\""); expect(csvCell("say \"hi\"")).toBe("\"say \"\"hi\"\"\""); expect(csvCell("a\nb")).toBe("\"a\nb\"");
     expect(csvCell(["x", "y"])).toBe("x; y");
-    for (const c of ["=1+1", "+1", "-1", "@a"]) expect(csvCell(c)).toBe(`'${c}`);
+    for (const c of ["=1+1", "+1", "-1", "@a"]) expect(csvCell(c)).toBe(`'${c}`); // text that looks like a formula
+    expect(csvCell(-125.5)).toBe("-125.5"); expect(csvCell(0)).toBe("0"); expect(csvCell(NaN)).toBe(""); expect(csvCell(Infinity)).toBe(""); // real numbers are not text
   });
 });

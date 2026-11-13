@@ -12,6 +12,7 @@ import { getStore } from "@/lib/storage";
 import { PLANS } from "@/lib/plans";
 import { remindersLive } from "@/lib/reminders";
 import { newToken, hashToken } from "@/lib/share-token";
+import { UUID } from "@/lib/trade-save";
 import { parseScope, parseExpiryDays, cleanLabel, DEFAULT_EXPIRY_DAYS, MAX_ACTIVE_LINKS } from "@/lib/share";
 
 /** Preferences: explanation toggle (profiles.show_explanations, own row under RLS) and a per-device appearance cookie. */
@@ -97,7 +98,7 @@ export async function createShareLink(_prev: ShareState, formData: FormData): Pr
 export async function revokeShareLink(formData: FormData) {
   const { db } = await getContext();
   const id = String(formData.get("id") ?? "");
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+  if (UUID.test(id)) {
     await db((q) => q("update tradenotes.share_links set revoked_at = now() where id = $1 and revoked_at is null", [id]));
   }
   revalidatePath("/app/settings");

@@ -14,10 +14,11 @@ export async function quickLog(prev: QuickState, formData: FormData): Promise<Qu
   const raw = Object.fromEntries(formData) as Record<string, string>;
   const symbol = (raw.symbol ?? "").trim().toUpperCase().replace(/[\s/]/g, "");
   const values = { symbol: raw.symbol ?? "", side: raw.side === "short" ? "short" : "long", quantity: raw.quantity ?? "", entry_price: raw.entry_price ?? "", exit_price: raw.exit_price ?? "", stop_price: raw.stop_price ?? "" };
-  const prevTrade = symbol
-    ? await db(async (q) => (await q<{ asset_class: string | null; account_id: string }>("select asset_class, account_id from tradenotes.trades where symbol = $1 order by opened_at desc limit 1", [symbol]))[0] ?? null)
-    : null;
-  const last = await db(async (q) => (await q<{ account_id: string }>("select account_id from tradenotes.trades order by opened_at desc limit 1"))[0] ?? null);
+  // One transaction for both lookups (the same symbol's last market, and the last trade's account).
+  const { prevTrade, last } = await db(async (q) => ({
+    prevTrade: symbol ? (await q<{ asset_class: string | null }>("select asset_class from tradenotes.trades where symbol = $1 order by opened_at desc limit 1", [symbol]))[0] ?? null : null,
+    last: (await q<{ account_id: string }>("select account_id from tradenotes.trades order by opened_at desc limit 1"))[0] ?? null,
+  }));
   const accountId = [scope.accountIds?.length === 1 ? scope.accountIds[0] : null, last?.account_id, accounts[0]?.id].find((id) => id && accounts.some((a) => a.id === id));
   if (!accountId) return { message: "Add a trading account first.", values };
   const fd = quickToFormData(values, { accountId, assetClass: inferAssetClass(symbol, prevTrade?.asset_class ?? null, profile?.primary_market ?? null) });

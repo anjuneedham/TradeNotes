@@ -105,7 +105,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
 
       <div id="sharing"><Section title="Sharing" sub="Public, read-only report links you control.">
         {revoked && <div className="mb-3"><Notice kind="ok">Link revoked. It stopped working immediately.</Notice></div>}
-        {PLANS[plan].shareLinks ? <ShareLinksPanel links={links} /> : <p className="text-sm text-muted">Share links are not part of your plan.</p>}
+        {PLANS[plan].shareLinks ? <ShareLinksPanel links={links} currency={accounts[0]?.currency ?? "USD"} otherCurrencies={accounts.some((a) => a.currency !== (accounts[0]?.currency ?? "USD"))} /> : <p className="text-sm text-muted">Share links are not part of your plan.</p>}
       </Section></div>
 
       <Section title="Security">

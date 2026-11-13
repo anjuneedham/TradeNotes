@@ -8,18 +8,17 @@ import { defaultMultiplierFor } from "./instruments";
 export interface QuickDefaults { symbol: string; side: "long" | "short"; quantity: string; accountId: string | null; assetClass: string | null }
 export const NO_DEFAULTS: QuickDefaults = { symbol: "", side: "long", quantity: "", accountId: null, assetClass: null };
 
-const CRYPTO_QUOTE = /(USDT|USDC|BUSD|USD)$/;
 const CRYPTO_BASE = /^(BTC|ETH|SOL|XRP|ADA|DOGE|BNB|LTC|DOT|AVAX|LINK|MATIC)/;
 
 /**
  * Market for a symbol: what the user last logged for that exact symbol; else known futures contracts; else a 6-letter pair is forex and
- * COIN+USD(T) is crypto; else the market chosen at onboarding (stocks/options/futures/forex/crypto); else "other".
+ * a coin ticker (BTC, ETH, ...) followed by any quote is crypto; else the market chosen at onboarding (stocks/options/futures/forex/crypto); else "other".
  */
 export function inferAssetClass(symbol: string, previous: string | null, primaryMarket: string | null): string {
   const s = symbol.toUpperCase().replace(/[\s/]/g, "");
   if (previous) return previous;
   if (defaultMultiplierFor("future", s) !== null && /^[A-Z]{1,3}[FGHJKMNQUVXZ]?\d{0,2}$/.test(s) && s.length <= 4) return "future";
-  if (CRYPTO_BASE.test(s) && CRYPTO_QUOTE.test(s) && s.length > 4) return "crypto";
+  if (CRYPTO_BASE.test(s) && /^[A-Z]{5,10}$/.test(s)) return "crypto"; // BTCUSDT, ETHUSD, BTCEUR, ETHBTC: a coin ticker first, any quote
   if (/^[A-Z]{6}$/.test(s)) return "forex";
   const m = primaryMarket === "stocks" ? "stock" : primaryMarket === "options" ? "option" : primaryMarket === "futures" ? "future" : primaryMarket;
   return m && ["forex", "future", "stock", "option", "crypto", "other"].includes(m) ? m : "other";

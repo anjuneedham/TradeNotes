@@ -14,6 +14,9 @@ describe("inferAssetClass", () => {
     expect(inferAssetClass("EURUSD", null, null)).toBe("forex");
     expect(inferAssetClass("eur/usd", null, null)).toBe("forex");
     expect(inferAssetClass("BTCUSDT", null, null)).toBe("crypto");
+    expect(inferAssetClass("BTCEUR", null, null)).toBe("crypto");
+    expect(inferAssetClass("ETHBTC", null, null)).toBe("crypto");
+    expect(inferAssetClass("GBPUSD", null, null)).toBe("forex");
     expect(inferAssetClass("AAPL", null, "stocks")).toBe("stock");
     expect(inferAssetClass("AAPL", null, "options")).toBe("option");
     expect(inferAssetClass("ZZZ", null, "futures")).toBe("future");

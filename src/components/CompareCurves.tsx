@@ -14,7 +14,8 @@ export default function CompareCurves({ columns, currency, height = 220 }: { col
   const min = Math.min(0, ...all), max = Math.max(0, ...all), span = max - min || 1;
   const x = (n: number) => (n / maxN) * W;
   const y = (v: number) => H - ((v - min) / span) * H;
-  const summary = columns.map((c) => `${c.name}: ${c.curve.length ? signedMoney(c.summary.netPnl, currency) : "no closed trades"}`).join("; ");
+  const note = (c: CompareColumn) => (c.curve.length === 0 ? "no closed trades" : c.curve.length === 1 ? `${signedMoney(c.summary.netPnl, currency)}, one trade: no curve to draw` : signedMoney(c.summary.netPnl, currency));
+  const summary = columns.map((c) => `${c.name}: ${note(c)}`).join("; ");
   return (
     <figure>
       {drawn.length === 0 ? <p className="text-sm text-muted">The curves appear once a selected strategy has at least 2 closed trades.</p> : (
@@ -25,7 +26,7 @@ export default function CompareCurves({ columns, currency, height = 220 }: { col
           </div>
           <div className="min-w-0 flex-1" style={{ height }}>
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible" role="img"
-              aria-label={`Equity curves of ${columns.length} strategies on one scale, cumulative net P&L by trade number. ${summary}.`} data-testid="compare-curves">
+              aria-label={`Equity curves of ${columns.length} strategies on one scale (a curve needs at least 2 closed trades), cumulative net P&L by trade number. ${summary}.`} data-testid="compare-curves">
               <line x1="0" x2={W} y1={y(max)} y2={y(max)} stroke="var(--border)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               <line x1="0" x2={W} y1={y(min)} y2={y(min)} stroke="var(--border)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               <line x1="0" x2={W} y1={y(0)} y2={y(0)} stroke="var(--border-strong)" strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
@@ -43,7 +44,7 @@ export default function CompareCurves({ columns, currency, height = 220 }: { col
           <li key={c.name} className="flex items-center gap-2">
             <svg width="30" height="8" aria-hidden="true"><line x1="0" x2="30" y1="4" y2="4" stroke={SERIES[i].color} strokeWidth="2.5" strokeDasharray={SERIES[i].dash} /></svg>
             <span className="font-medium">{c.name}</span>
-            <span className="text-xs text-muted">{SERIES[i].label} · <span className="fig">{c.curve.length ? signedMoney(c.summary.netPnl, currency) : "no closed trades"}</span></span>
+            <span className="text-xs text-muted">{c.curve.length >= 2 ? `${SERIES[i].label} · ` : ""}<span className="fig">{note(c)}</span></span>
           </li>
         ))}
       </ul>

@@ -40,13 +40,17 @@ create or replace function tradenotes.check_backtest_trade() returns trigger lan
 declare e jsonb;
 begin
   for e in select * from jsonb_array_elements(new.exits) loop
-    if jsonb_typeof(e) <> 'object' or jsonb_typeof(e->'quantity') <> 'number' or jsonb_typeof(e->'price') <> 'number'
+    -- coalesce: a missing key gives NULL, and a NULL condition would silently pass the check
+    if coalesce(jsonb_typeof(e), '') <> 'object' or coalesce(jsonb_typeof(e->'quantity'), '') <> 'number' or coalesce(jsonb_typeof(e->'price'), '') <> 'number'
        or (e->>'quantity')::numeric <= 0 or (e->>'price')::numeric <= 0 then
       raise exception 'invalid exit in backtest trade';
     end if;
   end loop;
-  if tg_op = 'INSERT' and (select count(*) from tradenotes.backtest_trades where user_id = new.user_id) >= 2000 then
-    raise exception 'backtest trade limit reached';
+  if tg_op = 'INSERT' then
+    perform pg_advisory_xact_lock(hashtext('tn_backtests:' || new.user_id::text)); -- two parallel inserts cannot both pass the count
+    if (select count(*) from tradenotes.backtest_trades where user_id = new.user_id) >= 2000 then
+      raise exception 'backtest trade limit reached';
+    end if;
   end if;
   return new;
 end $$;
@@ -128,6 +132,7 @@ create index if not exists share_links_user_idx on tradenotes.share_links (user_
 create or replace function tradenotes.check_share_link() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if tg_op = 'INSERT' then
+    perform pg_advisory_xact_lock(hashtext('tn_share_links:' || new.user_id::text));
     if (select count(*) from tradenotes.share_links where user_id = new.user_id and revoked_at is null and expires_at > now()) >= 5 then
       raise exception 'share link limit reached';
     end if;

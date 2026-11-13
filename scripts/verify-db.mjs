@@ -116,6 +116,9 @@ try {
   ok("a hypothetical trade needs valid exits (positive quantity and price), at most 10, and cannot close before it opens",
     (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"quantity":-1,"price":1}]')`, [A])) &&
     (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"quantity":"a","price":1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"price":1.1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"quantity":1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[null]')`, [A])) &&
     (await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',11,1,now(),(select jsonb_agg(jsonb_build_object('quantity',1,'price',1)) from generate_series(1,11)))", [A])) &&
     (await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, closed_at) values ($1,'X','long',1,1,'2026-01-02','2026-01-01')", [A])));
   const bshot = (u, b) => `${u}/backtest/${b}/${randomUUID()}.png`;
@@ -128,6 +131,8 @@ try {
   ok("a 6th screenshot on one hypothetical trade is refused", await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path) values ($1,$2,$3)", [bt.id, A, bshot(A, bt.id)]));
   const usedAfter = Number((await q("select tradenotes.storage_used_bytes() as b"))[0].b);
   ok("total storage still reads as a non-negative number with hypothetical screenshots present", Number.isFinite(usedAfter) && usedAfter >= 0);
+  ok("a user cannot keep more than 2,000 hypothetical trades", !(await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at) select $1, 'CAP', 'long', 1, 1, now() from generate_series(1, 1999) g", [A])) && (await n("select count(*)::int n from tradenotes.backtest_trades")) === 2000 && (await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at) values ($1,'ONE-TOO-MANY','long',1,1,now())", [A])));
+  await q("delete from tradenotes.backtest_trades where symbol = 'CAP'");
   const hashA = sha("token-a-" + A), hashOld = sha("token-old-" + A), hashRev = sha("token-rev-" + A);
   ok("A can create a share link (hash only, expiry within a year)", !(await errors("insert into tradenotes.share_links (user_id, label, token_hash, scope, expires_at) values ($1,'x',$2,'all', now() + interval '30 days')", [A, hashA])));
   ok("a share link stores a 64-hex hash (not a raw token), an expiry in the future and at most a year ahead, and a known scope",

@@ -16,7 +16,7 @@ export function ShareReportView({ r }: { r: ShareReport }) {
         <p className="mt-1 text-sm text-muted">{r.scopeLabel} · closed trades in {cur} · generated {r.generatedOn}</p>
       </header>
       <Notice>
-        Totals only: no individual trades, notes, accounts or screenshots are shown. These figures were entered by the trader and are <strong className="font-medium">not verified</strong> by TradeNotes.
+        Totals only: no individual trades, notes, accounts or screenshots are shown, and only accounts in {cur} are included. These figures were entered by the trader and are <strong className="font-medium">not verified</strong> by TradeNotes.
         Past results do not predict future results, and this is not financial advice.
       </Notice>
       {r.trades === 0 ? (
