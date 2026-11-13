@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
 import { PLANS } from "@/lib/plans";
-import { addStrategy, addItem, setItemArchived } from "./actions";
+import { addStrategy, addItem, setItemArchived, deleteItem } from "./actions";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { MAX_ACTIVE_ITEMS, MAX_STRATEGIES } from "@/lib/playbook";
 import { UpgradeNotice } from "@/components/UpgradeNotice";
 import { Card, Notice, PageHeader, EmptyState, Field, inputCls, btnCls, btnGhostCls, linkCls } from "@/components/ui";
@@ -13,7 +14,8 @@ interface Item { id: string; strategy_id: string; text: string; archived: boolea
 const MESSAGES: Record<string, [("ok" | "error" | "warn"), string]> = {
   "ok=strategy": ["ok", "Strategy added."], "ok=item": ["ok", "Rule added."], "ok=archived": ["ok", "Rule updated."],
   "error=plan": ["warn", "The playbook is part of Standard and Premium. Your existing rules stay readable."], "error=name": ["error", "Give the strategy a name of 1 to 60 characters."],
-  "error=text": ["error", "A rule needs 1 to 200 characters."], "error=limit": ["warn", `A strategy can have ${MAX_ACTIVE_ITEMS} active rules. Retire one first.`], "error=strategies": ["warn", `You can keep up to ${MAX_STRATEGIES} strategies.`],
+  "error=text": ["error", "A rule needs 1 to 200 characters."], "ok=deleted": ["ok", "Retired rule deleted."], "error=exists": ["warn", "You already have a strategy with that name."],
+  "error=missing": ["warn", "That rule no longer exists, so nothing changed."], "error=total": ["warn", "This strategy holds 80 rules including retired ones. Delete some retired rules to add more."], "error=limit": ["warn", `A strategy can have ${MAX_ACTIVE_ITEMS} active rules. Retire one first.`], "error=strategies": ["warn", `You can keep up to ${MAX_STRATEGIES} strategies.`],
 };
 
 export default async function Playbook({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
@@ -21,7 +23,7 @@ export default async function Playbook({ searchParams }: { searchParams: Promise
   const { db, plan } = await getContext();
   const writable = PLANS[plan].playbook;
   const { strategies, items } = await db(async (q) => ({
-    strategies: await q<Strat>("select s.id, s.name, (select count(*)::int from tradenotes.trades t where t.strategy_id = s.id) as trades from tradenotes.strategies s order by lower(s.name) limit 100"),
+    strategies: await q<Strat>("select s.id, s.name, (select count(*)::int from tradenotes.trades t where t.strategy_id = s.id) as trades from tradenotes.strategies s order by lower(s.name) limit 500"),
     items: await q<Item>(
       `select i.id, i.strategy_id, i.text, i.archived, count(c.item_id)::int as answered, (count(c.item_id) filter (where c.followed))::int as followed
        from tradenotes.playbook_items i left join tradenotes.trade_checks c on c.item_id = i.id group by i.id order by i.position, i.created_at`),
@@ -79,7 +81,11 @@ export default async function Playbook({ searchParams }: { searchParams: Promise
               <details className="mt-3 text-sm"><summary className="cursor-pointer text-xs text-muted">Retired rules ({retired.length}): kept so past results stay meaningful</summary>
                 <ul className="mt-2 divide-y divide-border">{retired.map((i) => (
                   <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-muted"><span>{i.text}</span>
-                    {writable && <form action={setItemArchived}><input type="hidden" name="item_id" value={i.id} /><input type="hidden" name="archived" value="0" /><button className="rounded px-2 py-1.5 text-xs hover:text-fg" aria-label={`Restore rule: ${i.text}`}>Restore</button></form>}</li>))}</ul></details>
+                    <span className="flex items-center gap-1">
+                      {writable && <form action={setItemArchived}><input type="hidden" name="item_id" value={i.id} /><input type="hidden" name="archived" value="0" /><button className="rounded px-2 py-1.5 text-xs hover:text-fg" aria-label={`Restore rule: ${i.text}`}>Restore</button></form>}
+                      <form action={deleteItem}><input type="hidden" name="item_id" value={i.id} /><ConfirmDelete compact label={`retired rule: ${i.text}`} /></form>
+                    </span></li>))}</ul>
+                <p className="mt-2 text-xs text-muted">Deleting a retired rule also removes its answers from past trades.</p></details>
             )}
           </Card>
         );

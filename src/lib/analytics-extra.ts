@@ -159,18 +159,15 @@ export interface ProfitFactorInfo {
   message: string | null;
 }
 export const FEW_LOSSES_THRESHOLD = 5;
-export function profitFactorInfo(rows: readonly Pick<TradeResult, "netPnl">[]): ProfitFactorInfo {
-  let gp = 0, gl = 0, wins = 0, losses = 0;
-  for (const t of rows) { if (t.netPnl > 0) { gp += t.netPnl; wins++; } else if (t.netPnl < 0) { gl += t.netPnl; losses++; } }
-  const trades = rows.length;
-  const value = losses ? gp / Math.abs(gl) : null;
+export function profitFactorInfo(rows: readonly TradeResult[]): ProfitFactorInfo {
+  const s = summarizeResults(rows); // the one place the formula lives
+  const trades = s.tradeCount, losses = s.losses;
   let warning: PfWarning = null, message: string | null = null;
   if (trades === 0) { /* nothing to warn about yet */ }
   else if (losses === 0) { warning = "no_losses"; message = "No losing trade yet, so profit factor has no value (it would be infinite). It appears after your first loss."; }
   else if (trades < SMALL_SAMPLE_THRESHOLD) { warning = "small_sample"; message = `Based on only ${trades} closed trade${trades === 1 ? "" : "s"} (under ${SMALL_SAMPLE_THRESHOLD}). Treat it as a rough guide, not a verdict.`; }
   else if (losses < FEW_LOSSES_THRESHOLD) { warning = "few_losses"; message = `Only ${losses} losing trade${losses === 1 ? "" : "s"}: one more loss would move this number a lot.`; }
-  const round = (x: number) => Math.round(x * 1e8) / 1e8;
-  return { value, grossProfit: round(gp), grossLoss: round(gl), wins, losses, trades, warning, message };
+  return { value: s.profitFactor, grossProfit: s.grossProfit, grossLoss: s.grossLoss, wins: s.wins, losses, trades, warning, message };
 }
 
 // ---------------------------------------------------------------------------------------------------------------- playbook adherence

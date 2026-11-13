@@ -594,6 +594,24 @@ async function phase2(browser, stamp) {
   await std.waitForURL('**/app/playbook?ok=archived');
   await std.goto(winUrl);
   check('P2 playbook: a retired rule stays on trades that answered it, marked as retired', (await bodyOf(std)).includes('(retired rule)'));
+  // a duplicate strategy name is reported, not silently "added"
+  await std.goto(BASE + '/app/playbook');
+  await std.locator('input[name=name]').fill('London breakout');
+  await std.getByRole('button', { name: 'Add strategy' }).click();
+  await std.getByText('You already have a strategy with that name.').waitFor({ timeout: 10000 });
+  check('P2 playbook: adding an existing strategy name says so (no false "added")', !(await bodyOf(std)).includes('Strategy added.'));
+  // retire then permanently delete a rule (frees a slot; also removes its answers)
+  const lb = std.locator('div[id^="s-"]', { hasText: 'London breakout' }).first();
+  await lb.locator('input[name=text]').fill('Temporary rule');
+  await lb.getByRole('button', { name: 'Add rule' }).click();
+  await std.locator('ol li', { hasText: 'Temporary rule' }).first().waitFor({ timeout: 10000 });
+  await std.getByRole('button', { name: 'Retire rule: Temporary rule' }).click();
+  await std.getByText('Rule updated.').waitFor({ timeout: 10000 });
+  await std.locator('details', { hasText: 'Retired rules' }).first().locator('summary').click();
+  await std.getByRole('button', { name: /^Delete retired rule: Temporary rule/ }).click();
+  await std.getByRole('button', { name: /Confirm delete retired rule: Temporary rule/ }).click();
+  await std.getByText('Retired rule deleted.').waitFor({ timeout: 10000 });
+  check('P2 playbook: a retired rule can be deleted for good', !(await bodyOf(std)).includes('Temporary rule'));
   // the 20-rule cap (18 more rules seeded directly, 2 active already)
   { const c = new Client({ connectionString: process.env.DATABASE_URL }); await c.connect();
     const sid = (await c.query(`select id from tradenotes.strategies where user_id = $1 and name = 'London breakout'`, [seeded.user])).rows[0].id;

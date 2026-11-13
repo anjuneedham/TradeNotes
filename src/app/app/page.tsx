@@ -26,12 +26,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   try {
     // One SQL query per need: the filtered results, the last-60-days window for "what changed" (other filters still apply, the date filter does not),
     // the five latest trades, and the dropdown values. The database filters and computes per-trade results; metrics.ts aggregates.
-    [loaded, windowed, latest, options] = await Promise.all([
-      loadResults(db, scope.accountIds, cur, f, tz),
-      loadResults(db, scope.accountIds, cur, f, tz, { window: { start: d60, end: null } }),
-      loadLatest(db, scope.accountIds, cur, f, tz, 5),
-      loadFilterOptions(db, ctx.accounts),
-    ]);
+    const noDate = f.range === "all" && !f.from && !f.to; // then the main result already covers the last 60 days: no second query
+    let main: LoadedResults;
+    [main, latest, options] = await Promise.all([loadResults(db, scope.accountIds, cur, f, tz), loadLatest(db, scope.accountIds, cur, f, tz, 5), loadFilterOptions(db, ctx.accounts)]);
+    loaded = main;
+    windowed = noDate ? main : await loadResults(db, scope.accountIds, cur, f, tz, { window: { start: d60, end: null } });
   }
   catch (e) { console.error("dashboard load failed", e); return <Notice kind="error">We couldn&apos;t load your trades just now. Please refresh. Your data is safe.</Notice>; }
   const { rows, excluded } = loaded;

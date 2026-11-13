@@ -96,5 +96,7 @@ describe("month URL parameter, navigation and window", () => {
 describe("signedCompact (tight cells)", () => {
   it("always carries a sign and shortens thousands and millions", () => {
     expect([0, 5, 5.25, -12.4, 150, 99.96, 1234, -15600, 1500000, 12000000, -0.04].map(signedCompact)).toEqual(["0", "+5", "+5.3", "−12.4", "+150", "+100", "+1.2k", "−16k", "+1.5M", "+12M", "0"]);
+    // the unit is chosen after rounding, so nothing prints as "1000" or "1000k"
+    expect([999.6, 999.4, 9949, 9951, 999400, 999600, 9949000, 9951000, -999600].map(signedCompact)).toEqual(["+1k", "+999", "+9.9k", "+10k", "+999k", "+1M", "+9.9M", "+10M", "−1M"]);
   });
 });

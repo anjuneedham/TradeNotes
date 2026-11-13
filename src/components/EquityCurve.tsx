@@ -18,17 +18,21 @@ export default function EquityCurve({ points, currency, height = 200, total }: {
   const n = vals.length - 1;
   const all = total ?? n; // trades in the whole series (the points may be a thinned view of it)
   const W = 1000, H = 100; // drawing units; the SVG stretches, strokes stay 2px
-  const x = (i: number) => (i / n) * W;
+  const ord = (i: number) => (i <= 0 ? 0 : points[i - 1].n ?? i); // trade number of point i (0 = the start)
+  const ords = vals.map((_, i) => ord(i));
+  const x = (i: number) => (ords[i] / all) * W; // spaced by trade number, so a thinned series keeps its true shape
   const y = (v: number) => H - ((v - min) / span) * H;
   const d = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(2)}`).join(" ");
   const last = vals[n];
   const pctY = (v: number) => `${(y(v) / H) * 100}%`;
-  const ord = (i: number) => (i <= 0 ? 0 : points[i - 1].n ?? i);
   const h = hover !== null ? { i: hover, v: vals[hover], step: hover > 0 ? vals[hover] - vals[hover - 1] : 0, at: hover > 0 ? points[hover - 1].closedAt : null, gap: ord(hover) - ord(hover - 1) } : null;
 
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    setHover(Math.max(0, Math.min(n, Math.round(((e.clientX - r.left) / r.width) * n))));
+    const target = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * all;
+    let lo = 0, hi = n; // nearest point by trade number (ords is increasing)
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (ords[mid] < target) lo = mid + 1; else hi = mid; }
+    setHover(lo > 0 && target - ords[lo - 1] <= ords[lo] - target ? lo - 1 : lo);
   };
 
   return (
@@ -50,10 +54,10 @@ export default function EquityCurve({ points, currency, height = 200, total }: {
           </svg>
           {/* end marker / hover marker (HTML so it stays round while the SVG stretches) */}
           <span className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-panel bg-accent"
-            style={{ left: `${((h ? h.i : n) / n) * 100}%`, top: pctY(h ? h.v : last) }} />
+            style={{ left: `${(ords[h ? h.i : n] / all) * 100}%`, top: pctY(h ? h.v : last) }} />
           {h && (
             <div className="pointer-events-none absolute top-0 z-10 w-max max-w-[14rem] rounded-md border border-border-strong bg-raised px-2.5 py-1.5 text-xs shadow-lg"
-              style={h.i / n > 0.5 ? { right: `${(1 - h.i / n) * 100}%`, marginRight: 10 } : { left: `${(h.i / n) * 100}%`, marginLeft: 10 }}>
+              style={ords[h.i] / all > 0.5 ? { right: `${(1 - ords[h.i] / all) * 100}%`, marginRight: 10 } : { left: `${(ords[h.i] / all) * 100}%`, marginLeft: 10 }}>
               <p className="text-muted">{h.i === 0 ? "Start" : `Trade ${ord(h.i)} of ${all}${h.at ? ` · ${shortDate(h.at)}` : ""}`}</p>
               <p className="fig mt-0.5 font-medium text-fg">{signedMoney(h.v, currency)} <span className="font-sans font-normal text-muted">cumulative</span></p>
               {h.i > 0 && <p className="fig text-muted">{signedMoney(h.step, currency)} <span className="font-sans">{h.gap === 1 ? "this trade" : `over the last ${h.gap} trades`}</span></p>}

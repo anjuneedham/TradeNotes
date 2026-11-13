@@ -127,6 +127,15 @@ describe.skipIf(!url)("SQL aggregation vs the metrics engine (real database, 10,
       expect(checkedIds.length).toBeGreaterThan(300);
       for (const d of checkedIds) { expect(got.get(d.id)!.checksDone).toBe(d.done); expect(got.get(d.id)!.checksTotal).toBe(d.total); }
       expect(withChecks.rows.filter((r) => r.checksTotal === null).length).toBe(withChecks.rows.length - checkedIds.length); // no answers => null, not 0
+      // answers given under a previous strategy stop counting when the trade moves to another strategy (and come back if it moves back)
+      const other = (await pool.query("select id from tradenotes.strategies where user_id = $1 and name = 'Range fade'", [A.userId])).rows[0].id as string;
+      const moved = checkedIds.find((d) => got.get(d.id)!.checksTotal === 3)!.id;
+      await pool.query("update tradenotes.trades set strategy_id = $1 where id = $2", [other, moved]);
+      const afterMove = await withUser(A.userId, (q) => loadResults((fn) => fn(q), [A.accountId], "USD", parseFilters({}), "UTC", { checks: true }));
+      expect(afterMove.rows.find((r) => r.id === moved)!.checksTotal).toBeNull();
+      await pool.query("update tradenotes.trades set strategy_id = $1 where id = $2", [strat, moved]);
+      const afterBack = await withUser(A.userId, (q) => loadResults((fn) => fn(q), [A.accountId], "USD", parseFilters({}), "UTC", { checks: true }));
+      expect(afterBack.rows.find((r) => r.id === moved)!.checksTotal).toBe(3);
       const noChecks = await withUser(A.userId, (q) => loadResults((fn) => fn(q), [A.accountId], "USD", parseFilters({}), "UTC"));
       expect(noChecks.rows.every((r) => r.checksTotal === null)).toBe(true);
       const bChecks = await withUser(B.userId, (q) => q("select count(*)::int n from tradenotes.trade_checks"));

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getContext } from "@/lib/app-context";
 import { PLANS } from "@/lib/plans";
-import { MAX_ACTIVE_ITEMS, MAX_STRATEGIES } from "@/lib/playbook";
+import { MAX_ACTIVE_ITEMS, MAX_ITEMS_TOTAL, MAX_STRATEGIES } from "@/lib/playbook";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const back = (qs: string) => redirect(`/app/playbook?${qs}`);
@@ -20,14 +20,14 @@ export async function addStrategy(formData: FormData) {
   if (!allowed) back("error=plan");
   const name = z.string().trim().min(1).max(60).safeParse(formData.get("name"));
   if (!name.success) back("error=name");
-  const ok = await db(async (q) => {
+  const res = await db(async (q) => {
     const [{ n }] = await q<{ n: number }>("select count(*)::int as n from tradenotes.strategies");
-    if (n >= MAX_STRATEGIES) return false;
-    await q("insert into tradenotes.strategies (user_id, name) values ($1, $2) on conflict (user_id, name) do nothing", [user.id, name.data!]);
-    return true;
+    if (n >= MAX_STRATEGIES) return "cap" as const;
+    const made = await q("insert into tradenotes.strategies (user_id, name) values ($1, $2) on conflict (user_id, name) do nothing returning id", [user.id, name.data!]);
+    return made.length ? ("ok" as const) : ("exists" as const);
   });
   revalidatePath("/app/playbook");
-  back(ok ? "ok=strategy" : "error=strategies");
+  back(res === "ok" ? "ok=strategy" : res === "exists" ? "error=exists" : "error=strategies");
 }
 
 export async function addItem(formData: FormData) {
@@ -41,11 +41,13 @@ export async function addItem(formData: FormData) {
     if (!s) return "missing" as const;
     const [{ n, max }] = await q<{ n: number; max: number }>("select count(*) filter (where not archived)::int as n, coalesce(max(position), 0)::int as max from tradenotes.playbook_items where strategy_id = $1", [strategyId]);
     if (n >= MAX_ACTIVE_ITEMS) return "limit" as const;
+    const [{ total }] = await q<{ total: number }>("select count(*)::int as total from tradenotes.playbook_items where strategy_id = $1", [strategyId]);
+    if (total >= MAX_ITEMS_TOTAL) return "total" as const; // the database stops at the same number (retired rules count)
     await q("insert into tradenotes.playbook_items (user_id, strategy_id, text, position) values ($1, $2, $3, $4)", [user.id, strategyId, text.data!, max + 1]);
     return "ok" as const;
   });
   revalidatePath("/app/playbook");
-  back(res === "ok" ? "ok=item" : res === "limit" ? "error=limit" : "error=text");
+  back(res === "ok" ? "ok=item" : res === "limit" ? "error=limit" : res === "total" ? "error=total" : "error=text");
 }
 
 export async function setItemArchived(formData: FormData) {
@@ -61,11 +63,21 @@ export async function setItemArchived(formData: FormData) {
       const [{ n }] = await q<{ n: number }>("select count(*)::int as n from tradenotes.playbook_items where strategy_id = $1 and not archived", [it.strategy_id]);
       if (n >= MAX_ACTIVE_ITEMS) return "limit" as const;
     }
-    await q("update tradenotes.playbook_items set archived = $2 where id = $1", [id, archived]);
-    return "ok" as const;
+    const changed = await q("update tradenotes.playbook_items set archived = $2 where id = $1 returning id", [id, archived]);
+    return changed.length ? ("ok" as const) : ("missing" as const);
   });
   revalidatePath("/app/playbook");
-  back(res === "limit" ? "error=limit" : "ok=archived");
+  back(res === "limit" ? "error=limit" : res === "missing" ? "error=missing" : "ok=archived");
+}
+
+/** Permanently delete a RETIRED rule and its past answers (the only way to free a slot once a strategy holds 80 rules). Allowed on any plan: it is the user's own data. */
+export async function deleteItem(formData: FormData) {
+  const { db } = await getContext();
+  const id = String(formData.get("item_id") ?? "");
+  if (!UUID.test(id)) back("error=missing");
+  const gone = await db((q) => q("delete from tradenotes.playbook_items where id = $1 and archived returning id", [id]));
+  revalidatePath("/app/playbook");
+  back(gone.length ? "ok=deleted" : "error=missing");
 }
 
 /**

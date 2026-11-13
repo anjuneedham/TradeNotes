@@ -62,7 +62,8 @@ const SELECT_HEAD = `
 
 const CHECKS_COLS = ", ck.done as checks_done, ck.total as checks_total";
 const CHECKS_JOIN = `
-  left join lateral (select (count(*) filter (where tc.followed))::int as done, count(*)::int as total from tradenotes.trade_checks tc where tc.trade_id = t.id) ck on true`;
+  left join lateral (select (count(*) filter (where tc.followed))::int as done, count(*)::int as total from tradenotes.trade_checks tc where tc.trade_id = t.id
+    and exists (select 1 from tradenotes.playbook_items pi where pi.id = tc.item_id and pi.strategy_id = t.strategy_id)) ck on true`; // answers for a previous strategy's rules do not count
 export const RESULT_SELECT = SELECT_HEAD.replace("__CHECKS_COLS__", "").replace("__CHECKS_JOIN__", "");
 /** Same query plus the playbook checklist answers per trade (one extra indexed lookup per trade; only analytics needs it). */
 export const RESULT_SELECT_WITH_CHECKS = SELECT_HEAD.replace("__CHECKS_COLS__", CHECKS_COLS).replace("__CHECKS_JOIN__", CHECKS_JOIN);

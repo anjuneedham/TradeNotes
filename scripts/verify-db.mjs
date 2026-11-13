@@ -89,6 +89,7 @@ try {
   const upd1 = await c.query("update tradenotes.reviews set rule_breaks = 'edited' where period = 'day'");
   ok("A can edit own review", upd1.rowCount === 1);
   ok("a user cannot hold more than 2,000 reviews", !(await errors("insert into tradenotes.reviews (user_id, period, period_start) select $1, 'day', date '2000-01-01' + g from generate_series(0, 1996) g", [A])) && (await n("select count(*)::int n from tradenotes.reviews")) === 2000 && (await errors("insert into tradenotes.reviews (user_id, period, period_start) values ($1,'day','1999-01-01')", [A])));
+  ok("editing an existing review still works when the user is at the 2,000 limit (upsert)", !(await errors("insert into tradenotes.reviews (user_id, period, period_start, went_well) values ($1,'day','2026-11-11','edited at the cap') on conflict (user_id, period, period_start) do update set went_well = excluded.went_well", [A])) && (await n("select count(*)::int n from tradenotes.reviews where went_well = 'edited at the cap'")) === 1);
   await as(B);
   ok("B sees none of A's reviews", (await n("select count(*)::int n from tradenotes.reviews")) === 0);
   ok("B cannot edit or delete A's reviews", (await c.query("update tradenotes.reviews set went_well = 'hacked'")).rowCount === 0 && (await c.query("delete from tradenotes.reviews")).rowCount === 0);

@@ -17,10 +17,10 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 export const shortDate = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 /** Trim trailing zeros from DB numerics for display (1.08500000 -> 1.085). */
 export const plain = (v: number | string | null | undefined) => (v === null || v === undefined || v === "" ? "—" : String(Number(v)));
-/** Short money for tight cells: 1,234 -> 1.2k, 1,500,000 -> 1.5M, always with a sign (+ or −), no currency symbol. */
+/** Short money for tight cells: 1,234 -> +1.2k, 999,600 -> +1M, always with a sign (+ or −), no currency symbol. The unit is chosen AFTER rounding. */
 export const signedCompact = (n: number) => {
   const a = Math.abs(n), sign = n > 0 ? "+" : n < 0 ? "−" : "";
-  const body = a >= 1e6 ? `${(a / 1e6).toFixed(a >= 1e7 ? 0 : 1)}M` : a >= 1e4 ? `${(a / 1e3).toFixed(0)}k` : a >= 1e3 ? `${(a / 1e3).toFixed(1)}k` : a >= 100 ? a.toFixed(0) : a.toFixed(a === 0 ? 0 : 1);
-  const out = body.replace(".0", "");
-  return out === "0" ? "0" : `${sign}${out}`;
+  const t = (v: number, d: number) => String(Number(v.toFixed(d))); // drops trailing zeros: 1.0 -> "1"
+  const body = a >= 999500 ? `${t(a / 1e6, a >= 9.95e6 ? 0 : 1)}M` : a >= 999.5 ? `${t(a / 1e3, a >= 9950 ? 0 : 1)}k` : a >= 100 ? t(a, 0) : t(a, 1);
+  return body === "0" ? "0" : `${sign}${body}`;
 };

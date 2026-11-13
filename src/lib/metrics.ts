@@ -93,6 +93,9 @@ export interface Summary {
   avgLoss: number | null; // negative number
   /** gross profit of winners / |gross loss of losers| (net of fees). null if no losers. */
   profitFactor: number | null;
+  /** the two sums behind profitFactor (net of fees): winners' total, and losers' total as a negative number */
+  grossProfit: number;
+  grossLoss: number;
   /** netPnl / tradeCount */
   expectancy: number | null;
   avgR: number | null;
@@ -172,6 +175,8 @@ export function summarizeResults(input: readonly TradeResult[], excluded: Record
     avgWin: winners.length ? round(grossWin / winners.length) : null,
     avgLoss: losers.length ? round(grossLoss / losers.length) : null,
     profitFactor: losers.length ? grossWin / Math.abs(grossLoss) : null,
+    grossProfit: round(grossWin),
+    grossLoss: round(grossLoss),
     expectancy: n ? round(netPnl / n) : null,
     avgR: withR.length ? sum(withR.map((r) => r.r as number)) / withR.length : null,
     rCoverage: { withR: withR.length, total: n },

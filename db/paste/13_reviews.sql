@@ -28,10 +28,23 @@ do $$ begin
   end if;
 end $$;
 
+-- Rows written before this constraint existed (there was no UI, so normally none) are moved to the start of their period where that does not collide
+-- with another row, so they stay editable (the NOT VALID constraint above is still checked when a row is updated).
+update tradenotes.reviews r set period_start = (r.period_start - (extract(isodow from r.period_start)::int - 1))
+ where r.period = 'week' and extract(isodow from r.period_start) <> 1
+   and not exists (select 1 from tradenotes.reviews o where o.user_id = r.user_id and o.period = 'week' and o.period_start = (r.period_start - (extract(isodow from r.period_start)::int - 1)));
+update tradenotes.reviews r set period_start = date_trunc('month', r.period_start)::date
+ where r.period = 'month' and extract(day from r.period_start) <> 1
+   and not exists (select 1 from tradenotes.reviews o where o.user_id = r.user_id and o.period = 'month' and o.period_start = date_trunc('month', r.period_start)::date);
+
 create index if not exists reviews_user_start_idx on tradenotes.reviews (user_id, period_start desc);
 
 create or replace function tradenotes.check_review_cap() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
+  -- An upsert that edits an existing review fires this INSERT trigger first: never count that against the cap.
+  if exists (select 1 from tradenotes.reviews where user_id = new.user_id and period = new.period and period_start = new.period_start) then
+    return new;
+  end if;
   if (select count(*) from tradenotes.reviews where user_id = new.user_id) >= 2000 then
     raise exception 'review limit reached';
   end if;
