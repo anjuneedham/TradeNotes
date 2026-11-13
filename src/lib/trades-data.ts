@@ -9,23 +9,33 @@ import { toTradeInputs, type TradeRow, type ExitRow } from "./trade-schema";
  */
 export interface StatRow extends TradeRow {
   symbol: string; session: string | null; strategy_name: string | null; opened_at: string;
-  mistakes: string[] | null; emotions: string[] | null; exits: ExitRow[];
+  mistakes: string[] | null; emotions: string[] | null; exits: ExitRow[]; account_id: string; account_currency: string;
 }
 export type Ext = TradeInput & { symbol: string; session: string | null; strategy: string | null; openedAt: string; mistakes: string[]; emotions: string[] };
 
 export const TRADE_LIMIT = 10000;
 
-export async function loadTrades(db: <T>(fn: (q: Q) => Promise<T>) => Promise<T>): Promise<{ rows: StatRow[]; truncated: boolean }> {
+export async function loadTrades(db: <T>(fn: (q: Q) => Promise<T>) => Promise<T>, accountIds: string[] | null = null): Promise<{ rows: StatRow[]; truncated: boolean }> {
   const all = await db((q) => q<StatRow>(
     `select t.id, t.side, t.quantity, t.entry_price, t.fees, t.multiplier, t.initial_risk, t.currency, t.fx_to_account, t.closed_at, t.opened_at, t.symbol, t.session, t.mistakes, t.emotions, s.name as strategy_name,
+       t.account_id, a.currency as account_currency,
        coalesce((select json_agg(json_build_object('trade_id', e.trade_id, 'quantity', e.quantity, 'price', e.price)) from tradenotes.trade_exits e where e.trade_id = t.id), '[]'::json) as exits
-     from tradenotes.trades t left join tradenotes.strategies s on s.id = t.strategy_id order by t.opened_at limit ${TRADE_LIMIT + 1}`));
+     from tradenotes.trades t join tradenotes.accounts a on a.id = t.account_id left join tradenotes.strategies s on s.id = t.strategy_id
+     where ($1::uuid[] is null or t.account_id = any($1)) order by t.opened_at limit ${TRADE_LIMIT + 1}`, [accountIds]));
   const truncated = all.length > TRADE_LIMIT;
   return { rows: truncated ? all.slice(0, TRADE_LIMIT) : all, truncated };
 }
 
-export function toExt(rows: StatRow[], accountCurrency: string): Ext[] {
-  const inputs = toTradeInputs(rows, rows.flatMap((r) => r.exits), accountCurrency);
+/**
+ * Rows -> metrics input in the display currency. A trade whose own account uses a different currency cannot be converted
+ * (no FX source), so it is marked as needing a rate and excluded with a disclosure rather than silently mixed.
+ */
+export function toExt(rows: StatRow[], displayCurrency: string): Ext[] {
+  const inputs = rows.map((r) => {
+    const own = r.account_currency ?? displayCurrency;
+    const t = toTradeInputs([r], r.exits, own)[0];
+    return own === displayCurrency ? t : { ...t, sameCurrencyAsAccount: false, fxToAccount: null };
+  });
   return inputs.map((t, i) => ({ ...t, symbol: rows[i].symbol, session: rows[i].session, strategy: rows[i].strategy_name, openedAt: rows[i].opened_at, mistakes: rows[i].mistakes ?? [], emotions: rows[i].emotions ?? [] }));
 }
 

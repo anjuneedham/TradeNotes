@@ -16,7 +16,7 @@ const NAV = [
 const isActive = (path: string, href: string) => (href === "/app" ? path === "/app" : path === href || path.startsWith(href + "/"));
 
 /** App chrome: sidebar on desktop, top bar + bottom tab bar on mobile. Hidden during onboarding so nothing competes with setup. */
-export function AppNav({ logout, children }: { logout: ReactNode; children: ReactNode }) {
+export function AppNav({ logout, switcher, children }: { logout: ReactNode; switcher?: ReactNode; children: ReactNode }) {
   const path = usePathname();
   const onboarding = path.startsWith("/app/onboarding");
   // Billing lives under Settings in the IA, so it highlights Settings.
@@ -38,6 +38,7 @@ export function AppNav({ logout, children }: { logout: ReactNode; children: Reac
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-border bg-panel px-3 py-4 md:flex">
         <div className="px-2"><Logo href="/app" /></div>
+        {switcher && <div className="mt-4 px-1">{switcher}</div>}
         <Link href="/app/journal/new" className="mt-5 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md bg-fg px-3 text-sm font-medium text-bg hover:opacity-90">
           <span aria-hidden="true">+</span> Log trade
         </Link>
@@ -50,6 +51,7 @@ export function AppNav({ logout, children }: { logout: ReactNode; children: Reac
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-3 text-sm">
+          <Link href="/app/accounts" aria-current={active("/app/accounts") ? "page" : undefined} className="rounded-md px-2.5 py-2 text-muted hover:bg-raised/60 hover:text-fg">Accounts</Link>
           <Link href="/learn" className="rounded-md px-2.5 py-2 text-muted hover:bg-raised/60 hover:text-fg">Metric guide</Link>
           {logout}
         </div>
@@ -59,7 +61,7 @@ export function AppNav({ logout, children }: { logout: ReactNode; children: Reac
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex h-13 items-center justify-between border-b border-border bg-bg/95 px-4 py-2.5 backdrop-blur md:hidden">
           <Logo href="/app" />
-          <Link href="/learn" className="rounded px-2 py-1.5 text-sm text-muted hover:text-fg">Metric guide</Link>
+          {switcher ?? <Link href="/learn" className="rounded px-2 py-1.5 text-sm text-muted hover:text-fg">Metric guide</Link>}
         </header>
 
         <main id="main" className="mx-auto max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-16 md:pt-8">{children}</main>

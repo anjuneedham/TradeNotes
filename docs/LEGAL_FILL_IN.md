@@ -21,3 +21,8 @@ Pages (`/legal/terms`, `/legal/privacy`, `/legal/disclaimer`) are rendered from 
 Providers: Supabase (database, US), Vercel (hosting/logs, US), Resend (email), Handypay (payments). Cookies: `better-auth.session_token`, `tn_src` (30 days). No advertising cookies. Vercel Web Analytics (cookieless) counts visits. We store IP + user agent with sessions. 18+ only. Plans are activated manually after payment confirmation (we "aim for one business day"). Liability cap = fees paid in prior 12 months (**counsel should review**).
 ## Still to do outside the code
 Register as a data controller with the Jamaican Information Commissioner (see LEGAL_REQUIREMENTS.md); confirm who is merchant of record / owes sales tax with Handypay; trademark check on "TradeNotes".
+## Added 2026-11-12 (journal feature build, phase 1) — owner to review
+- **New data category: trade screenshots** (paid plans). Stored in Supabase Storage on the existing TradeNotes Supabase project (US), private bucket `trade-screenshots`, viewed only via signed links that expire in 2 minutes; EXIF/GPS metadata stripped on upload. Deleted with the trade, the trading account, an import roll-back, or the user account. Not included in the CSV export (stated on the Settings page and in the Privacy Policy).
+- **Imported files**: read once; only resulting trades, file name and counts are kept.
+- **New setting: time zone** (`profiles.timezone`). **New cookie: `tn_acct`** (selected trading account, 1 year, only after switching).
+- Privacy Policy sections 2, 4, 5, 6, 7 updated accordingly. No change to `src/lib/legal.ts` facts. Counsel review still outstanding.

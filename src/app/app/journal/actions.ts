@@ -6,6 +6,7 @@ import { tradeFormSchema, exitsOf, plannedRisk, defaultMultiplier, type TradeFor
 import { canAddTrade } from "@/lib/entitlements";
 import { PLANS } from "@/lib/plans";
 import type { Q } from "@/lib/db";
+import { removeObjects } from "@/lib/storage/cleanup";
 
 /** `code: "limit"` marks a plan-limit refusal so the form can show an upgrade path instead of a generic error. */
 export interface FormState { errors?: Record<string, string>; message?: string; values?: Record<string, string>; code?: "limit" }
@@ -48,7 +49,7 @@ function columns(p: Ok, stratId: string | null): [string, unknown][] {
   return [
     ["account_id", d.account_id], ["strategy_id", stratId], ["symbol", d.symbol], ["asset_class", d.asset_class], ["side", d.side],
     ["quantity", d.quantity], ["entry_price", d.entry_price], ["stop_price", d.stop_price ?? null], ["target_price", d.target_price ?? null],
-    ["multiplier", d.multiplier ?? defaultMultiplier(d.asset_class)], ["fees", d.fees ?? 0], ["initial_risk", plannedRisk(d, fx)],
+    ["multiplier", d.multiplier ?? defaultMultiplier(d.asset_class, d.symbol)], ["fees", d.fees ?? 0], ["initial_risk", plannedRisk(d, fx)],
     ["currency", currency], ["fx_to_account", foreign ? fx : null], ["opened_at", new Date(d.opened_at).toISOString()], ["closed_at", closedAt],
     ["timeframe", d.timeframe ?? null], ["session", d.session ?? null], ["pre_trade_notes", d.pre_trade_notes ?? null],
     ["post_trade_notes", d.post_trade_notes ?? null], ["lessons", d.lessons ?? null], ["emotions", d.emotions], ["mistakes", d.mistakes],
@@ -124,7 +125,13 @@ export async function updateTrade(_prev: FormState, formData: FormData): Promise
 export async function deleteTrade(formData: FormData) {
   const { db } = await getContext();
   const id = String(formData.get("id") ?? "");
-  if (UUID.test(id)) await db((q) => q("delete from tradenotes.trades where id = $1", [id])); // RLS: only own rows match
+  // RLS: only own rows match. Screenshot rows cascade; their files are then removed from storage.
+  const paths = UUID.test(id) ? await db(async (q) => {
+    const p = (await q<{ storage_path: string }>("select storage_path from tradenotes.trade_screenshots where trade_id = $1", [id])).map((r) => r.storage_path);
+    await q("delete from tradenotes.trades where id = $1", [id]);
+    return p;
+  }) : [];
+  await removeObjects(paths);
   revalidatePath("/app", "layout");
   redirect("/app/journal?deleted=1");
 }

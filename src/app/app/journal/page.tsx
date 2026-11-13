@@ -9,11 +9,11 @@ import { signedMoney, signedR, pnlClass, dateTime, plain } from "@/lib/format";
 
 export const metadata = { title: "Journal — TradeNotes" };
 const PAGE = 25;
-interface JournalRow extends TradeRow { symbol: string; opened_at: string; mistakes: string[] | null; strategy_name: string | null; exits: ExitRow[] }
+interface JournalRow extends TradeRow { symbol: string; opened_at: string; mistakes: string[] | null; strategy_name: string | null; exits: ExitRow[]; account_currency: string; account_name: string }
 
 export default async function Journal({ searchParams }: { searchParams: Promise<{ q?: string; side?: string; status?: string; page?: string; saved?: string; deleted?: string }> }) {
   const sp = await searchParams;
-  const { db, accounts } = await getContext();
+  const { db, scope } = await getContext();
   const page = Math.max(1, Number(sp.page) || 1);
   const search = (sp.q ?? "").replace(/[^A-Za-z0-9._-]/g, "").toUpperCase() || null;
   const side = sp.side === "long" || sp.side === "short" ? sp.side : null;
@@ -21,18 +21,19 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
   // "Open" matches the metrics engine: exited quantity is less than the position size (so partial exits count as open).
   const exited = "coalesce((select sum(e.quantity) from tradenotes.trade_exits e where e.trade_id = t.id), 0)";
   const where = `where ($1::text is null or t.symbol ilike '%' || $1 || '%') and ($2::text is null or t.side = $2)
-    and ($3::text is null or ($3 = 'open' and ${exited} < t.quantity) or ($3 = 'closed' and ${exited} >= t.quantity))`;
+    and ($3::text is null or ($3 = 'open' and ${exited} < t.quantity) or ($3 = 'closed' and ${exited} >= t.quantity))
+    and ($4::uuid[] is null or t.account_id = any($4))`;
   const { rows, count } = await db(async (q) => ({
     rows: await q<JournalRow>(
-      `select t.id, t.symbol, t.side, t.quantity, t.entry_price, t.fees, t.multiplier, t.initial_risk, t.currency, t.fx_to_account, t.closed_at, t.opened_at, t.mistakes, s.name as strategy_name,
+      `select t.id, t.symbol, t.side, t.quantity, t.entry_price, t.fees, t.multiplier, t.initial_risk, t.currency, t.fx_to_account, t.closed_at, t.opened_at, t.mistakes, s.name as strategy_name, a.currency as account_currency, a.name as account_name,
          coalesce((select json_agg(json_build_object('trade_id', e.trade_id, 'quantity', e.quantity, 'price', e.price)) from tradenotes.trade_exits e where e.trade_id = t.id), '[]'::json) as exits
-       from tradenotes.trades t left join tradenotes.strategies s on s.id = t.strategy_id ${where} order by t.opened_at desc limit $4 offset $5`,
-      [search, side, status, PAGE, (page - 1) * PAGE]),
-    count: (await q<{ n: number }>(`select count(*)::int as n from tradenotes.trades t ${where}`, [search, side, status]))[0].n,
+       from tradenotes.trades t join tradenotes.accounts a on a.id = t.account_id left join tradenotes.strategies s on s.id = t.strategy_id ${where} order by t.opened_at desc limit $5 offset $6`,
+      [search, side, status, scope.accountIds, PAGE, (page - 1) * PAGE]),
+    count: (await q<{ n: number }>(`select count(*)::int as n from tradenotes.trades t ${where}`, [search, side, status, scope.accountIds]))[0].n,
   }));
-  const cur = accounts[0]?.currency ?? "USD";
-  const inputs = toTradeInputs(rows, rows.flatMap((r) => r.exits), cur);
-  const results = new Map(inputs.map((t) => [t.id, evaluateTrade(t)]));
+  // Each trade is shown in its own account's currency.
+  const results = new Map(rows.map((r) => [r.id, evaluateTrade(toTradeInputs([r], r.exits, r.account_currency)[0])]));
+  const curOf = new Map(rows.map((r) => [r.id, r.account_currency]));
   const pages = Math.max(1, Math.ceil(count / PAGE));
   const filtered = Boolean(sp.q || side || status);
   const link = (p: number) => `/app/journal?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(side ? { side } : {}), ...(status ? { status } : {}), page: String(p) })}`;
@@ -40,7 +41,7 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
   const view = rows.map((r) => {
     const res = results.get(r.id);
     const closed = res && typeof res !== "string" ? res : null;
-    return { r, closed, pnlText: closed ? signedMoney(closed.netPnl, cur) : res === "missing_fx" ? "Needs FX rate" : "Open", pnlCls: closed ? pnlClass(closed.netPnl) : "text-muted" };
+    return { r, closed, pnlText: closed ? signedMoney(closed.netPnl, curOf.get(r.id)!) : res === "missing_fx" ? "Needs FX rate" : "Open", pnlCls: closed ? pnlClass(closed.netPnl) : "text-muted" };
   });
 
   return (

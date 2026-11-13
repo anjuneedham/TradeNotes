@@ -1,0 +1,6 @@
+Name,Symbol,Side,Status,Filled,Total Qty,Price,Avg Price,Time-in-Force,Placed Time,Filled Time
+Apple Inc,AAPL,Buy,Filled,20,20,@190.00,190.00,DAY,11/03/2025 09:30:00 EST,11/03/2025 09:30:01 EST
+Apple Inc,AAPL,Sell,Filled,20,20,@191.50,191.50,DAY,11/03/2025 09:59:00 EST,11/03/2025 10:00:00 EST
+Tesla Inc,TSLA,Sell,Filled,5,5,@250.00,250.00,DAY,11/04/2025 10:00:00 EST,11/04/2025 10:00:00 EST
+Tesla Inc,TSLA,Buy,Filled,5,5,@255.00,255.00,DAY,11/04/2025 11:00:00 EST,11/04/2025 11:00:00 EST
+Tesla Inc,TSLA,Buy,Cancelled,0,5,@240.00,,DAY,11/04/2025 11:00:00 EST,,

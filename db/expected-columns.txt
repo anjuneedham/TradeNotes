@@ -43,6 +43,16 @@ tradenotes.accounts.id|uuid|NO|||
 tradenotes.accounts.name|text|NO|||
 tradenotes.accounts.starting_balance|numeric|NO|18|2|
 tradenotes.accounts.user_id|uuid|NO|||
+tradenotes.affiliates.code|text|NO|||
+tradenotes.affiliates.commission_pct|integer|NO|32|0|
+tradenotes.affiliates.created_at|timestamp with time zone|NO|||
+tradenotes.affiliates.dashboard_token|text|NO|||
+tradenotes.affiliates.email|text|NO|||
+tradenotes.affiliates.id|uuid|NO|||
+tradenotes.affiliates.name|text|NO|||
+tradenotes.affiliates.notes|text|YES|||
+tradenotes.affiliates.payout_details|text|YES|||
+tradenotes.affiliates.status|text|NO|||
 tradenotes.audit_log.action|text|NO|||
 tradenotes.audit_log.created_at|timestamp with time zone|NO|||
 tradenotes.audit_log.detail|jsonb|YES|||
@@ -57,10 +67,22 @@ tradenotes.billing_events.provider|text|NO|||
 tradenotes.billing_events.received_at|timestamp with time zone|NO|||
 tradenotes.billing_events.type|text|NO|||
 tradenotes.billing_events.user_id|uuid|YES|||
+tradenotes.commissions.affiliate_id|uuid|NO|||
+tradenotes.commissions.base_cents|integer|NO|32|0|
+tradenotes.commissions.commission_cents|integer|NO|32|0|
+tradenotes.commissions.created_at|timestamp with time zone|NO|||
+tradenotes.commissions.id|uuid|NO|||
+tradenotes.commissions.paid_at|timestamp with time zone|YES|||
+tradenotes.commissions.payable_after|timestamp with time zone|NO|||
+tradenotes.commissions.payment_id|text|NO|||
+tradenotes.commissions.payout_ref|text|YES|||
+tradenotes.commissions.status|text|NO|||
+tradenotes.commissions.user_id|uuid|YES|||
 tradenotes.imports.account_id|uuid|NO|||
 tradenotes.imports.created_at|timestamp with time zone|NO|||
 tradenotes.imports.file_name|text|YES|||
 tradenotes.imports.id|uuid|NO|||
+tradenotes.imports.preset|text|YES|||
 tradenotes.imports.rows_failed|integer|NO|32|0|
 tradenotes.imports.rows_imported|integer|NO|32|0|
 tradenotes.imports.rows_skipped_duplicate|integer|NO|32|0|
@@ -87,9 +109,15 @@ tradenotes.profiles.markets|ARRAY|YES|||
 tradenotes.profiles.onboarding_completed_at|timestamp with time zone|YES|||
 tradenotes.profiles.preferred_timeframe|text|YES|||
 tradenotes.profiles.primary_market|text|YES|||
+tradenotes.profiles.shot_window_count|integer|NO|32|0|
+tradenotes.profiles.shot_window_start|timestamp with time zone|YES|||
 tradenotes.profiles.show_explanations|boolean|NO|||
 tradenotes.profiles.signup_source|text|YES|||
+tradenotes.profiles.timezone|text|NO|||
 tradenotes.profiles.trading_style|text|YES|||
+tradenotes.referrals.affiliate_id|uuid|NO|||
+tradenotes.referrals.created_at|timestamp with time zone|NO|||
+tradenotes.referrals.user_id|uuid|NO|||
 tradenotes.reviews.created_at|timestamp with time zone|NO|||
 tradenotes.reviews.focus_next|text|YES|||
 tradenotes.reviews.id|uuid|NO|||
@@ -104,6 +132,7 @@ tradenotes.strategies.id|uuid|NO|||
 tradenotes.strategies.name|text|NO|||
 tradenotes.strategies.rules|text|YES|||
 tradenotes.strategies.user_id|uuid|NO|||
+tradenotes.subscriptions.billing_interval|text|NO|||
 tradenotes.subscriptions.cancel_at_period_end|boolean|NO|||
 tradenotes.subscriptions.canceled_at|timestamp with time zone|YES|||
 tradenotes.subscriptions.current_period_end|timestamp with time zone|YES|||
@@ -127,8 +156,10 @@ tradenotes.trade_exits.quantity|numeric|NO|20|8|
 tradenotes.trade_exits.trade_id|uuid|NO|||
 tradenotes.trade_exits.user_id|uuid|NO|||
 tradenotes.trade_screenshots.caption|text|YES|||
+tradenotes.trade_screenshots.content_type|text|NO|||
 tradenotes.trade_screenshots.created_at|timestamp with time zone|NO|||
 tradenotes.trade_screenshots.id|uuid|NO|||
+tradenotes.trade_screenshots.size_bytes|integer|NO|32|0|
 tradenotes.trade_screenshots.storage_path|text|NO|||
 tradenotes.trade_screenshots.trade_id|uuid|NO|||
 tradenotes.trade_screenshots.user_id|uuid|NO|||
@@ -163,28 +194,3 @@ tradenotes.trades.target_price|numeric|YES|20|8|
 tradenotes.trades.timeframe|text|YES|||
 tradenotes.trades.updated_at|timestamp with time zone|NO|||
 tradenotes.trades.user_id|uuid|NO|||
-tradenotes.affiliates.code|text|NO|||
-tradenotes.affiliates.commission_pct|integer|NO|32|0|
-tradenotes.affiliates.created_at|timestamp with time zone|NO|||
-tradenotes.affiliates.dashboard_token|text|NO|||
-tradenotes.affiliates.email|text|NO|||
-tradenotes.affiliates.id|uuid|NO|||
-tradenotes.affiliates.name|text|NO|||
-tradenotes.affiliates.notes|text|YES|||
-tradenotes.affiliates.payout_details|text|YES|||
-tradenotes.affiliates.status|text|NO|||
-tradenotes.commissions.affiliate_id|uuid|NO|||
-tradenotes.commissions.base_cents|integer|NO|32|0|
-tradenotes.commissions.commission_cents|integer|NO|32|0|
-tradenotes.commissions.created_at|timestamp with time zone|NO|||
-tradenotes.commissions.id|uuid|NO|||
-tradenotes.commissions.paid_at|timestamp with time zone|YES|||
-tradenotes.commissions.payable_after|timestamp with time zone|NO|||
-tradenotes.commissions.payment_id|text|NO|||
-tradenotes.commissions.payout_ref|text|YES|||
-tradenotes.commissions.status|text|NO|||
-tradenotes.commissions.user_id|uuid|YES|||
-tradenotes.referrals.affiliate_id|uuid|NO|||
-tradenotes.referrals.created_at|timestamp with time zone|NO|||
-tradenotes.referrals.user_id|uuid|NO|||
-tradenotes.subscriptions.billing_interval|text|NO|||

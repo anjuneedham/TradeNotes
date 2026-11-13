@@ -7,7 +7,7 @@ import { Notice, PageHeader, btnCls, btnGhostCls, linkCls } from "@/components/u
 
 export const metadata = { title: "Log a trade — TradeNotes" };
 export default async function NewTrade() {
-  const { db, accounts, profile, plan } = await getContext();
+  const { db, accounts, profile, plan, scope } = await getContext();
   const market = profile?.primary_market === "stocks" ? "stock" : profile?.primary_market === "options" ? "option" : profile?.primary_market === "futures" ? "future" : profile?.primary_market ?? "forex";
   // Presentation only: the limit itself is enforced inside the createTrade transaction.
   const limit = PLANS[plan].tradeLimit;
@@ -30,7 +30,7 @@ export default async function NewTrade() {
         {left !== null && limit !== null && left <= Math.max(5, Math.round(limit * 0.1)) && (
           <Notice>{left} of {limit.toLocaleString("en-US")} trades left on the {PLANS[plan].name} plan. <Link href="/app/billing" className={linkCls}>See plans</Link></Notice>
         )}
-        <TradeForm accounts={accounts} defaultAsset={market} />
+        <TradeForm defaultAccount={scope.id === "all" ? undefined : scope.id} accounts={accounts} defaultAsset={market} />
       </>)}
     </div>
   );

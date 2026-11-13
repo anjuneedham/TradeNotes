@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PLANS } from "@/lib/plans";
 import { pageMeta, jsonLd, SITE_URL } from "@/lib/seo";
 import { LEGAL } from "@/lib/legal";
-import { PLAN_ORDER, planHeadline } from "@/lib/plan-features";
+import { PLAN_ORDER, planHeadline, paidAddsText, screenshotsLive } from "@/lib/plan-features";
 import { summarize, type TradeInput } from "@/lib/metrics";
 import { signedMoney, pct, num, pnlClass } from "@/lib/format";
 import { Stat } from "@/components/stats";
@@ -30,7 +30,7 @@ const built: [string, string][] = [
   ["A review list", "Open trades, your largest loss and your costliest mistake, surfaced on the dashboard."],
   ["Explanations you can switch off", "Every figure links to a plain-English guide. Experienced traders can hide them."],
 ];
-const dev = ["Trade screenshots", "Calendar view and weekly reviews", "Backtesting with historical replay"];
+const devList = () => [...(screenshotsLive() ? [] : ["Trade screenshots"]), "Calendar view and weekly reviews", "Backtesting with historical replay"];
 
 export const metadata = pageMeta({ title: "TradeNotes — Trading Journal & Performance Analytics", description: "A trading journal that shows where your results come from: log trades, tag mistakes, and track win rate, expectancy and drawdown. Free plan, no card.", path: "/" });
 
@@ -109,7 +109,7 @@ export default function Home() {
         </dl>
         <div className="mt-10 rounded-lg border border-border bg-raised px-5 py-4">
           <p className="text-sm font-medium text-warn">In development — not available yet</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted">{dev.join(" · ")}. We don&apos;t promise dates, and we will say plainly on this site when each one ships.</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted">{devList().join(" · ")}. We don&apos;t promise dates, and we will say plainly on this site when each one ships.</p>
         </div>
       </section>
 
@@ -145,7 +145,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-sm text-muted">Today the paid plans add a higher trade limit and CSV import. Start on Free and move up only if you need the room.</p>
+        <p className="mt-4 text-sm text-muted">Today the paid plans add {paidAddsText()}. Start on Free and move up only if you need the room.</p>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border-strong bg-panel px-5 py-6 sm:px-8">
           <p className="text-lg font-medium tracking-tight">Log your most recent trade. See what it tells you.</p>
           <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>

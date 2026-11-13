@@ -19,13 +19,19 @@ export const FEATURES_NOW: FeatureRow[] = [
   { label: "Dashboard", detail: "Eight core metrics, equity curve, what to review.", cells: all(true) },
   { label: "Analytics breakdowns", detail: "By strategy, instrument, session, direction, weekday, mistake and emotion.", cells: all(true) },
   { label: "Plain-English explanations and metric guide", cells: all(true) },
-  { label: "CSV import", detail: "From any broker or spreadsheet export; duplicates skipped; roll back any import.", cells: { free: false, starter: true, pro: true } },
+  { label: "Broker import", detail: "Recognises MetaTrader 4/5, cTrader, TradingView, Tradovate, NinjaTrader, Thinkorswim, Interactive Brokers, Webull, Binance and Bybit exports, or map any CSV yourself. Time zones, fills grouped into trades, duplicates skipped, roll back any import.", cells: { free: false, starter: true, pro: true } },
+  { label: "Futures, options, forex and crypto specs", detail: "Contract point values, option multipliers, pips and lots handled for you.", cells: all(true) },
+  { label: "Multiple trading accounts", detail: "Switch between accounts or view them combined.", cells: { free: "1", starter: `Up to ${PLANS.starter.accounts}`, pro: `Up to ${PLANS.pro.accounts}` } },
   { label: "Export all your trades (CSV)", cells: all(true) },
 ];
+const SCREENSHOTS: FeatureRow = { label: "Trade screenshots", detail: `Up to 5 per trade, paste from clipboard. Storage: ${PLANS.starter.screenshotQuotaMB} MB on ${PLANS.starter.name}, ${PLANS.pro.screenshotQuotaMB / 1024} GB on ${PLANS.pro.name}.`, cells: { free: false, starter: true, pro: true } };
+/** Screenshots are built and tested, but only "available now" once the owner has configured storage (docs/NEXT_BUILD_BRIEF.md §3c). */
+export const screenshotsLive = () => Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+export const featuresNow = (): FeatureRow[] => (screenshotsLive() ? [...FEATURES_NOW, SCREENSHOTS] : FEATURES_NOW);
+export const featuresDev = (): FeatureRow[] => (screenshotsLive() ? FEATURES_DEV : [SCREENSHOTS, ...FEATURES_DEV]);
+
 export const FEATURES_DEV: FeatureRow[] = [
-  { label: "Trade screenshots", cells: { free: false, starter: true, pro: true } },
   { label: "Calendar view and weekly reviews", cells: { free: false, starter: true, pro: true } },
-  { label: "Multiple trading accounts", cells: { free: false, starter: `Up to ${PLANS.starter.accounts}`, pro: `Up to ${PLANS.pro.accounts}` } },
   { label: "Backtesting with historical replay", cells: { free: false, starter: false, pro: true } },
   { label: "Strategy comparison", cells: { free: false, starter: false, pro: true } },
 ];
@@ -35,3 +41,6 @@ export const PLAN_BLURB: Record<PlanId, string> = {
   pro: "No trade limit, and first access to backtesting when it is released.",
 };
 export const planHeadline = (id: PlanId) => (id === "free" ? `Up to ${limit(id)} trades` : id === "starter" ? `Up to ${limit(id)} trades` : "Unlimited trades");
+
+/** One sentence used by pricing/landing/billing copy, so all three say the same true thing. */
+export const paidAddsText = () => `a higher trade limit, broker import, more trading accounts${screenshotsLive() ? " and trade screenshots" : ""}`;

@@ -1,13 +1,14 @@
 import { z } from "zod";
 import type { TradeInput } from "./metrics";
+import { defaultMultiplierFor } from "./instruments";
 
 export const ASSET_CLASSES = ["forex", "future", "stock", "option", "crypto", "other"] as const;
 export const SESSIONS = ["Asia", "London", "London/NY overlap", "New York", "Other"] as const;
 export const EMOTIONS = ["Calm", "Confident", "Anxious", "FOMO", "Greedy", "Frustrated", "Revenge", "Bored", "Hesitant"] as const;
 export const MISTAKES = ["Entered early", "Entered late", "Moved stop", "No stop loss", "Oversized", "Revenge trade", "Broke rules", "Closed too early", "Held too long", "Chased price"] as const;
 
-/** Default multiplier: forex quantity is in standard lots (1 lot = 100,000 units). */
-export const defaultMultiplier = (a: string) => (a === "forex" ? 100000 : 1);
+/** Default multiplier from instrument specs (forex lot 100,000; options 100; known futures point value). Unknown futures fall back to 1. */
+export const defaultMultiplier = (a: string, symbol = "") => defaultMultiplierFor(a, symbol) ?? 1;
 
 const blank = (v: unknown) => (v === "" || v === null || v === undefined ? undefined : v);
 const optNum = (min = 0, strict = true) =>
@@ -55,6 +56,9 @@ export const tradeFormSchema = z
     if (exited - d.quantity > 1e-9) add("exit1_qty", "Exit sizes add up to more than the position size");
     if (exited > 0 && !d.closed_at) add("closed_at", "Add the exit time");
     if (d.closed_at && new Date(d.closed_at) < new Date(d.opened_at)) add("closed_at", "Exit time is before entry time");
+    if (d.asset_class === "future" && d.multiplier === undefined && defaultMultiplierFor("future", d.symbol) === null) {
+      add("multiplier", "We don't know this contract. Enter its point value (dollars per 1.00 price move), e.g. 50 for ES");
+    }
     if (d.stop_price !== undefined) {
       const wrongSide = d.side === "long" ? d.stop_price >= d.entry_price : d.stop_price <= d.entry_price;
       if (wrongSide) add("stop_price", d.side === "long" ? "For a long, the stop must be below entry" : "For a short, the stop must be above entry");
@@ -75,9 +79,9 @@ export function exitsOf(d: Pick<TradeForm, "quantity" | "exit1_qty" | "exit1_pri
 }
 
 /** Planned risk in ACCOUNT currency = |entry − stop| × size × multiplier × fx. Null when no stop or fx unknown. */
-export function plannedRisk(d: Pick<TradeForm, "entry_price" | "stop_price" | "quantity" | "multiplier" | "asset_class">, fx: number | null): number | null {
+export function plannedRisk(d: Pick<TradeForm, "entry_price" | "stop_price" | "quantity" | "multiplier" | "asset_class"> & { symbol?: string }, fx: number | null): number | null {
   if (d.stop_price === undefined || fx === null) return null;
-  const m = d.multiplier ?? defaultMultiplier(d.asset_class);
+  const m = d.multiplier ?? defaultMultiplier(d.asset_class, d.symbol);
   return Math.round(Math.abs(d.entry_price - d.stop_price) * d.quantity * m * fx * 100) / 100;
 }
 

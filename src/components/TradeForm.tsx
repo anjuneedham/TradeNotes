@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { createTrade, updateTrade, type FormState } from "@/app/app/journal/actions";
 import { ASSET_CLASSES, SESSIONS, EMOTIONS, MISTAKES, defaultMultiplier } from "@/lib/trade-schema";
+import { futuresSpec } from "@/lib/instruments";
 import { Card, Field, Notice, inputCls, btnCls, btnGhostCls } from "./ui";
 
 type Acct = { id: string; name: string; currency: string };
@@ -41,7 +42,7 @@ function Chips({ name, legend, options, picked, toggle }: { name: string; legend
 
 /** `edit` pre-fills the form from a saved trade and submits to updateTrade instead of createTrade. */
 export type TradeInitial = { id: string; values: Record<string, string>; emotions: string[]; mistakes: string[] };
-export default function TradeForm({ accounts, defaultAsset, edit }: { accounts: Acct[]; defaultAsset: string; edit?: TradeInitial }) {
+export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount }: { accounts: Acct[]; defaultAsset: string; edit?: TradeInitial; defaultAccount?: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(edit ? updateTrade : createTrade, {});
   const [asset, setAsset] = useState(edit?.values.asset_class ?? defaultAsset);
   const [side, setSide] = useState<"long" | "short">(edit?.values.side === "short" ? "short" : "long");
@@ -60,14 +61,16 @@ export default function TradeForm({ accounts, defaultAsset, edit }: { accounts: 
   // Live read-out of the plan, in the instrument's quote currency (same formula the server uses, before FX conversion).
   const g = (k: string) => n(live[k] ?? v[k]);
   const entry = g("entry_price"), stop = g("stop_price"), target = g("target_price"), qty = g("quantity"), exit1 = g("exit1_price");
-  const mult = defaultMultiplier(asset);
+  const symbol = (live.symbol ?? v.symbol ?? "").toUpperCase();
+  const spec = asset === "future" ? futuresSpec(symbol) : null;
+  const mult = g("multiplier") ?? defaultMultiplier(asset, symbol);
   const risk = entry && stop && qty ? Math.abs(entry - stop) * qty * mult : null;
   const rr = entry && stop && target && entry !== stop ? Math.abs(target - entry) / Math.abs(entry - stop) : null;
   const gross = entry && exit1 && qty && !g("exit2_price") && !g("exit1_qty") ? (side === "long" ? 1 : -1) * (exit1 - entry) * qty * mult : null;
 
   return (
     <form action={action} className="space-y-4" noValidate={false}
-      onInput={(ev) => { const t = ev.target as HTMLInputElement; if (t.name && t.type === "number") setLive((l) => ({ ...l, [t.name]: t.value })); }}>
+      onInput={(ev) => { const t = ev.target as HTMLInputElement; if (t.name && (t.type === "number" || t.name === "symbol")) setLive((l) => ({ ...l, [t.name]: t.value })); }}>
       {state.code === "limit" ? (
         <Notice kind="warn">
           <p className="font-medium">You&apos;ve reached your plan&apos;s trade limit</p>
@@ -93,13 +96,19 @@ export default function TradeForm({ accounts, defaultAsset, edit }: { accounts: 
         </fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
           {accounts.length > 1
-            ? <Field label="Account"><select name="account_id" defaultValue={v.account_id} className={inputCls}>{accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></Field>
+            ? <Field label="Account"><select name="account_id" defaultValue={v.account_id ?? defaultAccount} className={inputCls}>{accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></Field>
             : <input type="hidden" name="account_id" value={accounts[0]?.id} />}
           <Field label="Market">
             <select name="asset_class" value={asset} onChange={(x) => setAsset(x.target.value)} className={inputCls}>{ASSET_CLASSES.map((a) => <option key={a} value={a}>{ASSET_LABEL[a] ?? a}</option>)}</select>
           </Field>
           <Field label="Instrument" hint={asset === "forex" ? "e.g. EURUSD" : undefined} error={e.symbol}><input name="symbol" defaultValue={v.symbol} required autoCapitalize="characters" autoComplete="off" className={inputCls} {...inv("symbol")} /></Field>
           <Field label={sizeLabel} hint={asset === "forex" ? "1 lot = 100,000 units. Mini = 0.1, micro = 0.01." : undefined} error={e.quantity}><input name="quantity" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.quantity} required className={inputCls} {...inv("quantity")} /></Field>
+          {(asset === "future" || asset === "option" || Boolean(v.multiplier)) && (
+            <Field label={asset === "future" ? "Point value (per contract)" : asset === "option" ? "Contract multiplier" : "Contract size (P&L per 1.00 price move per unit)"} error={e.multiplier}
+              hint={asset !== "future" && asset !== "option" ? "Set from your broker's figures when imported. Leave as is unless you know it's wrong." : asset === "option" ? "Standard equity options: 100. Leave blank for 100." : spec ? `${spec.name}: $${spec.pointValue.toLocaleString("en-US")} per point (tick ${spec.tickSize} = $${spec.tickValue}). Leave blank to use this.` : "Dollars per 1.00 price move, e.g. ES 50, NQ 20, CL 1000."}>
+              <input name="multiplier" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.multiplier} className={inputCls} {...inv("multiplier")} />
+            </Field>
+          )}
           <Field label="Entry price" error={e.entry_price}><input name="entry_price" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.entry_price} required className={inputCls} {...inv("entry_price")} /></Field>
           <Field label="Entry time" hint="Stored and reported in UTC." error={e.opened_at}><input name="opened_at" type="datetime-local" defaultValue={v.opened_at ?? nowLocal()} required className={inputCls} {...inv("opened_at")} /></Field>
           <Field label="Fees / commission / swap" hint="Total, in the quote currency. Leave blank for none." error={e.fees}><input name="fees" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.fees} className={inputCls} {...inv("fees")} /></Field>

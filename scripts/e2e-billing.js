@@ -161,13 +161,13 @@ mock.listen(9998, '127.0.0.1', async () => {
       'BAD,hold,0,0,1,notadate,,\n';
     const upload = async () => {
       await A.p.goto(BASE + '/app/import');
-      await A.p.getByLabel('CSV file').setInputFiles({ name: 'broker.csv', mimeType: 'text/csv', buffer: Buffer.from(csvText) });
-      await A.p.getByText('Ready to import').waitFor({ timeout: 8000 });
+      await A.p.getByLabel('Trade history file').setInputFiles({ name: 'broker.csv', mimeType: 'text/csv', buffer: Buffer.from(csvText) });
+      await A.p.getByText('Trades ready').waitFor({ timeout: 8000 });
       await A.p.getByLabel('Market').selectOption('stock');
     };
     await upload();
     const pv = await A.p.locator('main').innerText();
-    check('import preview: 2 ready, 1 problem row, 1 duplicate in file', /Ready to import\s*2/.test(pv) && /Rows with problems\s*1/.test(pv) && /Duplicates in file\s*1/.test(pv), pv.slice(0, 400));
+    check('import preview: 2 ready, 1 problem row, 1 duplicate in file', /Trades ready\s*2/.test(pv) && /Rows with problems\s*1/.test(pv) && /1 duplicate row\(s\) in the file were skipped/.test(pv), pv.slice(0, 400));
     await A.p.getByRole('button', { name: 'Import 2 trades' }).click();
     await A.p.waitForURL('**/app/import?done=*', { timeout: 15000 });
     await A.p.getByText(/^Imported \d+ trade/).waitFor({ timeout: 10000 }).catch(() => {});
@@ -187,7 +187,7 @@ mock.listen(9998, '127.0.0.1', async () => {
     check('rolling back an import removes its trades', (await db.query("select count(*)::int n from tradenotes.trades where user_id=$1 and import_id is not null", [A.id])).rows[0].n === 0);
     await B.p.goto(BASE + '/app/import');
     const bi = await B.p.locator('main').innerText();
-    check('Free user sees the plan gate, no upload form', /CSV import is part of Standard and Premium/.test(bi) && (await B.p.getByLabel('CSV file').count()) === 0);
+    check('Free user sees the plan gate, no upload form', /Broker import is part of Standard and Premium/.test(bi) && (await B.p.getByLabel('Trade history file').count()) === 0);
     // --- isolation: B
     await B.p.goto(BASE + '/app/billing');
     const bb = await B.p.locator('main').innerText();
