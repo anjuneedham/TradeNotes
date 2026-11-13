@@ -26,3 +26,10 @@ Register as a data controller with the Jamaican Information Commissioner (see LE
 - **Imported files**: read once; only resulting trades, file name and counts are kept.
 - **New setting: time zone** (`profiles.timezone`). **New cookie: `tn_acct`** (selected trading account, 1 year, only after switching).
 - Privacy Policy sections 2, 4, 5, 6, 7 updated accordingly. No change to `src/lib/legal.ts` facts. Counsel review still outstanding.
+
+## Added 2026-11-13 (journal feature build, phase 2) — owner to review
+- **New data categories (free text and answers written by the user):** (1) **reviews** (daily/weekly/monthly; five free-text answers plus a snapshot of summary figures taken when saved; paid plans, existing ones stay readable after a downgrade), (2) **playbook** (checklist rules per strategy, up to 200 characters each, and per-trade answers "followed / not followed"; paid plans). Same Supabase database and provider as the rest of the journal; no new provider, no new cookie.
+- **Deletion:** removed with the user account (database cascade; tested). Deleting a strategy-less trade or a retired rule does not delete past answers. A review can be deleted by the user on any plan.
+- **Export:** the CSV export still contains trades only. Reviews, playbook rules/answers and screenshots are NOT in it (stated in the Privacy Policy sections 2, 6 and 7 and on the pricing page). If counsel or the Jamaican regulator expects a complete export, add them in a later phase.
+- **Reminder emails for reviews are NOT built** (no free scheduler confirmed by the owner); no new email category.
+- Privacy Policy sections 2, 6, 7 updated. No change to `src/lib/legal.ts` facts. Counsel review still outstanding.

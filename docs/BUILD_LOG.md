@@ -31,11 +31,11 @@ The branch name is the one this session was assigned (the owner's prompt said `p
 |---|---|---|---|
 | 1 | Filter bar + `src/lib/filters.ts` | URL state, invalid values ignored, first valid value wins for repeated single params, `tag` may repeat (any-of). Server-rendered GET form (works without JS). Dashboard, analytics, journal, calendar. | DONE (commit pushed; 102/102 e2e) |
 | 2 | SQL aggregation + indexes (`db/paste/12_*.sql`) | SQL does filtering, joins, exit aggregation and the per-trade result (same formula as `evaluateTrade`, equality asserted on a seeded 10,000-trade set). `metrics.ts` keeps every aggregate formula (new `summarizeResults`). No row cap. | DONE (see notes) |
-| 3 | `src/lib/analytics-extra.ts` | R buckets, weekday x hour heatmap (entry time, user zone), hold-time buckets, mistake cost, drawdown with recovery, profit factor + sample warning. MAE/MFE: NOT built (owner has not asked). | todo |
-| 4 | `/app/calendar` | Month grid in user zone, weekly totals, click-through to filtered journal, colour-blind-safe (sign + intensity labels), 390px. Standard and up (tier matrix: "Calendar + weekly review"). | todo |
-| 5 | `/app/reviews` | `13_reviews.sql`: period `month`, template columns, stats snapshot. Standard and up, gated on the server; data stays readable after a downgrade. Reminder emails NOT built (no owner confirmation of a free scheduler). | todo |
-| 6 | Playbook | `playbook_items`, `trade_checks` (new tables: RLS, trigger ownership checks, isolation checks; 20 -> 22 tables). Plan: Standard and up (ASSUMPTION, no tier given in the brief: flagged for the owner). | todo |
-| 7 | Plan copy | FEATURES_DEV -> FEATURES_NOW, PLANS flags, pricing, billing, landing, tests, privacy page + LEGAL_FILL_IN. | todo |
+| 3 | `src/lib/analytics-extra.ts` | R buckets, weekday x hour heatmap (entry time, user zone), hold-time buckets, mistake cost, drawdown with recovery, profit factor + sample warning. MAE/MFE: NOT built (owner has not asked). | DONE |
+| 4 | `/app/calendar` | Month grid in user zone, weekly totals, click-through to filtered journal, colour-blind-safe (sign + intensity labels), 390px. Standard and up (tier matrix: "Calendar + weekly review"). | DONE |
+| 5 | `/app/reviews` | `13_reviews.sql`: period `month`, template columns, stats snapshot. Standard and up, gated on the server; data stays readable after a downgrade. Reminder emails NOT built (no owner confirmation of a free scheduler). | DONE (reminder emails not built) |
+| 6 | Playbook | `playbook_items`, `trade_checks` (new tables: RLS, trigger ownership checks, isolation checks; 20 -> 22 tables). Plan: Standard and up (ASSUMPTION, no tier given in the brief: flagged for the owner). | DONE (plan tier is an assumption) |
+| 7 | Plan copy | FEATURES_DEV -> FEATURES_NOW, PLANS flags, pricing, billing, landing, tests, privacy page + LEGAL_FILL_IN. | DONE |
 | 8 | After the phase | PR, CI, code-review (high), security-review (new tables), plan matrix, 10k timings, `docs/QA_RESULTS_<date>.md`. | todo |
 
 #### Task 2 notes (SQL aggregation), 2026-11-13

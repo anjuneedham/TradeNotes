@@ -102,11 +102,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <div className="space-y-4 text-sm">
           <div>
             <a href="/app/export" className={btnGhostCls} download>Download my trades (CSV)</a>
-            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet. Screenshots are not included in the file; open a trade to view or save its screenshots.</p>
+            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet. Screenshots, reviews and playbook rules are not included in the file: open a trade to view or save its screenshots, and read your reviews and rules on their pages.</p>
           </div>
           <details className="rounded-md border border-border p-3" open={Boolean(deleteError)}>
             <summary className="cursor-pointer font-medium">Delete my account</summary>
-            <p className="mt-2 text-muted">This permanently deletes your account, every trade, note and statistic. It can&apos;t be undone. Download your trades first if you want a copy.{paid ? " Your subscription is cancelled first so you are not charged again." : ""}</p>
+            <p className="mt-2 text-muted">This permanently deletes your account, every trade, note, review, playbook rule and statistic. It can&apos;t be undone. Download your trades first if you want a copy.{paid ? " Your subscription is cancelled first so you are not charged again." : ""}</p>
             {deleteError && <div className="mt-3"><Notice kind="error">{DELETE_ERRORS[deleteError] ?? "Your account was not deleted. Please try again."}</Notice></div>}
             <form action={deleteAccount} className="mt-3 grid gap-3 sm:max-w-sm">
               <label className="text-sm">Type DELETE to confirm<input name="confirm" autoComplete="off" required className={`${inputCls} mt-1`} /></label>
