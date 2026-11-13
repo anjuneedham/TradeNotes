@@ -26,7 +26,7 @@ export function Field({ label, hint, error, children }: { label: string; hint?: 
 }
 
 export function Card({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) {
-  return <div id={id} className={`rounded-lg border border-border bg-panel p-4 sm:p-5 ${className}`}>{children}</div>;
+  return <div id={id} className={`min-w-0 rounded-lg border border-border bg-panel p-4 sm:p-5 ${className}`}>{children}</div>;
 }
 
 /** Inline message. `info` = neutral context, `warn` = needs attention, `error` = something failed, `ok` = confirmation. */

@@ -98,7 +98,7 @@ async function logTrade(page, o) {
   // --- redesigned screens: analytics, trade detail, journal status filter, plan usage, preferences
   await A.goto(BASE + '/app/analytics');
   const an = await A.locator('body').innerText();
-  check('analytics: mistake-tag breakdown shows the tagged trade', an.includes('By mistake tag') && an.includes('Moved stop'));
+  check('analytics: mistake-cost card shows the tagged trade', an.includes('What your mistakes cost') && an.includes('Moved stop'));
   check('analytics: by instrument present', an.includes('By instrument') && an.includes('EURUSD'));
   await A.goto(BASE + '/app?range=30d');
   check('dashboard: date range keeps valid totals or says none', /\$293\.00|No closed trades match these filters/.test(await A.locator('body').innerText()));
@@ -482,6 +482,27 @@ async function phase2(browser, stamp) {
   check('P2 filters: garbage values are ignored (page renders, totals unchanged)', rg.status() === 200 && t.includes('$1,190.00'), String(rg.status()));
   await std.goto(BASE + '/app?side=short&side=long');
   check('P2 filters: repeated single-valued param takes the first valid value (short -> -$500.00)', (await bodyOf(std)).includes('-$500.00'));
+
+  // ---- 3. new analytics (numbers are hand-calculated from the seed above)
+  await std.goto(BASE + '/app/analytics');
+  t = await bodyOf(std);
+  check('P2 analytics: profit factor 3.38 = (1000+590+100) / 500', /Profit factor\s*3\.38/.test(t), t.slice(0, 600));
+  check('P2 analytics: expectancy +$297.50 per trade (1190 / 4)', /Expectancy \/ trade\s*\+\$297\.50/.test(t));
+  check('P2 analytics: longest streaks 2W / 1L', /Longest streaks\s*2W \/ 1L/.test(t));
+  check('P2 analytics: drawdown $500.00, recovered after 1 more trade, now at the high', t.includes('$500.00') && /it took 1 more trade/.test(t) && /at your highest point so far/.test(t), t.slice(0, 800));
+  const rBand = await std.locator('ul[aria-label="Trades per R band"] li', { hasText: '2R to 3R' }).innerText();
+  check('P2 analytics: R distribution: the +2.0R trade is in 2R to 3R (100% of the 1 trade with a stop); 3 trades have no stop', /1 · 100\.0%/.test(rBand) && /Based on 1 of 4 closed trades that have a stop/.test(t), rBand);
+  check('P2 analytics: hold time puts all 4 trades in "1 to 4 hours"', /1 to 4 hours[\s\S]{0,40}\b4\b/.test(t));
+  check('P2 analytics: mistake cost: Moved stop 1 trade, -$500.00; others +$1,690.00', t.includes('Moved stop') && t.includes('-$500.00') && t.includes('+$1,690.00') && /3 trades/.test(t));
+  const cell = (name) => std.locator(`td[aria-label^="${name}"]`);
+  check('P2 analytics: heatmap Monday 08:00 = 1 trade, +$1,000.00, profit, large (sign and size in words)', (await cell('Mon 08:00').getAttribute('aria-label')) === 'Mon 08:00, 1 trade, +$1,000.00, profit, large');
+  check('P2 analytics: heatmap Monday 12:00 = loss with sign', /Mon 12:00, 1 trade, -\$500\.00, loss, medium/.test(await cell('Mon 12:00').getAttribute('aria-label')));
+  check('P2 analytics: heatmap Tuesday 08:00 = +$590.00', /Tue 08:00, 1 trade, \+\$590\.00, profit/.test(await cell('Tue 08:00').getAttribute('aria-label')));
+  check('P2 analytics: colour legend names the colours and the signs', t.includes('blue = profit') && t.includes('orange = loss'));
+  await std.setViewportSize({ width: 390, height: 844 });
+  await std.goto(BASE + '/app/analytics');
+  check('P2 analytics: no horizontal page scroll at 390px (heatmap scrolls inside its card)', !(await std.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await std.setViewportSize({ width: 1280, height: 900 });
 
   // ---- user isolation through the filter parameters (guessing ids / names)
   const guessed = await other.goto(BASE + `/app/journal?account=${seeded.account}&strategy=London+breakout&symbol=EURUSD`);

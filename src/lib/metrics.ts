@@ -120,6 +120,16 @@ export function summarize(trades: TradeInput[]): Summary {
   return summarizeResults(results, excluded);
 }
 
+/** Order by close time (nulls last, stable). The order every running total (equity curve, drawdown, streaks) is computed in. */
+export function orderByClose<T extends { closedAt: string | null }>(input: readonly T[]): T[] {
+  return [...input].sort((a, b) => {
+    if (a.closedAt === b.closedAt) return 0;
+    if (a.closedAt === null) return 1;
+    if (b.closedAt === null) return -1;
+    return a.closedAt < b.closedAt ? -1 : 1;
+  });
+}
+
 /**
  * Every aggregate (counts, win rate, profit factor, expectancy, R, drawdown, streaks, equity curve) is computed here, from per-trade
  * results. `summarize` feeds it results computed by `evaluateTrade`; the database loader (trades-data.ts) feeds it results computed in
@@ -127,13 +137,7 @@ export function summarize(trades: TradeInput[]): Summary {
  * place where an aggregate formula lives.
  */
 export function summarizeResults(input: readonly TradeResult[], excluded: Record<ExclusionReason, string[]> = { open_or_partial: [], missing_fx: [], invalid: [] }): Summary {
-  // Order by close time (nulls last, stable).
-  const results = [...input].sort((a, b) => {
-    if (a.closedAt === b.closedAt) return 0;
-    if (a.closedAt === null) return 1;
-    if (b.closedAt === null) return -1;
-    return a.closedAt < b.closedAt ? -1 : 1;
-  });
+  const results = orderByClose(input);
 
   const winners = results.filter((r) => r.netPnl > 0);
   const losers = results.filter((r) => r.netPnl < 0);

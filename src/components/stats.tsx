@@ -17,8 +17,9 @@ export function Stat({ label, value, hint, slug, cls = "", show }: { label: stri
 }
 
 /** Group comparison: sorted by net P&L, with a bar scaled to the largest absolute result in the table. */
-export function Breakdown({ title, note, groups, cur, id, limit }: { title: string; note?: string; groups: Record<string, Summary>; cur: string; id?: string; limit?: number }) {
-  let entries = Object.entries(groups).filter(([, s]) => s.tradeCount > 0).sort((a, b) => b[1].netPnl - a[1].netPnl);
+export function Breakdown({ title, note, groups, cur, id, limit, keepOrder }: { title: string; note?: string; groups: Record<string, Summary>; cur: string; id?: string; limit?: number; keepOrder?: boolean }) {
+  let entries = Object.entries(groups).filter(([, s]) => s.tradeCount > 0);
+  if (!keepOrder) entries = entries.sort((a, b) => b[1].netPnl - a[1].netPnl);
   if (!entries.length) return null;
   const total = entries.length;
   if (limit && entries.length > limit) entries = entries.slice(0, limit);

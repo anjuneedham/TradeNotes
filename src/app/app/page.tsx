@@ -133,7 +133,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                     <span className="block text-xs text-muted">Quoted in another currency, so they can&apos;t be counted.</span></li>
                 )}
                 {costliest && (
-                  <li className="py-2.5"><Link href="/app/analytics#mistakes" className="group block">
+                  <li className="py-2.5"><Link href="/app/analytics#mistake-cost" className="group block">
                     <span className="font-medium group-hover:underline">Costliest mistake: {costliest[0]}</span>
                     <span className="block text-xs text-muted"><span className="fig text-loss">{signedMoney(costliest[1].netPnl, cur)}</span> across {costliest[1].tradeCount} tagged trade{costliest[1].tradeCount === 1 ? "" : "s"}. See all mistakes →</span></Link></li>
                 )}
