@@ -1,7 +1,8 @@
+import { pageMeta } from "@/lib/seo";
 import { LegalShell } from "@/components/LegalShell";
 import { LEGAL } from "@/lib/legal";
 
-export const metadata = { title: "Risk Disclaimer — TradeNotes" };
+export const metadata = pageMeta({ title: "Risk Disclaimer — TradeNotes", description: "TradeNotes is a journaling and analytics tool, not investment advice. Read the trading risk disclaimer.", path: "/legal/disclaimer" });
 
 export default function Disclaimer() {
   return (

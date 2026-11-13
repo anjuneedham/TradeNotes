@@ -2,10 +2,11 @@ import Link from "next/link";
 import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE } from "@/lib/plans";
 import { PLAN_ORDER, PLAN_BLURB, planHeadline, featuresDev, paidAddsText } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
+import { pageMeta, jsonLd } from "@/lib/seo";
 import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
 import { Badge, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 
-export const metadata = { title: "Pricing — TradeNotes" };
+export const metadata = pageMeta({ title: "Pricing — TradeNotes", description: `TradeNotes pricing: a free trading journal for ${PLANS.free.tradeLimit} trades, Standard at $${PLANS.starter.monthly}/month and Premium at $${PLANS.pro.monthly}/month. Save 2 months with annual billing.`, path: "/pricing" });
 export const revalidate = 60; // seat count refreshes at most once a minute
 
 const faq = (): [string, string][] => [
@@ -20,6 +21,7 @@ export default async function Pricing() {
   const seats = await foundingSeatsLeft();
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq().map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }) }} />
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Start free. Pay when your journal outgrows it.</h1>
         <p className="mt-3 text-muted">Three plans, billed monthly or yearly in US dollars. Pay yearly and get 2 months free. No card needed for Free. Cancel any time.</p>

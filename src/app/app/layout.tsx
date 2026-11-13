@@ -7,6 +7,10 @@ import { currentSession } from "@/lib/session";
 import { withUser } from "@/lib/db";
 import { ACCOUNT_COOKIE, resolveScope, type Account } from "@/lib/app-context";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Theme preference is a per-device cookie (set in Settings). No value = follow the device.
   const jar = await cookies();

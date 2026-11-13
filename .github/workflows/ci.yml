@@ -3,7 +3,9 @@ on:
   pull_request:
   push:
     branches: [main]
-concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 permissions: { contents: read }
 
 jobs:
@@ -27,9 +29,14 @@ jobs:
         run: |
           npx next start -p 3111 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3111/login && break; sleep 1; done
-          for p in / "/?ref=abc123" /pricing /partners /login /signup /learn /legal/terms /legal/privacy; do
+          for p in / "/?ref=abc123" /pricing /partners /login /signup /learn /legal/terms /legal/privacy /robots.txt /sitemap.xml /og; do
             code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3111$p"); echo "$p -> $code"; [ "$code" = "200" ] || exit 1
           done
+          # SEO essentials must stay present
+          curl -s http://localhost:3111/pricing | grep -q 'rel="canonical"' || { echo "pricing: missing canonical"; exit 1; }
+          curl -s http://localhost:3111/pricing | grep -q 'property="og:title"' || { echo "pricing: missing og:title"; exit 1; }
+          curl -s http://localhost:3111/pricing | grep -q 'property="og:image"' || { echo "pricing: missing og:image"; exit 1; }
+          curl -s http://localhost:3111/robots.txt | grep -q "Disallow: /app" || { echo "robots.txt: /app not disallowed"; exit 1; }
 
   database:
     name: schema applies twice, security checks, DB integration tests
