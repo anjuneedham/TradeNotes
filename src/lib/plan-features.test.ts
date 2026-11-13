@@ -28,7 +28,14 @@ describe("plan copy matches what is enforced", () => {
   it("features that are not built are not advertised anywhere as available", () => {
     const all = JSON.stringify([FEATURES_NOW, PLAN_BLURB, paidAddsText()]).toLowerCase();
     for (const banned of ["mae", "mfe", "reminder emails will", "ai summary", "replay"]) expect(all).not.toContain(banned);
-    expect(row("Daily, weekly and monthly reviews").detail).toMatch(/Reminder emails are not available/);
+    const rev = () => featuresNow().find((f) => f.label === "Daily, weekly and monthly reviews")!.detail!;
+    const saved = { c: process.env.CRON_SECRET, r: process.env.RESEND_API_KEY };
+    delete process.env.CRON_SECRET; delete process.env.RESEND_API_KEY;
+    expect(rev()).toMatch(/Reminder emails are not available yet/); // not configured: nothing is promised
+    process.env.CRON_SECRET = "x"; process.env.RESEND_API_KEY = "y";
+    expect(rev()).toMatch(/Optional weekly reminder email, off by default/);
+    if (saved.c === undefined) delete process.env.CRON_SECRET; else process.env.CRON_SECRET = saved.c;
+    if (saved.r === undefined) delete process.env.RESEND_API_KEY; else process.env.RESEND_API_KEY = saved.r;
   });
   it("the one-sentence summary names the new paid features", () => {
     expect(paidAddsText()).toMatch(/calendar/); expect(paidAddsText()).toMatch(/reviews/); expect(paidAddsText()).toMatch(/playbook/);

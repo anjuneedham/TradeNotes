@@ -1,4 +1,5 @@
 import { PLANS, type PlanId } from "./plans";
+import { remindersLive } from "./reminders";
 
 /**
  * Presentation data for pricing and billing. Limits are read from PLANS (the enforced source of truth);
@@ -25,14 +26,16 @@ export const FEATURES_NOW: FeatureRow[] = [
   { label: "Futures, options, forex and crypto specs", detail: "Contract point values, option multipliers, pips and lots handled for you.", cells: all(true) },
   { label: "Multiple trading accounts", detail: "Switch between accounts or view them combined.", cells: { free: "1", starter: `Up to ${PLANS.starter.accounts}`, pro: `Up to ${PLANS.pro.accounts}` } },
   { label: "Calendar view", detail: "A month grid of daily profit or loss and trade count in your time zone, weekly totals, and a click through to that day's trades. Not colour-dependent: signs and sizes are written out.", cells: { free: PLANS.free.calendar, starter: PLANS.starter.calendar, pro: PLANS.pro.calendar } },
-  { label: "Daily, weekly and monthly reviews", detail: "A five-part template (what worked, what to repeat, mistakes, rule breaks, next plan) with your numbers filled in, and a history. Reminder emails are not available.", cells: { free: PLANS.free.reviews, starter: PLANS.starter.reviews, pro: PLANS.pro.reviews } },
+  { label: "Daily, weekly and monthly reviews", detail: "A five-part template (what worked, what to repeat, mistakes, rule breaks, next plan) with your numbers filled in, and a history.", cells: { free: PLANS.free.reviews, starter: PLANS.starter.reviews, pro: PLANS.pro.reviews } },
   { label: "Playbook and rule adherence", detail: "An entry checklist per strategy, ticked on each trade, with your results compared when you followed your rules and when you did not.", cells: { free: PLANS.free.playbook, starter: PLANS.starter.playbook, pro: PLANS.pro.playbook } },
   { label: "Export all your trades (CSV)", detail: "Trades only. Reviews, playbook rules and screenshots are not in the export.", cells: all(true) },
 ];
 const SCREENSHOTS: FeatureRow = { label: "Trade screenshots", detail: `Up to 5 per trade, paste from clipboard. Storage: ${PLANS.starter.screenshotQuotaMB} MB on ${PLANS.starter.name}, ${PLANS.pro.screenshotQuotaMB / 1024} GB on ${PLANS.pro.name}.`, cells: { free: false, starter: true, pro: true } };
 /** Screenshots are built and tested, but only "available now" once the owner has configured storage (docs/NEXT_BUILD_BRIEF.md §3c). */
 export const screenshotsLive = () => Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
-export const featuresNow = (): FeatureRow[] => (screenshotsLive() ? [...FEATURES_NOW, SCREENSHOTS] : FEATURES_NOW);
+/** The reviews row says whether the weekly reminder email exists, from the same switch that shows the setting (remindersLive), so copy cannot get ahead of what is built and configured. */
+const withReminderNote = (rows: FeatureRow[]): FeatureRow[] => rows.map((r) => (r.label === "Daily, weekly and monthly reviews" ? { ...r, detail: `${r.detail} ${remindersLive() ? "Optional weekly reminder email, off by default." : "Reminder emails are not available yet."}` } : r));
+export const featuresNow = (): FeatureRow[] => withReminderNote(screenshotsLive() ? [...FEATURES_NOW, SCREENSHOTS] : FEATURES_NOW);
 export const featuresDev = (): FeatureRow[] => (screenshotsLive() ? FEATURES_DEV : [SCREENSHOTS, ...FEATURES_DEV]);
 
 export const FEATURES_DEV: FeatureRow[] = [

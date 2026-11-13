@@ -33,3 +33,6 @@ Register as a data controller with the Jamaican Information Commissioner (see LE
 - **Export:** the CSV export still contains trades only. Reviews, playbook rules/answers and screenshots are NOT in it (stated in the Privacy Policy sections 2, 6 and 7 and on the pricing page). If counsel or the Jamaican regulator expects a complete export, add them in a later phase.
 - **Reminder emails for reviews are NOT built** (no free scheduler confirmed by the owner); no new email category.
 - Privacy Policy sections 2, 6, 7 updated. No change to `src/lib/legal.ts` facts. Counsel review still outstanding.
+
+## Added 2026-11-13 (reminder emails) — owner to review
+- **New email category: opt-in weekly review reminder** (paid plans, off by default, one-click unsubscribe, link only, no trading figures). Sent through Resend (already listed). We store `profiles.review_reminders` (the user's choice), `review_reminder_sent_at` and an audit-log row per send. Privacy Policy section 2 (Emails) updated. No new provider, no new cookie. See docs/REVIEW_REMINDERS.md.

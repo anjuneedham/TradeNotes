@@ -23,7 +23,7 @@ export default function Privacy() {
         <li><strong>Sign-in records:</strong> when you log in we store your IP address and browser details with the session, for security.</li>
         <li><strong>Where you came from:</strong> if you arrive through a link tagged with a source (for example from a social post), we remember that tag so we can learn which channels work.</li>
         <li><strong>Payments:</strong> handled by {LEGAL.paymentProvider}. We never see or store your card number. We receive and keep a record of each payment (amount, currency, date, status and receipt link), the plan, and {LEGAL.paymentProvider}’s customer and subscription identifiers, so we can switch paid features on and off and show your payment history.</li>
-        <li><strong>Emails:</strong> messages we send you (confirmation, password reset) and your replies to support.</li>
+        <li><strong>Emails:</strong> messages we send you (confirmation, password reset), your replies to support, and, only if you turn it on in Settings (paid plans), one short weekly reminder to write your review. That reminder contains a link and no trading figures, and has an unsubscribe link. We keep a record that it was sent and when.</li>
       </ul>
 
       <h2>3. Why we use it</h2>

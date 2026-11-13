@@ -10,7 +10,7 @@ import { sendTemplate } from "./email-templates";
 
 export interface Profile {
   id: string; experience_level: string | null; primary_market: string | null; show_explanations: boolean;
-  onboarding_completed_at: string | null; is_admin: boolean; timezone: string;
+  onboarding_completed_at: string | null; is_admin: boolean; timezone: string; review_reminders: boolean;
 }
 export interface Subscription {
   plan: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; provider: string; provider_subscription_id: string | null; billing_interval: string;
