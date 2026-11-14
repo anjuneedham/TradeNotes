@@ -1,0 +1,25 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.30,Cap,,0,0,0,,That loss might have\Nbeen a {\c&H1EB0F2&}good{\c&HFAF7F5&} trade.
+Dialogue: 0,0:00:03.60,0:00:06.80,Cap,,0,0,0,,You followed your plan\Nand risked what you
+Dialogue: 0,0:00:06.80,0:00:10.40,Cap,,0,0,0,,meant to. The market\Njust went the other way.
+Dialogue: 0,0:00:10.40,0:00:14.40,Cap,,0,0,0,,That's a good trade with\Na bad {\c&H1EB0F2&}outcome.{\c&HFAF7F5&} A bad
+Dialogue: 0,0:00:14.40,0:00:18.00,Cap,,0,0,0,,trade breaks your rules,\Neven if it makes money.
+Dialogue: 0,0:00:18.30,0:00:21.50,Cap,,0,0,0,,When you review, sort\Nlosses into {\c&H1EB0F2&}two{\c&HFAF7F5&} piles.
+Dialogue: 0,0:00:21.50,0:00:23.90,Cap,,0,0,0,,Followed the plan, or\Nbroke it.
+Dialogue: 0,0:00:24.20,0:00:27.40,Cap,,0,0,0,,Only the {\c&H1EB0F2&}second{\c&HFAF7F5&} pile\Nneeds fixing. The first
+Dialogue: 0,0:00:27.40,0:00:29.40,Cap,,0,0,0,,pile is part of trading.
+Dialogue: 0,0:00:29.70,0:00:32.90,Cap,,0,0,0,,TradeNotes asks, did you\N{\c&H1EB0F2&}follow{\c&HFAF7F5&} your plan, on
+Dialogue: 0,0:00:32.90,0:00:33.70,Cap,,0,0,0,,every trade.
+Dialogue: 0,0:00:34.00,0:00:37.60,Cap,,0,0,0,,{\c&H1EB0F2&}Share{\c&HFAF7F5&} this with a trader\Nwho beats themselves up
+Dialogue: 0,0:00:37.60,0:00:38.40,Cap,,0,0,0,,over losses.

@@ -1,0 +1,25 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:02.90,Cap,,0,0,0,,Some of your worst\Ntrades happen because
+Dialogue: 0,0:00:02.90,0:00:04.10,Cap,,0,0,0,,{\c&H1EB0F2&}nothing{\c&HFAF7F5&} was happening.
+Dialogue: 0,0:00:04.40,0:00:08.00,Cap,,0,0,0,,The market's quiet, and\Nyou've stared at it for
+Dialogue: 0,0:00:08.00,0:00:11.60,Cap,,0,0,0,,an hour. So you take\Nsomething just to feel
+Dialogue: 0,0:00:11.60,0:00:12.00,Cap,,0,0,0,,{\c&H1EB0F2&}busy.{\c&HFAF7F5&}
+Dialogue: 0,0:00:12.30,0:00:14.70,Cap,,0,0,0,,That's a boredom trade.\NThey're small,
+Dialogue: 0,0:00:14.70,0:00:16.70,Cap,,0,0,0,,unplanned, and they {\c&H1EB0F2&}add{\c&HFAF7F5&}\Nup.
+Dialogue: 0,0:00:17.00,0:00:21.00,Cap,,0,0,0,,When you log a trade, be\Nhonest about how you
+Dialogue: 0,0:00:21.00,0:00:24.20,Cap,,0,0,0,,felt. If the answer is\N{\c&H1EB0F2&}bored,{\c&HFAF7F5&} tag it.
+Dialogue: 0,0:00:24.50,0:00:27.70,Cap,,0,0,0,,After a month, look at\Nyour bored trades
+Dialogue: 0,0:00:27.70,0:00:30.50,Cap,,0,0,0,,together. If they're\Nlosing, the {\c&H1EB0F2&}fix{\c&HFAF7F5&} costs
+Dialogue: 0,0:00:30.50,0:00:32.10,Cap,,0,0,0,,nothing. Don't take\Nthem.
+Dialogue: 0,0:00:32.40,0:00:34.80,Cap,,0,0,0,,Comment {\c&H1EB0F2&}bored{\c&HFAF7F5&} if this is\Nyou.
