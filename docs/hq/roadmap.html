@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TradeNotes HQ Roadmap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow reading column. Summary strip, then a seven-week swimlane timeline, then the pay-readiness table, the 100-to-1,000 chart, HQ do/don't, and this week's list. */
+:root {
+  --bg: #0A0F1A; --panel: #141B2B; --panel-2: #1B2438; --line: #26314A;
+  --fg: #F5F7FA; --muted: #8A97AD; --accent: #F2B01E; --on-accent: #0A0F1A;
+  --ok: #3DD6A0; --warn: #F2B01E; --off: #8A97AD; --bar: #22304D; --bar-line: #34466B;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif; --body: "Inter", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #F4F6FA; --panel: #FFFFFF; --panel-2: #EBEFF6; --line: #D5DCE9;
+  --fg: #101828; --muted: #556178; --accent: #B87500; --on-accent: #FFFFFF;
+  --ok: #0C7A58; --warn: #9A6200; --off: #5B677C; --bar: #E3E9F5; --bar-line: #B9C5DC; color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #F4F6FA; --panel: #FFFFFF; --panel-2: #EBEFF6; --line: #D5DCE9;
+  --fg: #101828; --muted: #556178; --accent: #B87500; --on-accent: #FFFFFF;
+  --ok: #0C7A58; --warn: #9A6200; --off: #5B677C; --bar: #E3E9F5; --bar-line: #B9C5DC; color-scheme: light; }
+:root[data-theme="dark"] {
+  --bg: #0A0F1A; --panel: #141B2B; --panel-2: #1B2438; --line: #26314A;
+  --fg: #F5F7FA; --muted: #8A97AD; --accent: #F2B01E; --on-accent: #0A0F1A;
+  --ok: #3DD6A0; --warn: #F2B01E; --off: #8A97AD; --bar: #22304D; --bar-line: #34466B; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; }
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.08; font-weight: 700; }
+h2 { font-size: 22px; font-weight: 700; }
+h3 { font-size: 15px; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.lede { color: var(--muted); max-width: 64ch; margin-top: 10px; }
+.sec { display: flex; flex-direction: column; gap: 14px; }
+.sec > p.sub { color: var(--muted); max-width: 70ch; }
+
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-top: 22px; }
+.strip > div { background: var(--panel); padding: 14px 16px; min-width: 0; }
+.strip b { display: block; font-family: var(--display); font-size: 24px; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.strip span { font-size: 12.5px; color: var(--muted); }
+
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.tl { min-width: 860px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.row { display: grid; grid-template-columns: 124px repeat(7, minmax(0, 1fr)); column-gap: 6px; row-gap: 6px; align-items: stretch; }
+.weeks { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.weeks > div { padding: 2px 4px 6px; border-bottom: 1px solid var(--line); }
+.lane { border-top: 1px solid var(--line); padding-top: 10px; }
+.lane .name { grid-row: 1 / span 3; font-family: var(--display); font-weight: 700; font-size: 13.5px; padding-right: 8px; align-self: start; }
+.lane .name small { display: block; font-family: var(--body); font-weight: 400; color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+.bar { background: var(--bar); border: 1px solid var(--bar-line); border-radius: 6px; padding: 5px 8px; font-size: 12px; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.bar.key { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.dates .chip { font-size: 11.5px; font-weight: 600; color: var(--accent); border-left: 2px solid var(--accent); padding: 1px 6px; line-height: 1.3; min-width: 0; }
+.dates { padding-bottom: 6px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.tbl table { min-width: 640px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.st { white-space: nowrap; font-weight: 600; }
+.ok { color: var(--ok); } .warn { color: var(--warn); } .off { color: var(--off); }
+.note { color: var(--muted); font-size: 13px; }
+
+.chart { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 14px; }
+.chart svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--bar-line); color: var(--muted); margin-right: 6px; white-space: nowrap; }
+.todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.todo li { display: flex; gap: 10px; align-items: baseline; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+.foot { color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">TradeNotes HQ · hq.tradenotes.dev (planned)</p>
+    <h1>Road to 100 paying members, then 1,000</h1>
+    <p class="lede">Goal: 100 paying members by 31 Dec 2026, 50 on Standard and 50 on Premium. This page is the visual roadmap the HQ platform should carry. Dates are the plan, not results.</p>
+    <div class="strip">
+      <div><b>47 days</b><span>from 14 Nov to 31 Dec</span></div>
+      <div><b>0 / 100</b><span>real paying members today</span></div>
+      <div><b>$1,800</b><span>monthly revenue at 100, list price</span></div>
+      <div><b>17 Dec</b><span>last day a 14-day trial can start and still pay by 31 Dec</span></div>
+    </div>
+  </header>
+
+  <section class="sec" aria-labelledby="t1">
+    <h2 id="t1">The seven weeks</h2>
+    <p class="sub">Five lanes of work plus HQ itself. Amber bars are the ones that gate everything after them.</p>
+    <div class="scroll"><div class="tl">
+      <div class="row weeks"><div></div><div>14–20 Nov</div><div>21–27 Nov</div><div>28 Nov–4 Dec</div><div>5–11 Dec</div><div>12–18 Dec</div><div>19–25 Dec</div><div>26–31 Dec</div></div>
+      <div class="row dates"><div></div><div></div><div></div><div class="chip">30 Nov checkpoint: 60 signups, 10 trials or paid<br>1 Dec: Journal Challenge starts</div><div></div><div class="chip">15 Dec checkpoint: 300 signups, 40 trials or paid<br>17 Dec: last trial start</div><div></div><div class="chip">31 Dec: 100 paid, 50 and 50</div></div>
+
+      <div class="row lane"><div class="name">Trust and billing<small>money must work first</small></div>
+        <div class="bar key" style="grid-column:2/4;grid-row:1">Real test purchase and refund; check the support inbox</div>
+        <div class="bar" style="grid-column:4/5;grid-row:1">Fix pricing FAQ copy; set CRON_SECRET</div>
+        <div class="bar" style="grid-column:2/9;grid-row:2">Daily: payments needing attention (failed, trial ending, paid but still Free)</div></div>
+
+      <div class="row lane"><div class="name">Product<small>activation and retention</small></div>
+        <div class="bar key" style="grid-column:2/5;grid-row:1">Imports checked against 2–3 real broker exports</div>
+        <div class="bar" style="grid-column:5/7;grid-row:1">Screenshots end to end + annotated notes</div>
+        <div class="bar" style="grid-column:4/8;grid-row:2">Reminders, goals, daily journal, checklist in the trade form</div></div>
+
+      <div class="row lane"><div class="name">Content<small>proof, not the engine</small></div>
+        <div class="bar" style="grid-column:2/9;grid-row:1">1–2 shorts a day from the tablet; one Sunday recording batch</div>
+        <div class="bar" style="grid-column:4/9;grid-row:2">Journal Challenge series (from 1 Dec)</div></div>
+
+      <div class="row lane"><div class="name">DMs and partners<small>the main sales engine</small></div>
+        <div class="bar" style="grid-column:2/9;grid-row:1">20–25 TikTok DMs a day, spent by intent tier</div>
+        <div class="bar key" style="grid-column:2/3;grid-row:2">40 partner messages</div>
+        <div class="bar" style="grid-column:3/5;grid-row:2">10 active partners</div>
+        <div class="bar" style="grid-column:5/9;grid-row:2">Partner pushes and monthly payouts</div></div>
+
+      <div class="row lane"><div class="name">Email and community<small>turn free into paid</small></div>
+        <div class="bar" style="grid-column:2/4;grid-row:1">Consent box + tables</div>
+        <div class="bar key" style="grid-column:4/5;grid-row:1">Lifecycle emails live</div>
+        <div class="bar" style="grid-column:5/9;grid-row:1">Premium weekly review call (once terms are written)</div>
+        <div class="bar" style="grid-column:4/9;grid-row:2">30-day Journal Challenge, 1–30 Dec</div></div>
+
+      <div class="row lane"><div class="name">HQ platform<small>see it, then act on it</small></div>
+        <div class="bar" style="grid-column:2/3;grid-row:1">Plan + hosting decision</div>
+        <div class="bar key" style="grid-column:3/5;grid-row:1">HQ v1: funnel scoreboard + payments panel (read only)</div>
+        <div class="bar" style="grid-column:5/9;grid-row:1">HQ v2: DM and partner pipelines, email stats</div></div>
+    </div></div>
+  </section>
+
+  <section class="sec" aria-labelledby="t2">
+    <h2 id="t2">If someone wants to pay today, do they get what we say?</h2>
+    <p class="sub">Checked on 14 Nov against the live site, the code on main and the project's own test records. The weak point is the money path: it is built, and no real payment has gone through it yet.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Step the customer takes</th><th>State</th><th>What backs it, and what is missing</th></tr></thead>
+      <tbody>
+        <tr><td>Finds the site, reads pricing, opens the demo</td><td class="st ok">● Verified</td><td>Home, pricing, demo, partners and signup load publicly on tradenotes.dev.</td></tr>
+        <tr><td>Signs up free and logs a first trade</td><td class="st warn">◐ Built, not proven live</td><td>Passed local browser tests; no real signup has happened yet. Email delivery is set up but unconfirmed with a real inbox.</td></tr>
+        <tr><td>Imports trades from a broker file</td><td class="st warn">◐ Built, not proven</td><td>13 broker formats, but every test file is synthetic. Real exports are the biggest gap.</td></tr>
+        <tr><td>Starts a 14-day trial at checkout</td><td class="st warn">◐ Built, not proven</td><td>Checkout and webhook exist; the webhook rejects unsigned calls as it should. No real purchase yet.</td></tr>
+        <tr><td>Plan switches on by itself</td><td class="st warn">◐ Built, not proven</td><td>The pricing FAQ still says plans are switched on by hand. Update it after the first real purchase works.</td></tr>
+        <tr><td>Founding price (50% off, first 10)</td><td class="st warn">◐ Built, not proven</td><td>Seat counter is live. Checkout at the discounted price has not been run for real.</td></tr>
+        <tr><td>Cancel, refund, failed payment</td><td class="st warn">◐ Built, not proven</td><td>Covered by unit tests of the state rules; not run through the payment provider.</td></tr>
+        <tr><td>Screenshots on trades</td><td class="st warn">◐ Built, not proven</td><td>Storage keys are set in production; one real upload is still untested.</td></tr>
+        <tr><td>Partner link and 30% commission</td><td class="st warn">◐ Built, not proven</td><td>Public terms page is live; payouts are by hand.</td></tr>
+        <tr><td>Support: support@tradenotes.dev</td><td class="st warn">◐ Confirm</td><td>The address is published. Confirm that it actually receives mail.</td></tr>
+        <tr><td>Weekly review reminder emails</td><td class="st off">○ Not available</td><td>No scheduler secret is set in production, so they cannot send.</td></tr>
+        <tr><td>Premium weekly group call, coaching</td><td class="st off">○ Not available</td><td>Not written or scheduled. Do not mention it to customers yet.</td></tr>
+        <tr><td>Broker auto-sync, replay backtesting, AI summaries</td><td class="st off">○ Not available</td><td>Decision memos say not now. Never advertise them.</td></tr>
+      </tbody></table></div>
+    <p class="note"><b class="ok">●</b> checked from outside or by test &nbsp; <b class="warn">◐</b> exists but needs a real-world run &nbsp; <b class="off">○</b> does not exist yet</p>
+  </section>
+
+  <section class="sec" aria-labelledby="t3">
+    <h2 id="t3">From 100 to 1,000</h2>
+    <p class="sub">An illustrative path, not a forecast. Ten times the members in twelve months needs about 21% growth every month; in six months it needs about 47%. Pick the pace on purpose.</p>
+    <div class="chart">
+      <svg viewBox="0 0 640 300" role="img" aria-label="Paying members by month from 100 at the end of December 2026 to 1,000, on a 12-month path and a 6-month path">
+        <g stroke="var(--line)" stroke-width="1" fill="none">
+          <line x1="56" y1="20" x2="620" y2="20"/><line x1="56" y1="82" x2="620" y2="82"/><line x1="56" y1="144" x2="620" y2="144"/><line x1="56" y1="206" x2="620" y2="206"/><line x1="56" y1="268" x2="620" y2="268"/>
+        </g>
+        <g fill="var(--muted)" font-size="11" font-family="Inter, system-ui, sans-serif" text-anchor="end">
+          <text x="48" y="24">1,000</text><text x="48" y="86">750</text><text x="48" y="148">500</text><text x="48" y="210">250</text><text x="48" y="272">0</text>
+        </g>
+        <g fill="var(--muted)" font-size="11" font-family="Inter, system-ui, sans-serif" text-anchor="middle">
+          <text x="56" y="288">Dec 26</text><text x="197" y="288">Mar</text><text x="338" y="288">Jun</text><text x="479" y="288">Sep</text><text x="620" y="288">Dec 27</text>
+        </g>
+        <!-- 12-month path: 100 x 1.2115^n by month n; 6-month path: 100 x 1.4678^n. x = 56 + 47n, y = 268 - 0.248 x members -->
+        <polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="56,243.2 103,238.0 150,231.6 197,223.9 244,214.6 291,203.3 338,189.6 385,173.0 432,152.9 479,128.5 526,99.0 573,63.3 620,20.0"/>
+        <polyline fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-dasharray="6 5" stroke-linejoin="round" stroke-linecap="round" points="56,243.2 103,231.6 150,214.6 197,189.6 244,152.9 291,99.0 338,20.0"/>
+        <circle cx="56" cy="243.2" r="4.5" fill="var(--accent)"/><circle cx="620" cy="20.0" r="4.5" fill="var(--accent)"/><circle cx="338" cy="20.0" r="4.5" fill="var(--ok)"/>
+        <g font-family="Inter, system-ui, sans-serif" font-size="11.5" font-weight="600">
+          <text x="62" y="262" fill="var(--fg)">100 on 31 Dec</text>
+          <text x="614" y="14" fill="var(--accent)" text-anchor="end">12-month path: 1,000 in Dec 27</text>
+          <text x="330" y="14" fill="var(--ok)" text-anchor="end">6-month path (dashed): 1,000 in Jun 27</text>
+        </g>
+      </svg>
+    </div>
+    <div class="phases">
+      <div class="card"><h3>Stage 1: 100</h3><p class="note">Founder-led. Every signup is known by name.</p><ul><li>DMs, partners, Journal Challenge</li><li>Manual support, manual payouts</li><li>Proves who converts and why</li></ul></div>
+      <div class="card"><h3>Stage 2: 250 to 500</h3><p class="note">Repeatable channels.</p><ul><li>Lifecycle emails run themselves</li><li>20+ partners, a content engine that works</li><li>Billing and payouts mostly automated</li></ul></div>
+      <div class="card"><h3>Stage 3: 1,000</h3><p class="note">About $18,000 a month at list price.</p><ul><li>Needs about 30–50 new members a month just to hold, at 3–5% churn</li><li>Paid tiers of email, database and monitoring</li><li>Support beyond one person</li></ul></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="t4">
+    <h2 id="t4">What HQ should and should not have</h2>
+    <p class="sub">HQ exists to answer one question each morning: what do I do today to get the next paying member.</p>
+    <div class="two">
+      <div class="card"><h3 class="ok">Should have</h3><ul>
+        <li>Goal versus actual: members, trials, revenue, days left</li>
+        <li>The funnel by source: signup, logged a trade, trial, paid</li>
+        <li>A payments panel: failed, trial ending, paid but still on Free</li>
+        <li>People stuck before their first trade, with the step they stopped at</li>
+        <li>DM, partner and content pipelines with next actions</li>
+        <li>Email results and unsubscribes</li>
+        <li>This roadmap, with each bar marked done or late</li>
+        <li>An experiment log: what changed, what moved</li></ul></div>
+      <div class="card"><h3 class="warn">Should not have</h3><ul>
+        <li>Any view of a member's trades, notes or screenshots</li>
+        <li>Edit or delete access to customer data</li>
+        <li>Card numbers or payment secrets</li>
+        <li>Vanity numbers that lead to no decision</li>
+        <li>Automatic messages to customers sent without review</li>
+        <li>Public access: owner sign-in only, with a read-only database role at first</li>
+        <li>Claims about features that do not exist</li></ul></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="t5">
+    <h2 id="t5">This week</h2>
+    <ul class="todo">
+      <li><span class="tag">You</span>Buy once at the cheapest paid plan with your own card, then refund it. Confirm the plan switches on and the webhook shows success.</li>
+      <li><span class="tag">You</span>Send a test email to support@tradenotes.dev and confirm it arrives.</li>
+      <li><span class="tag">You</span>Export your own broker history, remove names, and send 2–3 files for the import check.</li>
+      <li><span class="tag">You</span>Start the daily 20–25 DMs and send 40 partner messages. Use the tagged links.</li>
+      <li><span class="tag">Claude</span>Fix the stale pricing FAQ after the test purchase, and fix any import problems the real files expose.</li>
+      <li><span class="tag">Claude</span>Build HQ v1: the funnel scoreboard and payments panel, read only, behind owner sign-in.</li>
+    </ul>
+  </section>
+
+  <p class="foot">Sources: live tradenotes.dev pages, the main branch, docs/READINESS_REVIEW.md, docs/KNOWN_ISSUES.md and docs/QA_RESULTS_2026-11-13_phase3.md. The growth path is an assumption. Not financial advice; TradeNotes is a journaling tool.</p>
+</div>
+
+</body>
+</html>
