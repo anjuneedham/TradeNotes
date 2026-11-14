@@ -26,7 +26,7 @@ Most traders **know** their rules and still break them. The gap is execution, no
 ## 4. Daily and weekly rhythm
 **Daily (5 minutes for members):** read #daily-prompt → post one line in #check-in (pre-session plan or post-session review) → `/checkin`.
 **Weekly:** Monday theme post · Wednesday #mistake-of-the-week · Sunday review thread (use the TradeNotes weekly review template) · Premium: 60-minute Weekly Journal Review call (see `HQ.md` section 6; publish it only once the terms are written).
-**Your time (Andrew):** about 30–45 minutes a day: post/confirm the prompt, reply in #check-in, moderate. Recruit 2 volunteer mods from the first 20 members.
+**Your time (Andrew):** about 30–45 minutes a day: post/confirm the prompt, reply in #check-in, moderate. You are the only moderator at launch, so start with the smaller channel set (#welcome, #rules, #announcements, #daily-prompt, #check-in, #questions, #support) and add the rest after the Challenge is running.
 
 ## 5. The 30-day Journal Challenge (1–30 Dec)
 Free users can do every prompt with the free journal (tags, mistake cost). Standard unlocks the playbook, calendar and reviews, which is the natural upgrade path.
@@ -71,8 +71,6 @@ Tell me when each is done (no values) and I will verify.
 ## 10. Risks and how we handle them
 Empty-room problem: seed with 10–20 real people and your own daily presence. Promotion and signal creep: AutoMod and removal. Regulated advice: process only, lawyer review before coaching. Moderator burnout: two volunteer mods, clear rules. Privacy: self-reported check-ins only, `/forgetme`. Time: if you can't sustain 30–45 minutes a day, shrink to a 3-day-a-week rhythm.
 
-## 11. Decisions for the owner
-1. Server name (ideas: TradeNotes Journal Club, The Execution Room).
-2. Start building the bot now, or after you've created the server and application?
-3. Premium weekly call: day and time.
-4. Who your two volunteer mods will be.
+## 11. Decisions
+Decided 2026-11-14: server and application created; Developer Mode on. **Weekly Journal Review call: Saturdays 11:00 (Jamaica time, UTC-5, no daylight saving; confirm). First call Sat 5 Dec 2026 = 16:00 UTC.** Run the first calls open to everyone in the Challenge, then make it a Premium benefit once its terms are written (see `HQ.md` section 6). **Andrew is the only moderator for now**: keep AutoMod strict, keep #check-in on slowmode, run the 3-day-a-week rhythm if time runs short, and recruit volunteer mods from Challenge graduates in January.
+Still open: the server name (ideas: TradeNotes Journal Club, The Execution Room).
