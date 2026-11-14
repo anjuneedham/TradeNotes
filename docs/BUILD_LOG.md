@@ -65,6 +65,7 @@ Baseline before any change (local Postgres 16, simulated Supabase roles): `npm c
 | 7 | After the phase | PR, CI, code review (high), security review, plan matrix, 10k timings, QA file | DONE: PR #7, CI green on d4f2a12, code review 10 fixed, security review none, QA in docs/QA_RESULTS_2026-11-13_phase3.md |
 
 #### Phase 3 wrap-up, 2026-11-13
-- Final local run on d4f2a12: lint/tsc exit 0, 329 unit + DB tests, test-paste 40 + re-run, build with migrate (25 tables) + verify-db 101/0, e2e 252/252, e2e-billing 42/43 (same as main), viewport-check 21/21.
+- Final local run on d4f2a12: lint/tsc exit 0, 329 unit + DB tests, test-paste 40 + re-run, build with migrate (25 tables) + verify-db 101/0, e2e 252/252 (257/257 after the follow-up), e2e-billing 42/43 (same as main), viewport-check 21/21.
 - Found while testing: quick-log lost its "Saved" confirmation at the plan limit (fixed). Code review found a CSV bug that wrote negative numbers as text (fixed).
 - Not built: bar replay (needs a paid data licence: docs/BACKTEST_REPLAY_LICENSING.md). Owner decisions needed: share links on every plan, two backtest tables, legal wording (docs/LEGAL_FILL_IN.md).
+- Follow-up 2026-11-14: share links hide money amounts by default (opt-in per link, fixed at creation, removed server-side); storage adapter tested over real HTTP against a local Storage API emulation; installability confirmed by Chromium itself (scripts/check-installable.js). Real Supabase / production / a real phone remain owner-only (checklist in the QA file).

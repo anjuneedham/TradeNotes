@@ -32,7 +32,7 @@ const built: [string, string][] = [
   ["A review list", "Open trades, your largest loss and your costliest mistake, surfaced on the dashboard."],
   ["Explanations you can switch off", "Every figure links to a plain-English guide. Experienced traders can hide them."],
   ["Mobile quick-log", "Six fields and big buttons for logging a trade from your phone. It starts from your last trade and can sit on your home screen."],
-  ["Read-only share links", "Share your totals and equity curve through a link you can revoke. It never shows notes, instruments, account names, your email or screenshots."],
+  ["Read-only share links", "Share your win rate, profit factor and the shape of your equity curve through a link you can revoke. Money amounts stay hidden unless you choose to show them, and it never shows notes, instruments, account names, your email or screenshots."],
 ];
 const devList = () => [...(screenshotsLive() ? [] : ["Trade screenshots"])];
 

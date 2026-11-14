@@ -42,24 +42,36 @@ export interface ShareReport {
   scopeLabel: string;
   currency: string;
   generatedOn: string; // YYYY-MM-DD
+  /** The owner's choice per link. When false every money field below is null and the curve is rescaled (see buildReport). */
+  showAmounts: boolean;
   trades: number; wins: number; losses: number; breakevens: number;
-  winRate: number | null; netPnl: number; profitFactor: number | null; expectancy: number | null;
-  avgWin: number | null; avgLoss: number | null; avgR: number | null; rTrades: number; maxDrawdown: number;
+  winRate: number | null; profitFactor: number | null; avgR: number | null; rTrades: number;
   maxWinStreak: number; maxLossStreak: number; smallSample: boolean;
-  /** Cumulative net P&L by trade number. No dates and no trade ids: the dates of individual trades are not shared. */
+  /** Money amounts: null unless the owner chose to show them. */
+  netPnl: number | null; expectancy: number | null; avgWin: number | null; avgLoss: number | null; maxDrawdown: number | null;
+  /** Cumulative net P&L by trade number (money amounts) when shown; otherwise the SAME shape rescaled to the range -1..1 (no currency, no size). No dates and no trade ids. */
   curve: { cumulative: number; n: number }[];
   curveTotal: number;
 }
 
-export function buildReport(rows: readonly TradeResult[], scope: string, currency: string, now = new Date()): ShareReport {
+/**
+ * `showAmounts` is required (no default) so a caller cannot forget to decide. When false the report carries ratios and counts only: win rate,
+ * profit factor, average R, streaks, and the SHAPE of the equity curve rescaled so its largest absolute value is 1. The money fields are null,
+ * so they cannot reach the browser, whatever the page does with them.
+ */
+export function buildReport(rows: readonly TradeResult[], scope: string, currency: string, opts: { showAmounts: boolean; now?: Date }): ShareReport {
   const s: Summary = summarizeResults(rows);
+  const show = opts.showAmounts;
+  const pts = downsampleCurve(s.equityCurve, 300);
+  const peak = Math.max(0, ...pts.map((p) => Math.abs(p.cumulative)));
+  const scaled = (v: number) => (peak > 0 ? Math.round((v / peak) * 1e4) / 1e4 : 0);
   return {
-    scope, scopeLabel: scopeLabel(scope), currency, generatedOn: now.toISOString().slice(0, 10),
+    scope, scopeLabel: scopeLabel(scope), currency, generatedOn: (opts.now ?? new Date()).toISOString().slice(0, 10), showAmounts: show,
     trades: s.tradeCount, wins: s.wins, losses: s.losses, breakevens: s.breakevens,
-    winRate: s.winRate, netPnl: s.netPnl, profitFactor: s.profitFactor, expectancy: s.expectancy,
-    avgWin: s.avgWin, avgLoss: s.avgLoss, avgR: s.avgR, rTrades: s.rCoverage.withR, maxDrawdown: s.maxDrawdown,
+    winRate: s.winRate, profitFactor: s.profitFactor, avgR: s.avgR, rTrades: s.rCoverage.withR,
     maxWinStreak: s.maxWinStreak, maxLossStreak: s.maxLossStreak, smallSample: s.smallSample,
-    curve: downsampleCurve(s.equityCurve, 300).map((p) => ({ cumulative: p.cumulative, n: p.n })),
+    netPnl: show ? s.netPnl : null, expectancy: show ? s.expectancy : null, avgWin: show ? s.avgWin : null, avgLoss: show ? s.avgLoss : null, maxDrawdown: show ? s.maxDrawdown : null,
+    curve: pts.map((p) => ({ cumulative: show ? p.cumulative : scaled(p.cumulative), n: p.n })),
     curveTotal: s.equityCurve.length,
   };
 }

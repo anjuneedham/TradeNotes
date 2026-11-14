@@ -19,23 +19,24 @@ export function ShareReportView({ r }: { r: ShareReport }) {
         Totals only: no individual trades, notes, accounts or screenshots are shown, and only accounts in {cur} are included. These figures were entered by the trader and are <strong className="font-medium">not verified</strong> by TradeNotes.
         Past results do not predict future results, and this is not financial advice.
       </Notice>
+      {!r.showAmounts && <Notice>The owner chose to <strong className="font-medium">hide money amounts</strong>. This page shows ratios, counts and the shape of the equity curve only.</Notice>}
       {r.trades === 0 ? (
         <Card><p className="text-sm text-muted">No closed trades in this period yet.</p></Card>
       ) : (<>
         {r.smallSample && <Notice kind="warn">Based on {r.trades} closed trade{r.trades === 1 ? "" : "s"}. Under 30 trades, results are mostly luck.</Notice>}
         <section aria-label="Key figures" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat show={false} label="Closed trades" value={String(r.trades)} />
-          <Stat show={false} label="Net P&L" value={signedMoney(r.netPnl, cur)} cls={pnlClass(r.netPnl)} />
+          {r.showAmounts && <Stat show={false} label="Net P&L" value={signedMoney(r.netPnl, cur)} cls={pnlClass(r.netPnl)} />}
           <Stat show={false} label="Win rate" value={pct(r.winRate)} />
           <Stat show={false} label="Profit factor" value={num(r.profitFactor)} />
-          <Stat show={false} label="Expectancy / trade" value={signedMoney(r.expectancy, cur)} cls={pnlClass(r.expectancy)} />
+          {r.showAmounts && <Stat show={false} label="Expectancy / trade" value={signedMoney(r.expectancy, cur)} cls={pnlClass(r.expectancy)} />}
           <Stat show={false} label="Average R" value={r.avgR === null ? "—" : `${num(r.avgR)}R`} />
-          <Stat show={false} label="Max drawdown" value={money(r.maxDrawdown, cur)} cls={r.maxDrawdown > 0 ? "text-loss" : ""} />
+          {r.showAmounts && <Stat show={false} label="Max drawdown" value={money(r.maxDrawdown, cur)} cls={(r.maxDrawdown ?? 0) > 0 ? "text-loss" : ""} />}
           <Stat show={false} label="Longest streaks" value={`${r.maxWinStreak}W / ${r.maxLossStreak}L`} />
         </section>
         <Card>
-          <h2 className="mb-4 text-sm font-medium">Equity curve <span className="font-normal text-muted">· cumulative net P&amp;L, {cur}, by trade number</span></h2>
-          <EquityCurve points={r.curve.map((p) => ({ cumulative: p.cumulative, closedAt: null, n: p.n }))} total={r.curveTotal} currency={cur} />
+          <h2 className="mb-4 text-sm font-medium">Equity curve <span className="font-normal text-muted">{r.showAmounts ? `· cumulative net P&L, ${cur}, by trade number` : "· shape only, by trade number"}</span></h2>
+          <EquityCurve points={r.curve.map((p) => ({ cumulative: p.cumulative, closedAt: null, n: p.n }))} total={r.curveTotal} currency={cur} values={r.showAmounts} />
         </Card>
         <p className="text-xs text-muted">{r.wins} winning, {r.losses} losing{r.breakevens ? `, ${r.breakevens} breakeven` : ""} trades. Average R uses the {r.rTrades} trades that had a stop. Profit factor needs at least one loss.</p>
       </>)}

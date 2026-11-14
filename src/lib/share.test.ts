@@ -40,29 +40,50 @@ describe("link status, scopes, inputs", () => {
 
 describe("the public report contains aggregates only", () => {
   // Hand calculation: net 100 - 40 + 60 = 120; 2 wins, 1 loss; win rate 2/3; profit factor 160/40 = 4; expectancy 40; avg R (2 + 1.5)/2 = 1.75 (the -1 trade has no R);
-  // max drawdown: cum 100, 60, 120 -> peak 100, trough 60 -> 40.
+  // max drawdown: cum 100, 60, 120 -> peak 100, trough 60 -> 40. Rescaled by the largest absolute value (120): 0.8333, 0.5, 1.
   const rows = [
     { id: "SECRET-ID-1", netPnl: 100, grossPnl: 100, fees: 0, r: 2, closedAt: "2026-10-05T10:00:00Z", symbol: "EURUSD", strategy: "SECRET-STRATEGY", account: "SECRET-ACCOUNT", notes: "SECRET-NOTE" },
     { id: "SECRET-ID-2", netPnl: -40, grossPnl: -40, fees: 0, r: null, closedAt: "2026-10-06T10:00:00Z", symbol: "GBPUSD", mistakes: ["SECRET-TAG"] },
     { id: "SECRET-ID-3", netPnl: 60, grossPnl: 62, fees: 2, r: 1.5, closedAt: "2026-10-07T10:00:00Z", symbol: "ES" },
   ] as unknown as TradeResult[];
-  const r = buildReport(rows, "all", "USD", new Date("2026-11-13T09:00:00Z"));
-  it("figures", () => {
-    expect(r).toMatchObject({ scope: "all", scopeLabel: "All time", currency: "USD", generatedOn: "2026-11-13", trades: 3, wins: 2, losses: 1, breakevens: 0, netPnl: 120, expectancy: 40, avgWin: 80, avgLoss: -40, rTrades: 2, maxDrawdown: 40, maxWinStreak: 1, maxLossStreak: 1, smallSample: true, curveTotal: 3 });
+  const now = new Date("2026-11-13T09:00:00Z");
+  const r = buildReport(rows, "all", "USD", { showAmounts: true, now });
+  const h = buildReport(rows, "all", "USD", { showAmounts: false, now });
+  it("with amounts shown: figures", () => {
+    expect(r).toMatchObject({ scope: "all", scopeLabel: "All time", currency: "USD", generatedOn: "2026-11-13", showAmounts: true, trades: 3, wins: 2, losses: 1, breakevens: 0, netPnl: 120, expectancy: 40, avgWin: 80, avgLoss: -40, rTrades: 2, maxDrawdown: 40, maxWinStreak: 1, maxLossStreak: 1, smallSample: true, curveTotal: 3 });
     expect(r.winRate).toBeCloseTo(2 / 3, 12); expect(r.profitFactor).toBeCloseTo(4, 12); expect(r.avgR).toBeCloseTo(1.75, 12);
     expect(r.curve).toEqual([{ cumulative: 100, n: 1 }, { cumulative: 60, n: 2 }, { cumulative: 120, n: 3 }]);
   });
-  it("has exactly the allowed fields (a new field must be added here on purpose, after asking whether it is private)", () => {
-    expect(Object.keys(r).sort()).toEqual(["avgLoss", "avgR", "avgWin", "breakevens", "curve", "curveTotal", "currency", "expectancy", "generatedOn", "losses", "maxDrawdown", "maxLossStreak", "maxWinStreak", "netPnl", "profitFactor", "rTrades", "scope", "scopeLabel", "smallSample", "trades", "winRate", "wins"].sort());
+  it("with amounts hidden (the default for a new link): ratios and counts stay, EVERY money field is null, and the curve keeps its shape but loses its size", () => {
+    expect(h).toMatchObject({ showAmounts: false, trades: 3, wins: 2, losses: 1, rTrades: 2, maxWinStreak: 1, maxLossStreak: 1, netPnl: null, expectancy: null, avgWin: null, avgLoss: null, maxDrawdown: null });
+    expect(h.winRate).toBeCloseTo(2 / 3, 12); expect(h.profitFactor).toBeCloseTo(4, 12); expect(h.avgR).toBeCloseTo(1.75, 12);
+    expect(h.curve).toEqual([{ cumulative: 0.8333, n: 1 }, { cumulative: 0.5, n: 2 }, { cumulative: 1, n: 3 }]);
+    const json = JSON.stringify(h);
+    for (const money of ["120", "80", "-40", "\"cumulative\":100", "\"cumulative\":60"]) expect(json).not.toContain(money);
+    for (const v of h.curve) expect(Math.abs(v.cumulative)).toBeLessThanOrEqual(1);
+  });
+  it("hidden mode with a losing curve rescales by the largest absolute value and an all-zero curve stays zero", () => {
+    const loss = buildReport([{ id: "a", netPnl: -50, grossPnl: -50, fees: 0, r: null, closedAt: "2026-10-05T10:00:00Z" }, { id: "b", netPnl: 25, grossPnl: 25, fees: 0, r: null, closedAt: "2026-10-06T10:00:00Z" }], "all", "USD", { showAmounts: false, now });
+    expect(loss.curve.map((p) => p.cumulative)).toEqual([-1, -0.5]);
+    const flat = buildReport([{ id: "a", netPnl: 0, grossPnl: 0, fees: 0, r: null, closedAt: "2026-10-05T10:00:00Z" }], "all", "USD", { showAmounts: false, now });
+    expect(flat.curve.map((p) => p.cumulative)).toEqual([0]);
+  });
+  it("has exactly the allowed fields in both modes (a new field must be added here on purpose, after asking whether it is private)", () => {
+    const allowed = ["avgLoss", "avgR", "avgWin", "breakevens", "curve", "curveTotal", "currency", "expectancy", "generatedOn", "losses", "maxDrawdown", "maxLossStreak", "maxWinStreak", "netPnl", "profitFactor", "rTrades", "scope", "scopeLabel", "showAmounts", "smallSample", "trades", "winRate", "wins"].sort();
+    expect(Object.keys(r).sort()).toEqual(allowed); expect(Object.keys(h).sort()).toEqual(allowed);
     expect(Object.keys(r.curve[0]).sort()).toEqual(["cumulative", "n"]);
   });
-  it("planted private values (ids, symbols, strategies, accounts, notes, tags, trade dates) never reach the serialised report", () => {
-    const json = JSON.stringify(r);
-    for (const secret of ["SECRET", "EURUSD", "GBPUSD", "2026-10-05", "2026-10-06", "2026-10-07", "closedAt", "symbol", "strategy"]) expect(json).not.toContain(secret);
+  it("planted private values (ids, symbols, strategies, accounts, notes, tags, trade dates) never reach the serialised report, in either mode", () => {
+    for (const rep of [r, h]) {
+      const json = JSON.stringify(rep);
+      for (const secret of ["SECRET", "EURUSD", "GBPUSD", "2026-10-05", "2026-10-06", "2026-10-07", "closedAt", "symbol", "strategy"]) expect(json).not.toContain(secret);
+    }
   });
   it("an empty period gives zeros and nulls, not NaN or infinity", () => {
-    const e = buildReport([], "30d", "EUR", new Date("2026-11-13T00:00:00Z"));
-    expect(e.trades).toBe(0); expect(e.winRate).toBeNull(); expect(e.profitFactor).toBeNull(); expect(e.netPnl).toBe(0); expect(e.curve).toEqual([]);
-    expect(JSON.stringify(e)).not.toMatch(/NaN|Infinity/);
+    for (const showAmounts of [true, false]) {
+      const e = buildReport([], "30d", "EUR", { showAmounts, now: new Date("2026-11-13T00:00:00Z") });
+      expect(e.trades).toBe(0); expect(e.winRate).toBeNull(); expect(e.profitFactor).toBeNull(); expect(e.curve).toEqual([]);
+      expect(JSON.stringify(e)).not.toMatch(/NaN|Infinity/);
+    }
   });
 });

@@ -37,7 +37,7 @@ const DELETE_ERRORS: Record<string, string> = {
 export default async function Settings({ searchParams }: { searchParams: Promise<{ saved?: string; delete_error?: string; revoked?: string }> }) {
   const { user, profile, accounts, plan, sub, db } = await getContext();
   const { saved, delete_error: deleteError, revoked } = await searchParams;
-  const links: LinkRow[] = (await db((q) => q<Omit<LinkRow, "status">>("select id, label, scope, expires_at, revoked_at, created_at from tradenotes.share_links order by created_at desc limit 20"))).map((l) => ({ ...l, status: linkStatus(l) }));
+  const links: LinkRow[] = (await db((q) => q<Omit<LinkRow, "status">>("select id, label, scope, expires_at, revoked_at, created_at, show_amounts from tradenotes.share_links order by created_at desc limit 20"))).map((l) => ({ ...l, status: linkStatus(l) }));
   const paid = plan !== "free";
   const t = (await cookies()).get("tn_theme")?.value;
   const theme = t === "light" || t === "dark" ? t : "system";

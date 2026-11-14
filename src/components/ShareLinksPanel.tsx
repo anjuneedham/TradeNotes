@@ -4,7 +4,7 @@ import { createShareLink, revokeShareLink, type ShareState } from "@/app/app/set
 import { SHARE_SCOPES, EXPIRY_DAYS, DEFAULT_EXPIRY_DAYS, MAX_ACTIVE_LINKS, scopeLabel, type LinkStatus } from "@/lib/share";
 import { Notice, Badge, btnCls, btnGhostCls, inputCls } from "./ui";
 
-export interface LinkRow { id: string; label: string | null; scope: string; expires_at: string; revoked_at: string | null; created_at: string; status: LinkStatus }
+export interface LinkRow { id: string; label: string | null; scope: string; expires_at: string; revoked_at: string | null; created_at: string; show_amounts: boolean; status: LinkStatus }
 const day = (iso: string) => iso.slice(0, 10);
 
 /** Settings > Sharing: create and revoke read-only report links. The new link is shown once; afterwards only its label and dates exist. */
@@ -15,7 +15,7 @@ export function ShareLinksPanel({ links, currency, otherCurrencies }: { links: L
   const active = links.filter((l) => l.status === "active").length;
   return (
     <div className="space-y-4 text-sm">
-      <p className="text-muted">A share link opens a read-only page with your <strong className="font-medium text-fg">totals and equity curve only</strong>: number of trades, win rate, profit and loss, profit factor, expectancy, average R, drawdown. It never shows notes, instruments, strategy or account names, your email, screenshots or the dates of individual trades. Anyone who has the link can open it until it expires or you revoke it. Amounts are shown in {currency}{otherCurrencies ? <>, and <strong className="font-medium text-fg">your accounts in other currencies are not included</strong> (they are not converted)</> : null}.</p>
+      <p className="text-muted">A share link opens a read-only page of <strong className="font-medium text-fg">totals only</strong>. By default it shows ratios and counts (number of trades, win rate, profit factor, average R, streaks) and the shape of your equity curve, <strong className="font-medium text-fg">with no money amounts</strong>. Tick “Show money amounts” to add profit and loss, expectancy, drawdown and the dollar scale of the curve. It never shows notes, instruments, strategy or account names, your email, screenshots or the dates of individual trades. Anyone who has the link can open it until it expires or you revoke it. Amounts are shown in {currency}{otherCurrencies ? <>, and <strong className="font-medium text-fg">your accounts in other currencies are not included</strong> (they are not converted)</> : null}.</p>
 
       {state.error && <Notice kind="error">{state.error}</Notice>}
       {url && (
@@ -26,12 +26,17 @@ export function ShareLinksPanel({ links, currency, otherCurrencies }: { links: L
         </Notice>
       )}
 
-      <form action={action} className="grid gap-3 sm:grid-cols-2" aria-label="Create a share link">
+      {/* key: the form is rebuilt after every created link, so "Show money amounts" is back to OFF each time (never carried over from the previous link) */}
+      <form key={state.path ?? "new"} action={action} className="grid gap-3 sm:grid-cols-2" aria-label="Create a share link">
         <label className="block"><span className="mb-1 block text-xs text-muted">Label (only you see it)</span><input name="label" maxLength={60} placeholder="e.g. For my mentor" className={inputCls} /></label>
         <label className="block"><span className="mb-1 block text-xs text-muted">Results to include</span>
           <select name="scope" defaultValue="all" className={inputCls}>{SHARE_SCOPES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select></label>
         <label className="block"><span className="mb-1 block text-xs text-muted">Link expires after</span>
           <select name="expires_in" defaultValue={String(DEFAULT_EXPIRY_DAYS)} className={inputCls}>{EXPIRY_DAYS.map((d) => <option key={d} value={d}>{d} days</option>)}</select></label>
+        <label className="flex cursor-pointer items-start gap-3 sm:col-span-2">
+          <input type="checkbox" name="show_amounts" className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
+          <span><span className="font-medium">Show money amounts</span><span className="mt-0.5 block text-xs text-muted">Off by default. When on, anyone with the link sees your profit and loss figures. You cannot change this later: create a new link instead.</span></span>
+        </label>
         <div className="flex items-end"><button disabled={pending || active >= MAX_ACTIVE_LINKS} className={btnCls}>{pending ? "Creating…" : "Create share link"}</button></div>
       </form>
       {active >= MAX_ACTIVE_LINKS && <p className="text-xs text-muted">You have {MAX_ACTIVE_LINKS} active links, the most allowed. Revoke one to create another.</p>}
@@ -42,7 +47,7 @@ export function ShareLinksPanel({ links, currency, otherCurrencies }: { links: L
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3.5 py-3">
               <div className="min-w-0">
                 <p className="truncate font-medium">{l.label ?? "Untitled link"} <Badge tone={l.status === "active" ? "win" : "neutral"}>{l.status}</Badge></p>
-                <p className="text-xs text-muted">{scopeLabel(l.scope)} · created {day(l.created_at)} · {l.status === "revoked" ? `revoked ${day(l.revoked_at!)}` : l.status === "expired" ? `expired ${day(l.expires_at)}` : `expires ${day(l.expires_at)}`}</p>
+                <p className="text-xs text-muted">{scopeLabel(l.scope)} · {l.show_amounts ? "money amounts shown" : "amounts hidden"} · created {day(l.created_at)} · {l.status === "revoked" ? `revoked ${day(l.revoked_at!)}` : l.status === "expired" ? `expired ${day(l.expires_at)}` : `expires ${day(l.expires_at)}`}</p>
               </div>
               {l.status === "active" && <form action={revokeShareLink}><input type="hidden" name="id" value={l.id} /><button className={btnGhostCls} aria-label={`Revoke link ${l.label ?? ""}`.trim()}>Revoke</button></form>}
             </li>

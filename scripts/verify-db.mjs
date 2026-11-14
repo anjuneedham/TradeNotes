@@ -140,9 +140,14 @@ try {
     (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() - interval '1 day')", [A, sha("p1")])) &&
     (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '400 days')", [A, sha("p2")])) &&
     (await errors("insert into tradenotes.share_links (user_id, token_hash, scope, expires_at) values ($1,$2,'everything', now() + interval '1 day')", [A, sha("p3")])));
-  const resolve = async (h) => (await q("select user_id, scope from tradenotes.resolve_share_link($1)", [h]));
+  const resolve = async (h) => (await q("select user_id, scope, show_amounts from tradenotes.resolve_share_link($1)", [h]));
   const got = await resolve(hashA);
   ok("a valid link resolves to its owner and scope; an unknown hash resolves to nothing", got.length === 1 && got[0].user_id === A && got[0].scope === "all" && (await resolve(sha("nope"))).length === 0);
+  const hashAmt = sha("token-amt-" + A);
+  await q("insert into tradenotes.share_links (user_id, token_hash, show_amounts, expires_at) values ($1,$2,true, now() + interval '1 day')", [A, hashAmt]);
+  ok("money amounts are hidden unless the owner opted in: the default link resolves with show_amounts = false, the opted-in one with true, and the choice cannot be changed afterwards",
+    got[0].show_amounts === false && (await resolve(hashAmt))[0].show_amounts === true && (await errors("update tradenotes.share_links set show_amounts = not show_amounts where token_hash = $1", [hashA])) && (await errors("update tradenotes.share_links set show_amounts = false where token_hash = $1", [hashAmt])));
+  await q("update tradenotes.share_links set revoked_at = now() where token_hash = $1", [hashAmt]);
   await q("insert into tradenotes.share_links (user_id, token_hash, scope, expires_at, created_at) values ($1,$2,'30d', now() - interval '1 day', now() - interval '10 days')", [A, hashOld]);
   ok("an expired link resolves to nothing", (await resolve(hashOld)).length === 0);
   await q("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '7 days')", [A, hashRev]);

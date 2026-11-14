@@ -913,15 +913,18 @@ async function phase3(browser, stamp) {
   const up = await prem.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: realTrade, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
   check('P3 share: (setup) a real trade has a screenshot, a note and a named account that the public page must never show', up.status() === 201);
   await prem.goto(BASE + '/app/settings#sharing'); t = await bodyOf(prem);
-  check('P3 share (Premium, 390px): Settings > Sharing explains what is shared and fits the screen', t.includes('totals and equity curve only') && t.includes('never shows notes') && await noScroll(prem));
+  check('P3 share (Premium, 390px): Settings > Sharing explains what is shared and fits the screen', t.includes('totals only') && t.includes('no money amounts') && t.includes('never shows notes') && await noScroll(prem));
+  check('P3 share: "Show money amounts" is OFF by default', !(await prem.getByLabel(/Show money amounts/).isChecked()));
   await prem.getByLabel('Label (only you see it)').fill('For my mentor');
+  await prem.getByLabel(/Show money amounts/).check();
   await prem.getByRole('button', { name: 'Create share link' }).click();
   await prem.getByTestId('new-share-url').waitFor({ timeout: 10000 });
   const link1 = (await prem.getByTestId('new-share-url').innerText()).trim(); const tok1 = link1.split('/r/')[1];
   check('P3 share: the link is shown once (43-character token)', /^[A-Za-z0-9_-]{43}$/.test(tok1), link1);
+  check('P3 share: after a link is created with amounts shown, the box is OFF again for the next one (never carried over)', !(await prem.getByLabel(/Show money amounts/).isChecked()));
   const row1 = (await db.query(`select * from tradenotes.share_links where user_id = $1 and label = 'For my mentor'`, [pid])).rows[0];
   const dump = JSON.stringify(row1);
-  check('P3 share: only a SHA-256 hash is stored (token not in any column), scope all, expires in about 30 days', row1.token_hash === sha256(tok1) && !dump.includes(tok1) && row1.scope === 'all' && Math.abs(new Date(row1.expires_at) - Date.now() - 30 * 86400000) < 3600000, dump);
+  check('P3 share: only a SHA-256 hash is stored (token not in any column), scope all, expires in about 30 days', row1.token_hash === sha256(tok1) && !dump.includes(tok1) && row1.scope === 'all' && row1.show_amounts === true && Math.abs(new Date(row1.expires_at) - Date.now() - 30 * 86400000) < 3600000, dump);
   const pubA = await anonPage({ viewport: { width: 390, height: 844 } });
   const resA = await pubA.goto(BASE + '/r/' + tok1); t = await bodyOf(pubA); const html = await pubA.content();
   check('P3 share: the public report opens without signing in and shows the totals (4 trades, +$1,190.00), a curve, and fits 390px', resA.status() === 200 && t.includes('Trading results summary') && t.includes('+$1,190.00') && /Closed trades\s*4/.test(t) && (await pubA.locator('svg[role=img]').count()) >= 1 && await noScroll(pubA), t.slice(0, 400));
@@ -929,6 +932,17 @@ async function phase3(browser, stamp) {
   check('P3 share: nothing private appears in the public page (notes, account name, email, instruments, strategies, tags, screenshots, trade dates, hypothetical trades)', forbidden.every((f) => !t.includes(f) && !html.includes(f)), forbidden.filter((f) => t.includes(f) || html.includes(f)).join(','));
   check('P3 share: public page is noindex (meta + header), no-store, no-referrer', /noindex/.test(await pubA.locator('meta[name=robots]').getAttribute('content')) && /noindex/.test(resA.headers()['x-robots-tag'] || '') && /no-store/.test(resA.headers()['cache-control'] || '') && resA.headers()['referrer-policy'] === 'no-referrer');
   check('P3 share: a mistyped token, a token with extra characters and the signed-out Settings are not reachable (404)', (await pubA.goto(BASE + '/r/' + tok1 + 'x')).status() === 404 && (await pubA.goto(BASE + '/r/' + newTok())).status() === 404);
+  // default link: ratios and the shape of the curve only. No money may reach the page, the raw HTML or the data sent to the browser.
+  await prem.getByLabel('Label (only you see it)').fill('Ratios only');
+  await prem.getByRole('button', { name: 'Create share link' }).click();
+  await prem.waitForFunction((old) => { const el = document.querySelector('[data-testid=new-share-url]'); return el && el.textContent.trim() !== old; }, link1, { timeout: 10000 }); // the previous link's URL is still on screen until the new one arrives
+  const tok2 = (await prem.getByTestId('new-share-url').innerText()).trim().split('/r/')[1];
+  const row2 = (await db.query(`select show_amounts from tradenotes.share_links where token_hash = $1`, [sha256(tok2)])).rows[0];
+  const resB = await pubA.goto(BASE + '/r/' + tok2); const tB = await bodyOf(pubA); const htmlB = await pubA.content();
+  check('P3 share (default, amounts hidden): stored as hidden; the page shows win rate 75.0%, profit factor 3.38, average R 2.00R and the curve shape, says amounts are hidden',
+    row2.show_amounts === false && resB.status() === 200 && tB.includes('hide money amounts') && tB.includes('75.0%') && tB.includes('3.38') && tB.includes('2.00R') && /Closed trades\s*4/.test(tB) && /Shape of the equity curve over 4 closed trades/.test(htmlB), JSON.stringify({ r: row2.show_amounts, s: resB.status(), a: tB.includes('hide money amounts'), b: tB.includes('75.0%'), c: tB.includes('3.38'), d: tB.includes('2.00R'), e: /Closed trades\s*4/.test(tB), f: /Shape of the equity curve over 4 closed trades/.test(htmlB) }) + tB.slice(300, 900));
+  check('P3 share (default, amounts hidden): no money anywhere: no dollar amount in the text, no Net P&L / Expectancy / Max drawdown, none of the real totals in the HTML or the data sent to the browser, and no axis labels',
+    !/\$\s?\d/.test(tB) && !/Net P&L|Expectancy|Max drawdown/.test(tB) && !/(netPnl|expectancy|maxDrawdown|avgWin|avgLoss)\\?":\s*-?\d/.test(htmlB) && !/cumulative\\?":\s*-?\d{2,}/.test(htmlB) && !htmlB.includes('1,190'), JSON.stringify({ dollar: tB.match(/\$\s?\d.{0,20}/), words: tB.match(/Net P&L|Expectancy|Max drawdown/), keys: htmlB.match(/(netPnl|expectancy|maxDrawdown|avgWin|avgLoss)\\?":\s*-?\d.{0,10}/), cum: htmlB.match(/cumulative\\?":\s*-?\d{2,}.{0,10}/), c: htmlB.includes('1,190') }));
   // another user cannot see, list or revoke the owner's links; forging the id in their own revoke form changes nothing
   await db.query(`insert into tradenotes.share_links (user_id, label, token_hash, expires_at) values ($1,'B own link',$2, now() + interval '5 days')`, [oid, sha256('b-own-token-' + stamp)]);
   await other.goto(BASE + '/app/settings#sharing'); t = await bodyOf(other);
@@ -1015,6 +1029,8 @@ async function phase3(browser, stamp) {
   const man = await (await quick.request.get(BASE + '/manifest.webmanifest')).json();
   const icons = await Promise.all(man.icons.map(async (i) => { const r = await quick.request.get(BASE + i.src); return r.status() === 200 && r.headers()['content-type'] === 'image/png'; }));
   check('P3 quick-log: web manifest opens the quick-log page full-screen, with 192 and 512 icons (and a maskable one) that load', man.start_url === '/app/quick' && man.display === 'standalone' && man.icons.some((i) => i.sizes === '192x192') && man.icons.some((i) => i.sizes === '512x512') && man.icons.some((i) => i.purpose === 'maskable') && icons.every(Boolean), JSON.stringify(man));
+  const iconDims = await Promise.all(man.icons.map(async (i) => { const b = await (await quick.request.get(BASE + i.src)).body(); return `${b.readUInt32BE(16)}x${b.readUInt32BE(20)}`; }));
+  check('P3 quick-log: every manifest icon really has the pixel size it declares (checked in the PNG header), as installability requires', man.icons.every((i, k) => i.sizes === iconDims[k]) && man.name && man.short_name && /^\//.test(man.start_url) && man.scope === '/' && !man.prefer_related_applications, JSON.stringify(iconDims));
   await quick.goto(BASE + '/app/quick'); await quick.getByTestId('install-hint').waitFor({ timeout: 5000 }).catch(() => {});
   check('P3 quick-log: an iPhone sees the add-to-home-screen hint (Share, then Add to Home Screen)', (await quick.getByTestId('install-hint').count()) === 1 && /Add to Home Screen/.test(await quick.getByTestId('install-hint').innerText()));
   await quick.getByRole('button', { name: 'Dismiss this hint' }).click(); await quick.reload();

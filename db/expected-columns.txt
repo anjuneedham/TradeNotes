@@ -251,3 +251,4 @@ tradenotes.share_links.revoked_at|timestamp with time zone|YES|||
 tradenotes.share_links.scope|text|NO|||
 tradenotes.share_links.token_hash|text|NO|||
 tradenotes.share_links.user_id|uuid|NO|||
+tradenotes.share_links.show_amounts|boolean|NO|||

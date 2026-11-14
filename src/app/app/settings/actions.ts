@@ -71,7 +71,7 @@ export async function deleteAccount(formData: FormData) {
 }
 
 /** Result of creating a share link. The path (with the token) is returned ONCE, here; only its hash is stored. */
-export interface ShareState { path?: string; error?: string; label?: string | null }
+export interface ShareState { path?: string; error?: string; label?: string | null; showAmounts?: boolean }
 
 /** Create a public read-only report link for the signed-in user. Own row only (row-level security); the database caps usable links at 5. */
 export async function createShareLink(_prev: ShareState, formData: FormData): Promise<ShareState> {
@@ -80,9 +80,10 @@ export async function createShareLink(_prev: ShareState, formData: FormData): Pr
   const scope = parseScope(formData.get("scope")) ?? "all";
   const days = parseExpiryDays(formData.get("expires_in")) ?? DEFAULT_EXPIRY_DAYS;
   const label = cleanLabel(formData.get("label"));
+  const showAmounts = formData.get("show_amounts") === "on"; // money amounts are shown only when the owner ticks the box
   const token = newToken();
   try {
-    await db((q) => q("insert into tradenotes.share_links (user_id, label, token_hash, scope, expires_at) values ($1, $2, $3, $4, now() + ($5::int * interval '1 day'))", [user.id, label, hashToken(token), scope, days]));
+    await db((q) => q("insert into tradenotes.share_links (user_id, label, token_hash, scope, show_amounts, expires_at) values ($1, $2, $3, $4, $6, now() + ($5::int * interval '1 day'))", [user.id, label, hashToken(token), scope, days, showAmounts]));
   } catch (e) {
     const m = e instanceof Error ? e.message : "";
     if (/share link limit reached/.test(m)) return { error: `You can have ${MAX_ACTIVE_LINKS} active links at a time. Revoke one first.` };
@@ -91,7 +92,7 @@ export async function createShareLink(_prev: ShareState, formData: FormData): Pr
     return { error: "Could not create the link. Please try again." };
   }
   revalidatePath("/app/settings");
-  return { path: `/r/${token}`, label };
+  return { path: `/r/${token}`, label, showAmounts };
 }
 
 /** Revoke one of the user's own links. Another user's id matches no row (row-level security), so nothing changes. */

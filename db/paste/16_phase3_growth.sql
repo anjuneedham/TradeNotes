@@ -124,8 +124,10 @@ create table if not exists tradenotes.share_links (
   expires_at timestamptz not null,
   revoked_at timestamptz,
   created_at timestamptz not null default now(),
+  show_amounts boolean not null default false, -- false (default): the public page shows ratios and the shape of the curve only, no money amounts
   check (expires_at > created_at and expires_at <= created_at + interval '366 days')
 );
+alter table tradenotes.share_links add column if not exists show_amounts boolean not null default false; -- for databases that already ran an earlier draft of this file
 create index if not exists share_links_user_idx on tradenotes.share_links (user_id, created_at desc);
 
 -- At most 5 usable links and 100 rows per user. After creation only the label and the revocation can change, and a revoked link stays revoked.
@@ -141,7 +143,7 @@ begin
     end if;
   else
     if new.user_id is distinct from old.user_id or new.token_hash is distinct from old.token_hash or new.scope is distinct from old.scope
-       or new.expires_at is distinct from old.expires_at or new.created_at is distinct from old.created_at then
+       or new.expires_at is distinct from old.expires_at or new.created_at is distinct from old.created_at or new.show_amounts is distinct from old.show_amounts then
       raise exception 'a share link cannot be changed, only revoked';
     end if;
     if old.revoked_at is not null and new.revoked_at is distinct from old.revoked_at then
@@ -155,9 +157,10 @@ drop trigger if exists share_links_check on tradenotes.share_links;
 create trigger share_links_check before insert or update on tradenotes.share_links for each row execute function tradenotes.check_share_link();
 
 -- The ONLY way a public page learns whose report a token opens: exact hash match, not revoked, not expired. Returns nothing otherwise.
-create or replace function tradenotes.resolve_share_link(p_hash text) returns table (user_id uuid, scope text)
+drop function if exists tradenotes.resolve_share_link(text); -- the return type grew (show_amounts); CREATE OR REPLACE cannot change it
+create or replace function tradenotes.resolve_share_link(p_hash text) returns table (user_id uuid, scope text, show_amounts boolean)
 language sql security definer set search_path = '' stable as $$
-  select s.user_id, s.scope from tradenotes.share_links s
+  select s.user_id, s.scope, s.show_amounts from tradenotes.share_links s
    where s.token_hash = p_hash and s.revoked_at is null and s.expires_at > now();
 $$;
 revoke all on function tradenotes.resolve_share_link(text) from public;

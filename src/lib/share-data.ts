@@ -26,10 +26,10 @@ export const clearShareCache = () => cache.clear();
  */
 export async function loadSharedReport(token: unknown): Promise<ShareReport | null> {
   if (!isTokenShape(token)) return null;
-  const { rows } = await pool.query<{ user_id: string; scope: string }>("select user_id, scope from tradenotes.resolve_share_link($1)", [hashToken(token)]);
+  const { rows } = await pool.query<{ user_id: string; scope: string; show_amounts: boolean }>("select user_id, scope, show_amounts from tradenotes.resolve_share_link($1)", [hashToken(token)]);
   const link = rows[0];
   if (!link) return null;
-  const key = `${link.user_id}:${link.scope}`, now = Date.now();
+  const key = `${link.user_id}:${link.scope}:${link.show_amounts}`, now = Date.now();
   const hit = cached(key, now);
   if (hit) return hit;
   const report = await withUser(link.user_id, async (q) => {
@@ -38,7 +38,7 @@ export async function loadSharedReport(token: unknown): Promise<ShareReport | nu
     const currency = a?.currency ?? "USD";
     // All of the owner's accounts that share the first account's currency (the same rule the app's "All accounts" view uses); nothing about the accounts is returned.
     const loaded = await loadResults(<T,>(fn: (qq: typeof q) => Promise<T>) => fn(q), null, currency, { ...NO_FILTERS, range: scopeRange(link.scope) }, p?.timezone ?? "UTC");
-    return buildReport(loaded.rows, link.scope, currency);
+    return buildReport(loaded.rows, link.scope, currency, { showAmounts: link.show_amounts === true });
   });
   remember(key, report, now);
   return report;
