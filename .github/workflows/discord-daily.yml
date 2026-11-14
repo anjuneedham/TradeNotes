@@ -1,0 +1,25 @@
+name: Discord daily prompt
+# Posts the day's Journal Challenge prompt to the #daily-prompt channel (1-30 Dec 2026; outside that window the app posts nothing).
+# 12:00 UTC = 07:00 in Jamaica. Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   DISCORD_CRON_SECRET (same value as the Vercel env var) and DISCORD_DAILY_URL (https://tradenotes.dev/api/cron/discord-daily).
+# Scheduled workflows only run from the default branch. See docs/DISCORD_SETUP.md.
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  post:
+    name: post today's prompt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call the daily-prompt endpoint
+        env:
+          URL: ${{ secrets.DISCORD_DAILY_URL }}
+          CRON_SECRET: ${{ secrets.DISCORD_CRON_SECRET }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$CRON_SECRET" ]; then echo "DISCORD_DAILY_URL / DISCORD_CRON_SECRET not set: nothing posted"; exit 1; fi
+          curl -sS --fail-with-body -X POST -H "Authorization: Bearer $CRON_SECRET" --max-time 60 "$URL"
+          echo

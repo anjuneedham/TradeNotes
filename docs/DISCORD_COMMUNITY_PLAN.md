@@ -45,7 +45,7 @@ Free users can do every prompt with the free journal (tags, mistake cost). Stand
 3. **Premium:** weekly group review call and faster replies.
 4. **Paid 1:1 or small-group coaching (later):** only after it is written (scope, price, sessions, cancellation), reviewed by your lawyer, and offered only to people who have logged ≥30 trades or attended ≥3 reviews. Process coaching only: no trade calls, no managing money. Personalised trading advice can be regulated depending on where you and the client are.
 
-## 7. Bot spec and build plan (all free to run on the current stack)
+## 7. Bot spec and build plan (BUILT 2026-11-14 on the dev branch; see `DISCORD_SETUP.md`)
 **v1 commands:** `/checkin followed:(yes|partly|no) mistake:(choice) note:(≤280 chars)` · `/streak` · `/plan` (a form for setup, risk, invalidation) · `/rules` · `/tradenotes` (link tagged `?src=discord`) · `/forgetme` (deletes the member's data).
 **Daily prompt:** GitHub Actions schedule (for example 07:00 Jamaica time, `0 12 * * *` UTC) calls an endpoint that posts that day's prompt to a channel webhook.
 **Code (new, small):** `src/app/api/discord/interactions/route.ts` (signature check, PING, commands), `src/app/api/cron/discord-daily/route.ts`, `src/lib/discord-prompts.ts` (the 30 prompts above), one migration for `discord_checkins` (discord_user_id, day, followed, mistake, note, created_at; row-level security, owner role only), tests for signature verification and streak maths. One small dependency (for example `discord-interactions`).
@@ -56,7 +56,7 @@ Free users can do every prompt with the free journal (tags, mistake cost). Stand
 ## 8. Owner setup (you do these; never paste tokens in chat)
 1. Create a Discord server; turn on **Community**; add the channels and rules above.
 2. In the Discord Developer Portal, create an application. Copy the **Application ID** and **Public Key** (not secret). Create the bot and copy the **Bot Token** (secret).
-3. In Vercel (Production, Sensitive on): `DISCORD_APP_ID`, `DISCORD_PUBLIC_KEY`, `DISCORD_BOT_TOKEN`, `DISCORD_DAILY_WEBHOOK` (a channel webhook URL), `DISCORD_CRON_SECRET`. Add the matching cron secret and URL in GitHub Actions secrets.
+3. Secrets and where they go: see `DISCORD_SETUP.md` (the bot token goes only into a GitHub Actions secret; the webhook and signing key go into Vercel).
 4. After I deploy the endpoint, paste its URL in the app's **Interactions Endpoint URL** and save (Discord will PING it).
 5. Invite the app to your server with the `applications.commands` scope only; no admin permissions.
 Tell me when each is done (no values) and I will verify.

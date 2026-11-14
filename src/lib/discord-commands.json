@@ -1,0 +1,29 @@
+[
+  {
+    "name": "checkin",
+    "description": "Log today's check-in: did you follow your plan?",
+    "type": 1,
+    "options": [
+      { "type": 3, "name": "followed", "description": "Did you follow your plan today?", "required": true,
+        "choices": [ { "name": "Yes", "value": "yes" }, { "name": "Partly", "value": "partly" }, { "name": "No", "value": "no" } ] },
+      { "type": 3, "name": "mistake", "description": "Your biggest mistake today, if any", "required": false,
+        "choices": [
+          { "name": "None today", "value": "None today" },
+          { "name": "Moved my stop", "value": "Moved my stop" },
+          { "name": "Revenge trade", "value": "Revenge trade" },
+          { "name": "Oversized", "value": "Oversized" },
+          { "name": "Entered early", "value": "Entered early" },
+          { "name": "Chased a move", "value": "Chased a move" },
+          { "name": "FOMO", "value": "FOMO" },
+          { "name": "Broke a rule", "value": "Broke a rule" },
+          { "name": "Overtraded", "value": "Overtraded" }
+        ] },
+      { "type": 3, "name": "note", "description": "One line on what you learned", "required": false, "max_length": 280 }
+    ]
+  },
+  { "name": "plan", "description": "Write your pre-session plan before you trade", "type": 1 },
+  { "name": "streak", "description": "See your check-in streak", "type": 1 },
+  { "name": "rules", "description": "Community rules and the no-signals reminder", "type": 1 },
+  { "name": "tradenotes", "description": "Get the link to the TradeNotes journal", "type": 1 },
+  { "name": "forgetme", "description": "Delete all your stored check-ins", "type": 1 }
+]

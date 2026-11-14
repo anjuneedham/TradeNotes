@@ -1,0 +1,21 @@
+name: Register Discord commands
+# Run by hand (Actions -> Register Discord commands -> Run workflow) after the first deploy and whenever src/lib/discord-commands.json changes.
+# Needs one repository secret: DISCORD_BOT_TOKEN (Developer Portal -> Bot -> Reset Token). The two ids below are public identifiers.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  register:
+    name: register slash commands
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/discord-register.mjs
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_APP_ID: "1571191674846052352"
+          DISCORD_GUILD_ID: "1571190560965009540"

@@ -252,3 +252,10 @@ tradenotes.share_links.scope|text|NO|||
 tradenotes.share_links.token_hash|text|NO|||
 tradenotes.share_links.user_id|uuid|NO|||
 tradenotes.share_links.show_amounts|boolean|NO|||
+tradenotes.discord_checkins.created_at|timestamp with time zone|NO|||
+tradenotes.discord_checkins.day|date|NO|||
+tradenotes.discord_checkins.discord_user_id|text|NO|||
+tradenotes.discord_checkins.followed|text|NO|||
+tradenotes.discord_checkins.id|uuid|NO|||
+tradenotes.discord_checkins.mistake|text|YES|||
+tradenotes.discord_checkins.note|text|YES|||
