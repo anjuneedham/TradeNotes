@@ -21,3 +21,6 @@
 | 2026-11-10 | Auth tables renamed `tn_*`, API roles revoked, RLS on | Supabase exposes `public` via REST; avoid collisions with Agriloop |
 | 2026-11-10 | Instagram-only $50 ad; TikTok judged organically | TikTok ads floor $50/campaign/day, $20/ad group/day makes a $50 split impossible |
 | 2026-11-10 | Content visuals = Andrew Builds style config (navy/amber, Inter, 58px captions) | Founder pointed to that repo |
+| 2026-11-14 | **HQ** = separate app in `hq/`, same Postgres, isolated `hq` schema, owner connection, own login (scrypt + TOTP), not the customer auth | Needs cross-customer reads + plan writes; a customer account must never become admin. Replaces the earlier "own database" idea to avoid a second DB to run before launch |
+| 2026-11-14 | HQ sends nothing automatically; nurture email is one click per person; DMs/posts stay manual | Platform rules, playbook ("manual only"), consent/legal not signed off |
+| 2026-11-14 | Founding seats capped at 10 and offered only after trades logged — enforced in HQ with an explicit override | Playbook rules made hard to break by accident |

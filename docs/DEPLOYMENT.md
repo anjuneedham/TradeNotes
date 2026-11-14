@@ -1,4 +1,7 @@
 # Deployment
+## HQ (internal ops app)
+Separate project; see `HQ.md` for the deploy checklist. The customer app is unaffected (`hq/` is excluded from its tsconfig, lint and tests).
+
 ## Current state
 - **Vercel:** project `tradenotes` (`prj_1FasAGCy7BC4yz8Jn424A7ARcKET`) linked to GitHub `anjuneedham/TradeNotes`. **First successful deployment: 2026-11-10 (commit a7e5346, state READY).** Earlier deployments failed because Vercel blocked the vulnerable Next.js 15.5.4; fixed by upgrading to 15.5.29. **The deployed app is NOT usable yet:** no environment variables are set (build log shows BETTER_AUTH_SECRET missing) and the database schema isn't applied. Anonymous visitors to `*.vercel.app` are redirected to Vercel login (Deployment Protection "all except custom domains" is on), so the public link will be the custom domain once attached. Its production branch is currently the feature branch because no `main` exists — switch after the first merge.
 - **Database: Supabase — the existing Agriloop project (ref `rocawrsurnfikzreajwo`, shown as "YardScale-Digital" in the connector), founder decision 2026-11-10.** Our objects live in schema `tradenotes` plus 5 prefixed `public.tn_*` auth tables; nothing of Agriloop's is touched. **New schema NOT yet applied** (confirmation prompt timed out). An older, empty `tradenotes` schema (10 tables, 0 rows) is still there; `0000_reset_old_tradenotes_schema.sql` removes it. We use Supabase only as hosted Postgres — **not** Supabase Auth; Better Auth handles login.

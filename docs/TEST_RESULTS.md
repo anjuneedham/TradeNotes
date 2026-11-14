@@ -21,3 +21,14 @@ Anything against Neon or a deployed URL; email confirmation / password-reset flo
 | Lint / tsc | exit code 0 / 0 (lint now excludes `scripts/**`) |
 Bugs found by the email tests and fixed: confirmation link sent on an unconfirmed login landed on the home page (now onboarding/app); password reset did not revoke existing sessions (now it does).
 Not tested: real Resend delivery/deliverability, DNS records, spam placement.
+
+## Update 2026-11-14 — HQ (`hq/`)
+| Suite | Command | Result |
+|---|---|---|
+| Unit (outreach rules, content gate, captions, nurture schedule, plans/MRR, session + TOTP, social) | `cd hq && npm test` | **39 passed** (includes a drift test: HQ prices/founding offer/effectivePlan must equal the customer app's) |
+| DB (customer schema + `hq` schema applied twice; RLS, API-role lockout, duplicate-DM / one-follow-up / send-once indexes, cascade erase) | `cd hq && npm run test:db` | **21/21** |
+| Browser e2e (real app + Postgres + fake Resend, Chromium) | `cd hq && bash scripts/run-e2e.sh` | **98/98** |
+| Lint / tsc / production build | `npx eslint` / `npx tsc --noEmit` / `npm run build` | exit 0 / exit 0 / ok |
+| Customer app regression | root `npm test` / lint / tsc / `next build` | 50 passed / 0 / 0 / ok |
+Bugs found by these tests and fixed: money-amount check never matched (`\b` before `$`); first DB test run reported "OK" with 0 checks (results rolled back — now fails if < 20 checks report); downgrading a founding member to Free was refused (founding box still ticked) — Free now clears the flag.
+**Not tested:** anything on Supabase PG17 or a deployed URL; real Resend delivery; Handypay; real TikTok/Instagram data entry at volume; tablet layout.

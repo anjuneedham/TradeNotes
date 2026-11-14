@@ -7,7 +7,7 @@
     "build": "node scripts/migrate.mjs && node scripts/verify-db.mjs && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
+    "test": "vitest run --exclude 'hq/**' --exclude '**/node_modules/**'",
     "test:db": "bash scripts/test-db.sh",
     "e2e": "node scripts/e2e.js",
     "verify:db": "node scripts/verify-db.mjs",

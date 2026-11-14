@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* HQ uses the Andrew Builds palette (navy + one amber accent) so it never gets confused with the customer app (dark + blue). */
+:root {
+  --bg: #0a0f1a; --panel: #141b2b; --border: #243049; --fg: #f5f7fa; --muted: #8a97ad;
+  --accent: #f2b01e; --win: #22c55e; --loss: #ef4444; --warn: #f59e0b;
+}
+@theme inline {
+  --color-bg: var(--bg); --color-panel: var(--panel); --color-border: var(--border);
+  --color-fg: var(--fg); --color-muted: var(--muted); --color-accent: var(--accent);
+  --color-win: var(--win); --color-loss: var(--loss); --color-warn: var(--warn);
+}
+body { background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+table { border-collapse: collapse; }

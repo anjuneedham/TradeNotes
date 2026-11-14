@@ -16,7 +16,7 @@ Labels: NOT STARTED · IN PROGRESS · IMPLEMENTED (code exists) · TESTED · PRO
 | Payments (Handypay) | IMPLEMENTED (checkout links + /app/billing); activation MANUAL | build only | no | webhook docs needed for automation; no founding coupon; no annual link |
 | Deployment | BLOCKED | — | — | Vercel project exists; needs Neon + env vars |
 | Backtesting / replay | NOT STARTED | — | — | data licence; founder trades forex → pick forex-capable provider |
-| Admin, internal ops app | NOT STARTED | — | — | |
+| Internal ops app (HQ: outreach CRM, customers + plan activation, content studio, social/ads, nurture email, reports, launch gates) | TESTED (local) | 39 unit + 21 DB + 98 browser checks | no — **not deployed** | needs Vercel project, env vars, domain, password (see HQ.md) |
 
 ## Tickets (in order). Each: `npm test && npm run build && npm run lint` must pass.
 **INFRA-1 (founder + Opus):** create Neon project, run `db/migrations/0001_init.sql`, set Vercel env vars (see DEPLOYMENT.md). Vercel project already exists.
