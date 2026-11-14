@@ -1,3 +1,41 @@
+# Final re-score: 2026-11-14, after Phase 4 (memos only; nothing was built in this phase)
+Two columns, as asked. **In main** = the code at `origin/main` (eea2ef1), judged from the QA files of 2026-11-13/14 plus today's baseline run. **Live on tradenotes.dev** = what I could observe from outside today with unauthenticated requests: `/`, `/pricing`, `/demo` (190 sample trades, SAMPLE DATA banner), `/demo/analytics`, `/manifest.webmanifest` return 200, an unknown `/r/<token>` returns 404, and signed-in routes (`/app/calendar`, `/reviews`, `/playbook`, `/strategies/compare`, `/backtest`, `/accounts`, `/import`, `/settings`, `/app/quick`) answer 307 (they exist and redirect to login). The pricing page lists share links, strategy comparison and the backtest log, so the live site is at least at Phase 3. I **cannot** confirm the deployed commit, and I did not sign in to production. Nothing here was measured in production. All scores are my own judgement.
+
+## Rating of the three lenses
+| Lens | In main | Live | Was (Phase 3 doc) | Why |
+|---|---|---|---|---|
+| **Overall app** | **8.2** | **8.0** | 8.2 | No code changed this phase. Live is 0.2 lower because no signed-in behaviour, money path, Sentry server event or real storage use was verified in production |
+| **Industry-specific** (retail trading journal) | **6.5** | **6.4** | 7.2 | **Lowered from 7.2 to the table's weighted value.** The earlier headline numbers (5.3, 6.7, 7.2) were my own judgement and ran 0.4 to 1.25 above the brief's own table every time (4.05 at the start, 6.3 after Phase 2, 6.5 after Phase 3). The table is the evidence-based number, so the headline now equals it. Target 8.0: **not reached** |
+| **App-type-specific** (paid B2C subscription app) | **7.9** | **7.9** | 7.9 | Unchanged. Payment, legal review, monitoring and backups are still the owner's list below; none was touched |
+
+## Scorecard (docs/NEXT_BUILD_BRIEF.md section 2), row by row
+Starting total from the brief's own table: 0.25x4 + 0.25x5 + 0.20x4 + 0.10x0 + 0.10x3 + 0.10x7 = **4.05** (the brief says 4.6; its table sums to 4.05, and the earlier "was about 4.6" in this file was wrong).
+| Area (weight) | Start | Was (P3) | Main | Live | Target | Evidence | Why it missed target |
+|---|---|---|---|---|---|---|---|
+| Data capture and import (25%) | 4 | 6 | **6** | **6** | 8 | 13 broker fixtures in `src/lib/import-fixtures/` (MT4, MT5 HTML, cTrader, TradingView, Tradovate, NinjaTrader, Thinkorswim, IBKR, Webull, Binance spot and futures, Bybit spot and derivatives) with unit tests; time zone setting; futures and options specs; roll-back (docs/QA_RESULTS_2026-11-13.md) | Every fixture is **synthetic**; none was checked against a real broker export (QA gap 1). Fees are one number (KNOWN_ISSUES 5). No import validation report beyond a totals check. Thinkorswim and Tradovate exports carry no commissions. Not scored higher until real exports are verified |
+| Analytics depth and filtering (25%) | 5 | 7.5 | **7.5** | **7.5** | 8 | Filters, expectancy, profit factor with warnings, drawdown and recovery, R distribution, weekday x hour heatmap, hold time, streaks, mistake cost, strategy comparison; 10,000 trades at 0.2 to 0.4 s locally (QA phase 2, phase 3) | No MAE/MFE (needs entry/exit extremes we do not capture), no saved views, timing never measured on real Supabase |
+| Review and journaling workflow (20%) | 4 | 6 | **6** | **6** | 8 | Calendar, day/week/month reviews with auto-filled stats, playbook and adherence analytics (QA phase 2) | No goals, no free-form daily journal, no checklist inside the new-trade form. **Reminder emails: code exists in main (commit acbf253, message "work in progress, e2e pending") but docs and QA say "not built", no QA result exists for it, and the live pricing page says "Reminder emails are not available yet"; scored as not delivered** |
+| Visual evidence (10%) | 0 | 4 | **4** | **3** | 8 | Upload, gallery, paste, delete, quotas, SVG-as-PNG rejection, cross-user 404 (QA phase 1), real-HTTP emulation of the Storage API (phase 3) | No "annotated notes". Never run against a real Supabase bucket. Live is 3 because the pricing page shows the screenshots row, which the code only shows when `SUPABASE_URL` and the service key are set, so the env vars look configured, but whether the bucket exists and works is **unverified** |
+| Multiple accounts and organisation (10%) | 3 | 7 | **7** | **7** | 8 | Switcher, per-account and combined views, limits enforced server-side (Free 1, Standard 2, Premium 10), tests in QA phase 1 | "All accounts" does not convert currencies; other-currency accounts are excluded and disclosed |
+| Trust, speed, mobile UX (10%) | 7 | 8 | **8** | **8** | 9 | Public demo, quick-log at 390px, installability confirmed by Chromium, 21/21 viewport check, empty states (QA phase 3) | No accessibility audit, no real-phone test, no timing against real Supabase |
+| **Weighted total** | **4.05** | 6.475 | **6.48 (6.5)** | **6.38 (6.4)** | 8.1 | | 1.5 + 1.875 + 1.2 + 0.4 + 0.7 + 0.8 for main; live subtracts 0.1 (visual evidence 3) |
+**Every row missed its target.** Largest weighted gaps: capture (2 points x 25% = 0.5), review workflow (2 x 20% = 0.4), analytics (0.5 x 25% = 0.125 only), visual evidence (4 x 10% = 0.4). The brief's aim (every row at target) is not met and the industry-specific target of 8.0 is not reached. No row moved in Phase 4 because Phase 4 builds nothing.
+
+## Evidence from today's baseline (local; no code change in this phase)
+`npm ci` ok; `npm run lint` exit 0; `npx tsc --noEmit` exit 0; `npm test` without a database 330 passed, 4 skipped (the DB tests; QA reports 334 with a database); `bash scripts/test-paste.sh` 40 PASS and the re-run succeeds; `node scripts/migrate.mjs` against local Postgres 16: 25 tables, expected 25; `node scripts/verify-db.mjs`: **102 passed, 0 failed**. Browser e2e, `e2e-billing.js` and the production build were **not re-run in this phase** because no application code changed; CI runs lint, types, unit tests, build and the runtime smoke test, and the last full e2e results are in docs/QA_RESULTS_2026-11-13_phase3.md (257/257 and billing 42/43, the known founding-price failure). Inference, not observation: the live site serves Phase 3 pages, and the build runs migrations and `verify-db` before deploying, so migration 16 very likely ran on production.
+
+## Decision memos written in this phase (read before deciding)
+- docs/decisions/MEMO_BROKER_SYNC.md: **no-go now**. Cost from $100/month plus $1 to $2 per connected user; the brokers verified are mostly stock/crypto, and MT4/MT5, cTrader, Tradovate and NinjaTrader were not on the pages read. Conditions listed.
+- docs/decisions/MEMO_AI_SUMMARIES.md: **conditional go as an opt-in Premium pilot.** Cost per summary $0.0009 (Haiku 5.5) to $0.05 (Sonnet 5.5, heavy case); the risks are advice-like text, a new US processor and prompt injection; Anthropic's retention terms are unverified.
+- docs/decisions/MEMO_REPLAY_DATA.md: **do not buy data now**; planning range about $300 to $1,000 per month; send the vendor question; bring-your-own-CSV first if demand appears.
+
+## Corrections to older docs (found while scoring)
+- NEXT_BUILD_BRIEF said the table sums to 4.6; it sums to 4.05.
+- BUILD_LOG: Phase 3 notes still say main was at fbb3be1; today main is eea2ef1 (Phase 3 merged).
+- Reminder emails: the code exists but docs call it "not built" (see the review row above). Decide: finish and test it, or remove it.
+- KNOWN_ISSUES 32: the pricing FAQ still says plans are switched on by hand.
+
+---
 # Readiness rating: 2026-11-13, after Phase 3 (PR #7; my own judgement, local verification only, nothing measured in production)
 | Lens | Now | Was | Why |
 |---|---|---|---|
@@ -146,3 +184,51 @@ Pricing, landing, billing and Terms advertised CSV import, screenshots, calendar
 CSV import UI → trade edit/delete-confirm → email (Resend) → Sentry + CI gate → calendar/weekly review.
 ## Branch note
 `main` was created on 2026-11-10 from the tested branch. Vercel's production branch and GitHub's default branch must be switched to `main` in their dashboards (the connector cannot change them).
+
+---
+# OWNER CHECKLIST (2026-11-14). Only you can do these; I did none of them.
+Tick each one; the right-hand column says what to send me if it fails.
+
+## 1. Decisions I need from you (nothing below is built or bought)
+| # | Decision | My recommendation |
+|---|---|---|
+| 1 | Broker sync (SnapTrade): approve a recurring cost of at least $100/month plus $1 to $2 per connected user? | **No** until the conditions in MEMO_BROKER_SYNC.md hold (about 15 paying users asking, your core brokers supported, DPA, lawyer) |
+| 2 | AI weekly summaries: approve a new Anthropic account, a monthly cap (suggested $10) and a Premium-only pilot? | **Conditional yes**, only after you read Anthropic's retention and training terms and the lawyer sees the wording |
+| 3 | Replay data: buy a licence? | **No.** Send the question in MEMO_REPLAY_DATA.md to the vendors first (free). If demand appears, bring-your-own-CSV |
+| 4 | Share links on every plan (flag `shareLinks` in `src/lib/plans.ts`); playbook on Standard and up; two backtest tables | Confirm or tell me to change |
+| 5 | Reminder emails: finish and test the existing code, or remove it? It needs `CRON_SECRET` and `RESEND_API_KEY`, which production does not seem to have | Your call; I need an owner-approved free scheduler (GitHub Actions cron is what the code assumes) |
+
+## 2. Environment variables (Vercel, Sensitive, Production and Preview; never paste values into chat)
+- [ ] `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (screenshots; the live pricing page suggests they are set, so check they are right) and the private bucket `trade-screenshots` exists (docs/OWNER_SETUP_STORAGE.md).
+- [ ] `DATABASE_SSL_CA` (KNOWN_ISSUES 16: TLS is encrypted but the certificate is not verified).
+- [ ] `CRON_SECRET` only if you choose to finish reminder emails.
+- [ ] Confirm HandyPay, Resend, Sentry variables are set and the exposed HandyPay key from 2026-11-12 was rotated.
+
+## 3. Deployments
+- [ ] Vercel **Production Branch = `main`** (the connector cannot change it).
+- [ ] GitHub branch protection on `main` requiring both CI jobs.
+- [ ] Merge this PR (docs only) when CI is green. Merging should not change the app.
+- [ ] After any later merge: watch the first production build (it runs migrations and `verify-db` first and fails safely).
+- [ ] Resubmit the sitemap in Search Console (it lists `/demo` and `/demo/analytics`).
+
+## 4. Legal text and registration
+- [ ] Lawyer review of the full Privacy Policy and Terms, **including** the 2026-11-13 additions (reviews, playbook, reminder emails, share links, backtests); KNOWN_ISSUES 9 says to confirm the lawyer saw them. The site makes no review claim, by your choice.
+- [ ] If you approve broker sync or AI summaries: a new processor (SnapTrade or Anthropic) must be listed in the Privacy Policy and `docs/LEGAL_FILL_IN.md` first, and the landing page line "It doesn't connect to your broker or place trades" (src/app/(marketing)/page.tsx:135) must change the day sync ships.
+- [ ] Register as a data controller with the Jamaican Information Commissioner; put the number in `dpaRegistrationNumber` in `src/lib/legal.ts` (a fact, so you edit it).
+- [ ] Confirm who is merchant of record and owes sales tax with HandyPay.
+
+## 5. Supabase Free-tier risks (source: supabase.com/pricing and supabase.com/kb/faqs/platform/free-project-pausing, read 2026-11-14)
+- **No automatic backups or point-in-time recovery on Free.** If the project is lost or corrupted, customer data is gone. Until you upgrade, schedule your own export (for example `pg_dump` run by you) and test one restore.
+- **Free projects pause after about a week of low activity**; real app requests count as activity. A paused site means login and every page that reads the database fail. Check the project is active; a monitor that calls the site daily helps but is not a guarantee. Paused projects are restorable (Supabase says for 90 days) from the dashboard.
+- Limits on Free: 500 MB database, 1 GB storage, 5 GB egress (source above). Screenshot quotas (Standard 500 MB, Premium 2 GB per user) exceed 1 GB storage after very few users; the code stops uploads at 80% of the platform allowance, but you must tell it the real allowance and watch usage.
+- Paid plans are never paused for inactivity (same source); upgrading is the fix for both pausing and backups, and it is a new cost, so your decision.
+
+## 6. Money path (the biggest unproven risk)
+- [ ] One **real payment** of the cheapest plan, confirm the plan switches on through the webhook, **then refund it**. Check the real webhook payload against the assumed field names (KNOWN_ISSUES 26). Also test the founding price: the billing e2e failure ($6 shown vs $12 expected on a fresh DB) is the test's expectation, not a loosened test.
+- [ ] Confirm a Sentry event arrives (server and browser), ImprovMX delivers support@tradenotes.dev from a second account, and a cancelled user's data stays readable.
+
+## 7. Real-world checks I cannot do
+- [ ] Import 2 or 3 real broker exports (anonymised) and compare with the broker's own report; this is the largest scoring gap.
+- [ ] On a real phone: open `/app/quick` signed in, add to the home screen, log a trade.
+- [ ] With a Premium test account on the live site: backtest + screenshot, delete the account, confirm the file is gone; create share links (amounts hidden and shown) and open each in a private window.
+- [ ] Accessibility pass (screen reader, contrast) and timing against real Supabase.

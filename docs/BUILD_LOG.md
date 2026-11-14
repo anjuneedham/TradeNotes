@@ -69,3 +69,14 @@ Baseline before any change (local Postgres 16, simulated Supabase roles): `npm c
 - Found while testing: quick-log lost its "Saved" confirmation at the plan limit (fixed). Code review found a CSV bug that wrote negative numbers as text (fixed).
 - Not built: bar replay (needs a paid data licence: docs/BACKTEST_REPLAY_LICENSING.md). Owner decisions needed: share links on every plan, two backtest tables, legal wording (docs/LEGAL_FILL_IN.md).
 - Follow-up 2026-11-14: share links hide money amounts by default (opt-in per link, fixed at creation, removed server-side); storage adapter tested over real HTTP against a local Storage API emulation; installability confirmed by Chromium itself (scripts/check-installable.js). Real Supabase / production / a real phone remain owner-only (checklist in the QA file).
+
+### 2026-11-14: Phase 4 plan (branch `phase4-memos`, from main @ eea2ef1): memos and re-score only, nothing built
+Main had moved on from the brief's 8af47d1 (Phases 1 to 3 merged; migrations up to 16, 25 tables). No migration, no code, no env change. Baseline before any change (local Postgres 16): `npm ci` ok, lint exit 0, `tsc --noEmit` exit 0, `npm test` 330 passed / 4 skipped without a database, `test-paste.sh` 40 PASS + re-run, `migrate.mjs` 25 tables, `verify-db.mjs` 102 passed / 0 failed.
+| # | Task | Status |
+|---|---|---|
+| 1 | docs/decisions/MEMO_BROKER_SYNC.md (SnapTrade: pricing, brokers, privacy, legal, effort, go/no-go) | DONE: no-go now, conditions listed; unread pages marked UNVERIFIED |
+| 2 | docs/decisions/MEMO_AI_SUMMARIES.md (cost per user per week, data, opt-in, advice risk, injection, spend cap) | DONE: conditional go (pilot); Anthropic retention terms UNVERIFIED |
+| 3 | docs/decisions/MEMO_REPLAY_DATA.md (vendor table rechecked, BYO CSV, vendor question, cost range) | DONE: do not buy now; about $300 to $1,000 per month |
+| 4 | Re-score in docs/READINESS_REVIEW.md: main vs live columns; table sums to 4.05 at start; industry headline reset to the table (6.5) | DONE; all six rows missed target, listed with reasons |
+| 5 | Owner checklist at the end of READINESS_REVIEW.md | DONE |
+Notes: research used a page-fetch tool on 2026-11-14; vendor pages carry no dates unless stated in the memos. Found: reminder-email code (acbf253, "WIP, e2e pending") exists in main while docs say "not built"; scored as not delivered. Browser e2e and the production build were not re-run (no code changed); CI covers lint, types, tests, build and smoke.
