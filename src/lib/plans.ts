@@ -10,4 +10,5 @@ export const CHECKOUT_URLS: Record<"starter" | "pro", string> = {
   pro: "https://checkout.handypay.me/subscribe/eyJ2IjoxLCJ1IjoiMTA5MDIyNDMzMDY2MTY0OTIxNDYyIiwiYSI6ImFjY3RfMVVaV2lRSDBrZTk3WXQ3aiIsImgiOiJwbGF0Zm9ybSIsInAiOiJwcm9kX1ZhbDd2d0kzbTF2aTJEIiwiciI6InByaWNlXzFVWlphd0hwNGp6YnRHYTRBRUpqZWlGeSJ9.F1hyNFKypqpgTV8fY65sjzPGAnf-_C01QAmWhBNUP7g",
 };
 export type PlanId = keyof typeof PLANS;
-export const FOUNDING_OFFER = { seats: 10, discountPct: 50, months: 12 };
+// No discount or founding offer exists. Do not advertise one anywhere (site, DMs, videos) until it is
+// built (Handypay coupon/price), tracked, and written up (terms), per docs/HQ.md "Offer rule".

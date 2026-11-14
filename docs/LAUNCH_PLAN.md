@@ -3,7 +3,7 @@
 
 ## Minimum acceptable product (to charge money)
 Auth · onboarding (experience, markets, first account) · manual trade entry with partial exits · journal list/detail/edit/delete · CSV import with preview/dedupe/rollback · dashboard with core metrics + explanations + exclusion notices · Handypay checkout + entitlements (manual activation acceptable for the first customers; webhook when Handypay provides docs) with server-enforced limits · legal pages reviewed · RLS verified with two test users · mobile-usable · error/empty states.
-Backtesting: sold as "Pro — backtesting launching [date]" to founding members only if not ready; never shown with fake data.
+Backtesting: **not sold or promised** until it exists (updated 2026-11-14; the earlier "founding members pre-sale" idea is withdrawn); never shown with fake data.
 
 ## Payment verification process
 1. Handypay: subscribe with a test/real small payment, confirm it appears in the Handypay dashboard, activate the plan (DEPLOYMENT.md SQL), verify entitlement in the app, then cancel/refund and verify downgrade.

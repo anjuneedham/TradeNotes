@@ -62,7 +62,7 @@ One question ("How many trades before I can trust a strategy?") → direct answe
 
 ## 4. Posting, CTA ladder, tracking
 - Cadence: 3 TikToks + 2 Shorts daily (re-post best TikToks as Shorts; change title/caption).
-- CTA ladder (rotate): (1) "Free journal — link in bio" (2) "Comment 'JOURNAL' and I'll send it" (3) "Follow for day-by-day" (4) founding-member offer once pricing is live.
+- CTA ladder (rotate): (1) "Free journal — link in bio" (2) "Comment 'JOURNAL' and I'll send it" (3) "Follow for day-by-day" (4) ~~founding-member offer~~ withdrawn: no offer exists (see `HQ.md` "Offer rule").
 - Link in bio → landing page. Add `?src=tt` / `?src=yt` later for attribution (not built yet).
 - Track per video: format, hook text, 3-sec view rate, avg watch %, saves, link clicks, signups. **Kill formats with weak hooks after 10 posts; double down on the top 2.**
 

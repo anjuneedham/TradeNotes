@@ -16,7 +16,7 @@ export default function Home() {
           Know your trades. Understand your patterns. Improve your process.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted">
-          Most traders repeat the same mistakes because they never measure them. TradeNotes helps you record every decision, see what it cost or earned you, and test changes before you risk money.
+          Most traders repeat the same mistakes because they never measure them. TradeNotes helps you record every decision and see what it cost or earned you.
         </p>
         <div className="mt-8 flex justify-center gap-3">
           <Link href="/signup" className="rounded-md bg-accent px-5 py-3 font-medium text-white">Start free</Link>

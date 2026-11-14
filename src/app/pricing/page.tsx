@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
+import { PLANS } from "@/lib/plans";
 
 const features: Record<string, string[]> = {
   free: ["Up to 50 trades", "Manual trade entry, incl. partial exits and forex lots", "Dashboard with plain-English explanations", "Breakdowns by strategy, session, instrument and weekday", "Beginner guides"],
@@ -20,9 +20,6 @@ export default function Pricing() {
     <div className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="text-center text-4xl font-semibold">Simple pricing</h1>
       <p className="mt-3 text-center text-muted">Start free. Upgrade when you need more. Cancel any time.</p>
-      <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-accent/50 bg-accent/10 p-4 text-center text-sm">
-        <strong>Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members can get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months in exchange for honest feedback. Ask for it after signing up.
-      </div>
       <div className="mt-10 grid gap-4 md:grid-cols-3">
         {(Object.keys(PLANS) as (keyof typeof PLANS)[]).map((id) => {
           const p = PLANS[id];

@@ -8,8 +8,8 @@ Traders posting about losses, discipline, "need to journal", prop-firm challenge
 ## Follow-up (day 3)
 > Just bumping this in case it got buried — happy to set your account up with you on a 10-minute call if that's easier.
 
-## Founding-member close
-> You've been one of the most useful testers. I'm opening 10 founding spots: 50% off for 12 months in return for a 20-min feedback call each month. Want one?
+## Founding-member close — WITHDRAWN (2026-11-14)
+No founding or discount offer exists: it is not built (no Handypay coupon, no tracking) and not written (no terms). Do not send or mention it. Reinstate only when the "Offer rule" in `HQ.md` is met.
 
 ## Demo flow (10 min)
 1. Their pain (2 min) → 2. Log one of their real recent trades live (3) → 3. Import CSV (2) → 4. Dashboard: expectancy + mistake tags (2) → 5. Offer (1).
@@ -30,4 +30,4 @@ Never use feedback as a testimonial without written permission.
 - **Tag every link** so the test can tell platforms apart: TikTok `{SITE}/?src=tt-dm`, Instagram `{SITE}/?src=ig-dm`. Log each DM in a sheet: handle, platform, date, replied?, interested?, signed up?, objection.
 - **Instagram variant:** "Hey {name} — saw your story about {specific}. I'm a forex trader (7 yrs) building a free journal that shows what your mistakes actually cost you. Want to try it and tell me what's confusing? {SITE}/?src=ig-dm" (shorter; no links in the very first message if the account is new — ask first, send the link after they reply).
 - Follow-up once at day 3; then stop. Never send the same message twice to one person. No profit claims, no testimonials you don't have.
-- Founding offer (50% off 12 months, first 10 payers) only **after** someone has actually logged trades; it is delivered manually until Handypay discounts are confirmed.
+- **No discount/founding offer is available** (withdrawn 2026-11-14; see `HQ.md` "Offer rule"). Sell the plans at the listed prices.

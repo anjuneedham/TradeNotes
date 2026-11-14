@@ -49,3 +49,18 @@ Pricing, landing, billing and Terms advertised CSV import, screenshots, calendar
 CSV import UI → trade edit/delete-confirm → email (Resend) → Sentry + CI gate → calendar/weekly review.
 ## Branch note
 `main` was created on 2026-11-10 from the tested branch. Vercel's production branch and GitHub's default branch must be switched to `main` in their dashboards (the connector cannot change them).
+
+---
+# Re-rating — 2026-11-14 (commit on dev branch; live site not re-checked today)
+## What changed
+- **Facts checked today:** real database has **0 real signups and 0 paying users** (3 automated test accounts, not yet deleted). Unit tests re-run: **50 pass** (was 46). Lint exit 0. Type check exit 0. DB isolation checks and browser e2e were **not** re-run today; their results above are from 2026-11-10.
+- **New finding, fixed in code:** the pricing page advertised a "founding members: 50% off for 12 months" offer that is not built (no coupon, no terms) and the landing hero said users could "test changes before you risk money" (backtesting does not exist). Both removed. They stay live until the dev branch is deployed.
+- **New finding, not fixed:** Premium ($24) differs from Standard only by an unlimited trade cap. Nothing else promised for Premium exists yet.
+## Scores (out of 10, my judgement from the evidence above)
+| Lens | 2026-11-10 | 2026-11-14 | Why |
+|---|---|---|---|
+| Senior developer | 7 | **7** | Re-verified tests/lint/types; same gaps (no monitoring, no CI gate, manual billing, no verified email) |
+| Product designer | 5.5 | **5** | Text-only landing; paid tiers barely differ; Premium has no built value yet |
+| Honest claims | not scored | **6** | Two more unbuilt claims found and removed; process rule added (HQ section 12). Docs still mention withdrawn offers as history only |
+| Ready to charge | No | **3** | Gates all still open: domain+email, legal fill-in, one real payment test, monitoring, something worth paying for |
+| **Overall** | 6.5 | **6.0** | Trustworthy foundation, zero traction, nothing yet that justifies a charge |
