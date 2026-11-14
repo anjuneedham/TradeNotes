@@ -47,6 +47,7 @@ Capacity check: one weekly group call serves 50 Premium; 15 min/month personal c
 7. Backtesting stays after 31 Dec unless a data licence appears.
 
 ## 4. Content (proof layer, ~20% of effort)
+Craft and targeting details: `DM_AND_VIDEO_PLAYBOOK.md` (high-intent DM tiers, voice-over drill, tablet-only free editing workflow).
 - Cadence from `CONTENT_ENGINE.md` (3 TikToks + 2 Shorts/day from one weekly record session). Tag every bio link: `?src=tt-organic`, `yt-organic`, `ig-organic`.
 - Priority formats now: F2 "log a trade with me" (shows the product), F3 "mistake of the week", F4 build log. Add one format: **"Journal Challenge day N"** from 1 Dec.
 - Every video ends on the same CTA: free journal, link in bio. No profit claims; "SAMPLE DATA" label on demos.
