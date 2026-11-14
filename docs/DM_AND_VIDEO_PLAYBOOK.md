@@ -75,6 +75,36 @@ Check the math before posting: 7 × $20 = $140, 3 × $60 = $180, net −$40.
 **Weekly batch (about 5 h):** Sunday 90 min = record 10 screen demos and voice-overs; Mon–Fri 20 min/day = edit and post one or two; Friday 20 min = log views, link clicks and signups per video.
 Descript is connected to my workspace, but its free limits are unverified, so this plan doesn't depend on it.
 
-## 4. Open questions
+## 4. Comment strategy that avoids spam flags
+TikTok does not publish exact limits, and "shadow ban" is not an official status: what people describe is reduced distribution after spam-like behaviour. Everything here is a cautious rule of thumb, not a verified limit.
+**Do**
+- Comment like a person: 1–2 sentences that respond to something specific in the video (a number, a mistake, a question). Vary the wording every time.
+- Add value or ask a real question ("Did you tag that loss as a mistake or a normal loss?"). Questions earn replies, replies build the relationship, and the DM comes after.
+- Spread activity through the day, not in one burst. Aim for about 15–25 genuine comments a day, mixed with watching, liking and saving.
+- Comment under your own videos and reply to every comment, especially in the first hour.
+- Warm up a day or two before heavier outreach: watch, like and comment normally.
+**Don't**
+- Paste the same comment, a link, or "check my page / DM me" anywhere. No links in comments or in a bio-spam style.
+- Mass-follow/unfollow, use bots, schedulers or growth tools, or buy followers or engagement.
+- Mention profits, signals or "guaranteed" anything.
+- Keep going after a warning, a "too many actions" message or a sudden reach drop. Stop for the day, and ease off for 24–48 hours.
+**Check for trouble:** compare a video's views to your normal range, and look at Creator Tools / account status for violations. If a video is removed, read the reason and fix the pattern; don't repost it unchanged.
+
+## 5. TikTok LIVE strategy
+**First check you're eligible.** LIVE access has needed a minimum follower count (commonly cited as 1,000) and minimum age; verify in the app under Create → LIVE. If you're not eligible yet, skip to "Until then".
+**Format (once eligible): weekly "Journal review live", 30–40 min, same time each week.**
+- Open with the promise in one line: "We review one trading journal and find the mistake." Repeat it every few minutes for new arrivals.
+- Review SAMPLE or your own data on screen. Ask viewers to type their biggest repeated mistake, then read and respond to as many as you can.
+- Teach one idea (expectancy, mistake tagging). End with the free link in your bio and the Journal Challenge invite.
+- Pin a comment with what's free, and that this is education, not financial advice.
+**Rules**
+- No profit claims, no signals, no trade calls, no "copy my trades", and no screen shares of live position P&L presented as proof.
+- Moderate: add a moderator or use the comment filters for spam and scam links, and don't engage with "DM me for profits" accounts.
+- Announce it in 2–3 videos beforehand ("Live Saturday 6pm, bring your worst trade").
+**Measure:** peak viewers, average watch time, comments, link clicks, signups tagged `?src=tt-live`. Judge a live by signups, not viewer count.
+**Until then (not eligible):** reply to comments with video replies, run the Challenge in your group, and join other people's lives as a genuine viewer who comments, not a promoter.
+**Realistic expectation:** early lives often have single-digit viewers. Treat the first four as practice for the voice and format.
+
+## 6. Open questions
 - Which tablet (iPad or Android)? I'll give exact screen-by-screen steps once I know.
 - Want me to draft the first 5 scripts in this ear-friendly format, plus the first 10 Tier A DMs?
