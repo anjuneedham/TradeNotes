@@ -5,7 +5,7 @@ import path from "node:path";
 import { connect } from "./db-connect.mjs";
 
 /** Update when a db/paste file adds or drops a table (also in verify-db.mjs). */
-const EXPECTED_TABLES = 22;
+const EXPECTED_TABLES = 25;
 const dir = path.join(process.cwd(), "db", "paste");
 const files = fs.readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
 const client = await connect("migrate");

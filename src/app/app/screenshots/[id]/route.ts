@@ -13,7 +13,13 @@ async function own(req: Request, id: string) {
   if (!UUID.test(id)) return null;
   const session = await getAuth().api.getSession({ headers: req.headers });
   if (!session) return null;
-  const [row] = await withUser(session.user.id, (q) => q<{ storage_path: string; content_type: string }>("select storage_path, content_type from tradenotes.trade_screenshots where id = $1", [id]));
+  // The id is a random UUID, so it belongs to exactly one table: real-trade screenshots first, then hypothetical-trade screenshots.
+  const row = await withUser(session.user.id, async (q) => {
+    const [r] = await q<{ storage_path: string; content_type: string }>("select storage_path, content_type from tradenotes.trade_screenshots where id = $1", [id]);
+    if (r) return { ...r, table: "tradenotes.trade_screenshots" as const };
+    const [b] = await q<{ storage_path: string; content_type: string }>("select storage_path, content_type from tradenotes.backtest_screenshots where id = $1", [id]);
+    return b ? { ...b, table: "tradenotes.backtest_screenshots" as const } : null;
+  });
   return row ? { userId: session.user.id, ...row } : null;
 }
 
@@ -34,7 +40,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const id = (await params).id;
   const row = await own(req, id);
   if (!row) return NOT_FOUND();
-  await withUser(row.userId, (q) => q("delete from tradenotes.trade_screenshots where id = $1", [id]));
+  await withUser(row.userId, (q) => q(`delete from ${row.table} where id = $1`, [id]));
   await removeObjects([row.storage_path]);
   return new Response(null, { status: 204 });
 }

@@ -38,6 +38,8 @@ async function logTrade(page, o) {
   const A = await ctxA.newPage();
   const errors = []; A.on('pageerror', e => errors.push(e.message));
   const stamp = Date.now();
+  // E2E_ONLY=phase3 runs just the Phase 3 flows (faster while developing); the default runs everything.
+  if (process.env.E2E_ONLY === 'phase3') { await phase3(browser, stamp); await browser.close(); const bad = results.filter(r => !r[1]).length; console.log(`\n${results.length - bad}/${results.length} passed (phase 3 only)`); process.exit(bad ? 1 : 0); }
   const emailA = `a${stamp}@e2e.test`, emailB = `b${stamp}@e2e.test`;
 
   // --- attribution: ?src= tag is remembered, junk is ignored
@@ -249,6 +251,7 @@ async function logTrade(page, o) {
 
   await phase1(browser, stamp);
   await phase2(browser, stamp);
+  await phase3(browser, stamp);
 
   await browser.close();
   const failed = results.filter(r => !r[1]).length;
@@ -750,4 +753,304 @@ async function phase2(browser, stamp) {
     check('P2 delete account: reviews, playbook items, checklist answers and trades are all gone', left.items === 0 && left.checks === 0 && left.reviews === 0 && left.trades === 0, JSON.stringify(left));
     await c.end(); }
   await std.context().close(); await other.context().close(); await free2.context().close(); await prem2.context().close();
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Phase 3 (differentiation and growth): public demo, strategy comparison, backtest log, share links, quick-log.
+// Hand-calculated expectations (seeded P2_TRADES, USD, forex lot = 100,000):
+//   London breakout: +1,000.00 (risk 500, so +2.00R) and -500.00 (no stop) -> 2 trades, win 50.0%, expectancy +250.00, profit factor 2.00, avg R 2.00R, max drawdown 500.00, net +500.00
+//   Range fade:      +590.00 (gross 600 - fees 10, no stop)                -> 1 trade, win 100.0%, expectancy +590.00, profit factor "-", avg R "-", max drawdown 0.00
+//   Backtests (units as typed, no conversion): HYPO1 long 2 @100 stop 95 exit 110 = +20.00 (risk 10, +2.00R); HYPO2 long 1 @50 stop 48 exit 49 = -1.00 (risk 2, -0.50R);
+//   HYPO3 long 1 @10 exit 10.5 fees 0.10 = +0.40. Closed in the order HYPO2, HYPO3, HYPO1: net +19.40, win 66.7%, PF 20.40/1 = 20.40, expectancy 19.40/3 = 6.47,
+//   avg R (2 - 0.5)/2 = 0.75R, max drawdown 1.00 (-1.00 from the 0 peak, never lower).
+//   Quick-log EURUSD short 2 lots 1.1000 -> 1.0950, stop 1.1050: gross 0.005 x 2 x 100,000 = +1,000.00, risk 1,000.00 -> +1.00R; dashboard 1,190.00 + 1,000.00 = 2,190.00 over 5 trades.
+//   Demo (fixed seed): 190 trades, net +11,623.48, win rate 46.8%, profit factor 1.44, max drawdown 3,600.16.
+const sha256 = (x) => require('crypto').createHash('sha256').update(x).digest('hex');
+const newTok = () => require('crypto').randomBytes(32).toString('base64url');
+async function phase3(browser, stamp) {
+  if (!process.env.DATABASE_URL) { check('phase 3 e2e needs DATABASE_URL (skipped)', false); return; }
+  const db = new Client({ connectionString: process.env.DATABASE_URL }); await db.connect();
+  const mail = (k) => `${k}3${stamp}@e2e.test`;
+  const uid = async (email) => (await db.query('select id from public.tn_user where email = $1', [email])).rows[0].id;
+  const noScroll = async (page) => !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1));
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+  const anonPage = async (opts) => (await browser.newContext(opts || {})).newPage();
+
+  // ---------- 0. the public demo: no account, SAMPLE DATA everywhere, real components, read-only
+  const pub = await anonPage({ viewport: { width: 390, height: 844 } });
+  for (const [path, needle] of [['/demo', '190 closed trades'], ['/demo/analytics', 'R-multiple distribution'], ['/demo/trades/demo-001', 'Execution']]) {
+    const r = await pub.goto(BASE + path); const t = await bodyOf(pub);
+    check(`P3 demo ${path}: public (200, no login), SAMPLE DATA banner, 390px no horizontal scroll`, r.status() === 200 && !pub.url().includes('/login') && t.includes('SAMPLE DATA: a fictional journal, not real trades') && t.includes(needle) && await noScroll(pub), `${r.status()} ${t.slice(0, 120)}`);
+  }
+  await pub.goto(BASE + '/demo'); let t = await bodyOf(pub);
+  check('P3 demo: fixed sample totals from the real dashboard (net +$11,623.48, win rate 46.8%, profit factor 1.44, drawdown $3,600.16)', t.includes('+$11,623.48') && t.includes('46.8%') && t.includes('1.44') && t.includes('$3,600.16'), t.slice(0, 400));
+  check('P3 demo: read-only (no input, textarea or select on the page)', (await pub.locator('#main input, #main textarea, #main select').count()) === 0);
+  await pub.goto(BASE + '/demo/analytics');
+  check('P3 demo: the dashboard link to the costliest mistake lands on an element that exists', (await pub.locator('#mistake-cost').count()) === 1);
+  await pub.goto(BASE + '/demo'); await pub.getByRole('link', { name: /^Open analytics/ }).click(); await pub.waitForURL('**/demo/analytics');
+  await pub.goto(BASE + '/demo'); await pub.locator('a[href^="/demo/trades/demo-"]').first().click(); await pub.waitForURL(/\/demo\/trades\/demo-\d{3}/);
+  check('P3 demo: a latest-trade link opens a sample trade page (with the banner)', (await bodyOf(pub)).includes('SAMPLE DATA'));
+  check('P3 demo: unknown sample trade is a 404', (await pub.goto(BASE + '/demo/trades/demo-999')).status() === 404 && (await pub.goto(BASE + '/demo/trades/x')).status() === 404);
+  const anonDesk = await anonPage();
+  for (const p of ['/', '/pricing']) { await anonDesk.goto(BASE + p); check(`P3 demo: ${p} links to /demo`, (await anonDesk.locator('a[href="/demo"]').count()) >= 1); }
+  const sm = await (await anonDesk.request.get(BASE + '/sitemap.xml')).text();
+  check('P3 demo: in the sitemap; sample trades and share links are not', sm.includes('/demo</loc>') && sm.includes('/demo/analytics</loc>') && !/demo\/trades|\/r\//.test(sm));
+
+  // ---------- users
+  const free = await newUser(browser, mail('f'));
+  const std = await newUser(browser, mail('s'));
+  const prem = await newUser(browser, mail('p'), { viewport: { width: 390, height: 844 } });
+  const other = await newUser(browser, mail('o'), { viewport: { width: 390, height: 844 } });
+  const quick = await newUser(browser, mail('q'), { viewport: { width: 390, height: 844 }, userAgent: IPHONE, isMobile: true, hasTouch: true });
+  await setPlan(mail('s'), 'starter'); await setPlan(mail('p'), 'pro'); await setPlan(mail('o'), 'pro'); await setPlan(mail('q'), 'starter');
+  await seed(mail('s'), P2_TRADES); await seed(mail('p'), P2_TRADES); await seed(mail('q'), P2_TRADES);
+  const pid = await uid(mail('p')), oid = await uid(mail('o'));
+
+  // ---------- 1. strategy comparison (Premium, server-gated)
+  const CMP = '/app/strategies/compare?s=London+breakout&s=Range+fade';
+  for (const [who, page] of [['Free', free], ['Standard', std]]) {
+    await page.goto(BASE + CMP); const b = await bodyOf(page);
+    check(`P3 compare (${who}): upgrade notice naming Premium, no table, no numbers loaded`, b.includes('Strategy comparison is part of Premium') && (await page.locator('[data-testid=compare-table]').count()) === 0 && !b.includes('$590.00') && !b.includes('Range fade'), b.slice(0, 200));
+  }
+  await prem.goto(BASE + CMP);
+  const rowsOf = async (page) => Object.fromEntries(await page.locator('[data-testid=compare-table] tbody tr').evaluateAll((trs) => trs.map((tr) => [tr.querySelector('th').innerText.trim(), [...tr.querySelectorAll('td')].map((td) => td.innerText.trim())])));
+  let cmp = await rowsOf(prem);
+  check('P3 compare (Premium): closed trades 2 / 1 and win rate 50.0% / 100.0%', JSON.stringify(cmp['Closed trades']) === '["2","1"]' && JSON.stringify(cmp['Win rate']) === '["50.0%","100.0%"]', JSON.stringify(cmp));
+  check('P3 compare (Premium): expectancy +$250.00 / +$590.00, profit factor 2.00 / no losses, avg R 2.00R / none', JSON.stringify(cmp['Expectancy / trade']) === '["+$250.00","+$590.00"]' && JSON.stringify(cmp['Profit factor']) === '["2.00","—"]' && JSON.stringify(cmp['Average R']) === '["2.00R","—"]', JSON.stringify(cmp));
+  check('P3 compare (Premium): max drawdown $500.00 / $0.00 and net +$500.00 / +$590.00', JSON.stringify(cmp['Max drawdown']) === '["$500.00","$0.00"]' && JSON.stringify(cmp['Net P&L']) === '["+$500.00","+$590.00"]', JSON.stringify(cmp));
+  t = await bodyOf(prem);
+  check('P3 compare (Premium): a small-sample warning for each strategy', /London breakout: only 2 closed trades/.test(t) && /Range fade: only 1 closed trade\./.test(t), t.slice(0, 600));
+  check('P3 compare (Premium): overlaid equity curves drawn (accessible name, legend with both strategies) and 390px has no horizontal scroll', (await prem.locator('[data-testid=compare-curves] path').count()) >= 1 && /Equity curves of 2 strategies/.test(await prem.locator('[data-testid=compare-curves]').getAttribute('aria-label')) && t.includes('solid line') && t.includes('dashed line') && await noScroll(prem));
+  await prem.goto(BASE + CMP + '&side=short'); t = await bodyOf(prem); cmp = await rowsOf(prem);
+  check('P3 compare: the same filters apply to every strategy (short only: London breakout 1 trade, -$500.00; Range fade none)', JSON.stringify(cmp['Closed trades']) === '["1","0"]' && JSON.stringify(cmp['Net P&L']) === '["-$500.00","—"]' && t.includes('Range fade has no closed trades with these filters'), JSON.stringify(cmp));
+  await prem.goto(BASE + '/app/strategies/compare?s=Nope&s=Nada'); t = await bodyOf(prem);
+  check('P3 compare: unknown strategy names are ignored (asks to choose, no table)', t.includes('Choose two to four strategies') && (await prem.locator('[data-testid=compare-table]').count()) === 0);
+  await other.goto(BASE + CMP); t = await bodyOf(other);
+  check('P3 isolation: B (Premium, no data) comparing A\'s strategy names sees no table and none of A\'s numbers', !t.includes('$590.00') && !t.includes('$500.00') && (await other.locator('[data-testid=compare-table]').count()) === 0 && t.includes('at least two strategies'), t.slice(0, 300));
+
+  // ---------- 2. manual backtest log (Premium, hypothetical, never mixed with real results)
+  for (const [who, page] of [['Free', free], ['Standard', std]]) {
+    await page.goto(BASE + '/app/backtests'); t = await bodyOf(page);
+    check(`P3 backtests (${who}): upgrade notice naming Premium, no way to add one`, t.includes('The manual backtest log is part of Premium') && (await page.getByRole('link', { name: 'Log hypothetical trade' }).count()) === 0, t.slice(0, 200));
+    await page.goto(BASE + '/app/backtests/new');
+    check(`P3 backtests (${who}): the entry form is not even rendered`, (await page.locator('input[name=symbol]').count()) === 0 && (await bodyOf(page)).includes('part of Premium'));
+  }
+  await prem.goto(BASE + '/app/backtests'); t = await bodyOf(prem);
+  check('P3 backtests (Premium): empty state, permanent HYPOTHETICAL label', t.includes('No hypothetical trades yet') && t.includes('HYPOTHETICAL: not real trades'));
+  await prem.goto(BASE + '/app/backtests/new'); t = await bodyOf(prem);
+  check('P3 backtests: entry form carries the label, has no account or currency fields, and fits 390px', t.includes('HYPOTHETICAL: not real trades') && (await prem.locator('select[name=account_id], input[name=currency], input[name=account_id]').count()) === 0 && await noScroll(prem));
+  await prem.getByLabel('Market').selectOption('other');
+  await prem.getByLabel('Instrument').fill('HYPO1');
+  await prem.getByLabel('Quantity').fill('2'); await prem.getByLabel('Entry price').fill('100'); await prem.getByLabel('Entry time').fill('2026-03-01T09:00');
+  await prem.getByLabel('Stop loss price').fill('95'); await prem.getByLabel('Exit 1 price', { exact: true }).fill('110'); await prem.getByLabel('Exit time').fill('2026-03-01T10:00');
+  await prem.getByLabel('Strategy / setup').fill('Hypo setup');
+  await prem.getByRole('button', { name: 'Save hypothetical trade' }).click();
+  await prem.waitForURL('**/app/backtests?saved=1');
+  t = await bodyOf(prem);
+  check('P3 backtests (Premium, 390px): saved; listed as HYPO1 +$20.00, labelled Hypothetical', t.includes('Hypothetical trade saved.') && t.includes('HYPO1') && t.includes('+$20.00') && /Hypothetical\s*\n?\s*\+\$20\.00|HYPO1[\s\S]*Hypothetical/.test(t), t.slice(0, 500));
+  // two more, straight into the table (owner connection), so the figures below are exact
+  await db.query(`insert into tradenotes.backtest_trades (user_id, symbol, asset_class, side, quantity, entry_price, stop_price, multiplier, initial_risk, opened_at, closed_at, exits, strategy)
+    values ($1,'HYPO2','other','long',1,50,48,1,2,'2026-02-02T09:00Z','2026-02-02T10:00Z','[{"quantity":1,"price":49}]','Hypo setup'),
+           ($1,'HYPO3','other','long',1,10,null,1,null,'2026-02-05T09:00Z','2026-02-05T10:00Z','[{"quantity":1,"price":10.5}]',null)`, [pid]);
+  await db.query(`update tradenotes.backtest_trades set fees = 0.10 where user_id = $1 and symbol = 'HYPO3'`, [pid]);
+  await prem.goto(BASE + '/app/backtests'); t = await bodyOf(prem);
+  check('P3 backtests: same metrics engine, hand-calculated (net +$19.40, win 66.7%, profit factor 20.40, expectancy +$6.47, avg R 0.75R, drawdown $1.00)',
+    t.includes('+$19.40') && t.includes('66.7%') && t.includes('20.40') && t.includes('+$6.47') && t.includes('0.75R') && t.includes('$1.00') && /3 hypothetical trades/.test(t) && t.includes('Based on 3 closed hypothetical trades'), t.slice(0, 800));
+  // never mixed with the real journal
+  await prem.goto(BASE + '/app'); t = await bodyOf(prem);
+  check('P3 backtests: real dashboard is unchanged ($1,190.00 over 4 closed trades) and shows no hypothetical trade', t.includes('$1,190.00') && /4 closed trades/.test(t) && !t.includes('HYPO'));
+  await prem.goto(BASE + '/app/analytics'); const ta = await bodyOf(prem);
+  await prem.goto(BASE + '/app/journal'); const tj = await bodyOf(prem);
+  await prem.goto(BASE + '/app/calendar'); const tc = await bodyOf(prem);
+  check('P3 backtests: real analytics, journal and calendar contain no hypothetical trade or strategy', !/HYPO|Hypo setup/.test(ta + tj + tc));
+  const realCsv = await (await prem.request.get(BASE + '/app/export')).text();
+  check('P3 backtests: the real-trades CSV export has no hypothetical rows', !/HYPO/.test(realCsv) && realCsv.includes('EURUSD'));
+  const btCsvRes = await prem.request.get(BASE + '/app/backtests/export'); const btCsv = await btCsvRes.text();
+  const btLines = btCsv.replace(/^﻿/, '').split(/\r\n/).filter(Boolean);
+  check('P3 backtests: the hypothetical export is labelled in its first line, in every row and in the file name; real trades are not in it',
+    btLines[0].startsWith('HYPOTHETICAL: not real trades') && btLines.slice(2).length === 3 && btLines.slice(2).every((l) => l.startsWith('HYPOTHETICAL: not real trades,')) && /HYPOTHETICAL/.test(btCsvRes.headers()['content-disposition'] || '') && !/EURUSD|GBPUSD/.test(btCsv), btLines.slice(0, 3).join(' | '));
+  // detail page, screenshots on a hypothetical trade (same bucket and quota, separate path prefix)
+  const btId = (await db.query(`select id from tradenotes.backtest_trades where user_id = $1 and symbol = 'HYPO1'`, [pid])).rows[0].id;
+  await prem.goto(BASE + `/app/backtests/${btId}`); t = await bodyOf(prem);
+  check('P3 backtests: detail page is labelled Hypothetical and shows R +2.00R', t.includes('HYPOTHETICAL: not real trades') && t.includes('+2.00R') && t.includes('+$20.00'), t.slice(0, 300));
+  await prem.locator('input[type=file]').setInputFiles({ name: 'chart.png', mimeType: 'image/png', buffer: PNG });
+  await prem.getByRole('button', { name: 'Open screenshot 1' }).waitFor({ timeout: 10000 }).catch(() => {});
+  const shotRow = (await db.query(`select id, storage_path, size_bytes from tradenotes.backtest_screenshots where backtest_id = $1`, [btId])).rows[0];
+  check('P3 backtests: screenshot uploaded to the hypothetical trade, stored under <user>/backtest/<id>/, and real-trade screenshots are untouched', shotRow && shotRow.storage_path.startsWith(`${pid}/backtest/${btId}/`) && (await db.query(`select count(*)::int n from tradenotes.trade_screenshots where user_id = $1`, [pid])).rows[0].n === 0, JSON.stringify(shotRow));
+  const shotUrl = `/app/screenshots/${shotRow.id}`;
+  const ownView = await prem.request.get(BASE + shotUrl);
+  check('P3 backtests: owner can view the screenshot (200 image/png, no-store)', ownView.status() === 200 && ownView.headers()['content-type'] === 'image/png' && /no-store/.test(ownView.headers()['cache-control']));
+  check('P3 isolation: B cannot view, delete or upload to A\'s hypothetical trade screenshot (404 each)',
+    (await other.request.get(BASE + shotUrl)).status() === 404 && (await other.request.delete(BASE + shotUrl, { headers: { Origin: BASE } })).status() === 404
+    && (await other.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { backtest_id: btId, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } })).status() === 404
+    && (await std.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { backtest_id: btId, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } })).status() === 404);
+  check('P3 isolation: B cannot open, edit or list A\'s hypothetical trades, or export them', (await other.goto(BASE + `/app/backtests/${btId}`)).status() === 404 && (await other.goto(BASE + `/app/backtests/${btId}/edit`)).status() === 404
+    && !/HYPO\d/.test(await (async () => { await other.goto(BASE + '/app/backtests'); return bodyOf(other); })()) && !/HYPO\d/.test(await (await other.request.get(BASE + '/app/backtests/export')).text()));
+  // a stale form after a downgrade: the server refuses the write
+  await prem.goto(BASE + '/app/backtests/new');
+  await prem.getByLabel('Market').selectOption('other');
+  await prem.getByLabel('Instrument').fill('HYPO9'); await prem.getByLabel('Quantity').fill('1'); await prem.getByLabel('Entry price').fill('10'); await prem.getByLabel('Entry time').fill('2026-03-02T09:00');
+  await setPlan(mail('p'), 'free');
+  await prem.getByRole('button', { name: 'Save hypothetical trade' }).click();
+  await prem.getByText('part of Premium. Nothing was saved.').waitFor({ timeout: 10000 }).catch(() => {});
+  check('P3 backtests: plan lapsed with the form open -> the server refuses, nothing saved', (await bodyOf(prem)).includes('part of Premium. Nothing was saved.') && (await db.query(`select count(*)::int n from tradenotes.backtest_trades where user_id = $1 and symbol = 'HYPO9'`, [pid])).rows[0].n === 0);
+  await prem.goto(BASE + '/app/backtests'); t = await bodyOf(prem);
+  check('P3 backtests: after a downgrade the entries stay readable and exportable, with an upgrade notice and no add link', t.includes('HYPO1') && t.includes('+$19.40') && t.includes('Adding and editing hypothetical trades is part of Premium') && (await prem.getByRole('link', { name: 'Log hypothetical trade' }).count()) === 0 && (await prem.request.get(BASE + '/app/backtests/export')).status() === 200);
+  check('P3 backtests: after a downgrade the edit page shows no form', (await prem.goto(BASE + `/app/backtests/${btId}/edit`), (await prem.locator('input[name=symbol]').count()) === 0));
+  await prem.goto(BASE + CMP);
+  check('P3 compare: after a downgrade the page is gated again (no table)', (await prem.locator('[data-testid=compare-table]').count()) === 0 && (await bodyOf(prem)).includes('part of Premium'));
+  const bt3 = (await db.query(`select id from tradenotes.backtest_trades where user_id = $1 and symbol = 'HYPO3'`, [pid])).rows[0].id;
+  await prem.goto(BASE + `/app/backtests/${bt3}`);
+  await prem.getByRole('button', { name: /^Delete/ }).click(); await prem.getByRole('button', { name: /Confirm delete/ }).click();
+  await prem.waitForURL('**/app/backtests?deleted=1');
+  check('P3 backtests: deleting your own hypothetical trade is allowed on any plan', (await db.query(`select count(*)::int n from tradenotes.backtest_trades where user_id = $1`, [pid])).rows[0].n === 2);
+  await setPlan(mail('p'), 'pro');
+
+  // ---------- 3. share links
+  await db.query(`update tradenotes.trades set pre_trade_notes = 'SECRET-NOTE-XYZ' where user_id = $1`, [pid]);
+  await db.query(`update tradenotes.accounts set name = 'SECRET-ACCOUNT-NAME' where user_id = $1`, [pid]);
+  const realTrade = (await db.query(`select id from tradenotes.trades where user_id = $1 order by opened_at limit 1`, [pid])).rows[0].id;
+  const up = await prem.request.post(BASE + '/app/screenshots', { headers: { Origin: BASE }, multipart: { trade_id: realTrade, file: { name: 'a.png', mimeType: 'image/png', buffer: PNG } } });
+  check('P3 share: (setup) a real trade has a screenshot, a note and a named account that the public page must never show', up.status() === 201);
+  await prem.goto(BASE + '/app/settings#sharing'); t = await bodyOf(prem);
+  check('P3 share (Premium, 390px): Settings > Sharing explains what is shared and fits the screen', t.includes('totals only') && t.includes('no money amounts') && t.includes('never shows notes') && await noScroll(prem));
+  check('P3 share: "Show money amounts" is OFF by default', !(await prem.getByLabel(/Show money amounts/).isChecked()));
+  await prem.getByLabel('Label (only you see it)').fill('For my mentor');
+  await prem.getByLabel(/Show money amounts/).check();
+  await prem.getByRole('button', { name: 'Create share link' }).click();
+  await prem.getByTestId('new-share-url').waitFor({ timeout: 10000 });
+  const link1 = (await prem.getByTestId('new-share-url').innerText()).trim(); const tok1 = link1.split('/r/')[1];
+  check('P3 share: the link is shown once (43-character token)', /^[A-Za-z0-9_-]{43}$/.test(tok1), link1);
+  check('P3 share: after a link is created with amounts shown, the box is OFF again for the next one (never carried over)', !(await prem.getByLabel(/Show money amounts/).isChecked()));
+  const row1 = (await db.query(`select * from tradenotes.share_links where user_id = $1 and label = 'For my mentor'`, [pid])).rows[0];
+  const dump = JSON.stringify(row1);
+  check('P3 share: only a SHA-256 hash is stored (token not in any column), scope all, expires in about 30 days', row1.token_hash === sha256(tok1) && !dump.includes(tok1) && row1.scope === 'all' && row1.show_amounts === true && Math.abs(new Date(row1.expires_at) - Date.now() - 30 * 86400000) < 3600000, dump);
+  const pubA = await anonPage({ viewport: { width: 390, height: 844 } });
+  const resA = await pubA.goto(BASE + '/r/' + tok1); t = await bodyOf(pubA); const html = await pubA.content();
+  check('P3 share: the public report opens without signing in and shows the totals (4 trades, +$1,190.00), a curve, and fits 390px', resA.status() === 200 && t.includes('Trading results summary') && t.includes('+$1,190.00') && /Closed trades\s*4/.test(t) && (await pubA.locator('svg[role=img]').count()) >= 1 && await noScroll(pubA), t.slice(0, 400));
+  const forbidden = ['SECRET-NOTE-XYZ', 'SECRET-ACCOUNT-NAME', mail('p'), 'EURUSD', 'GBPUSD', 'USDJPY', 'London breakout', 'Range fade', 'Moved stop', 'New York', '/app/screenshots', '2026-10-05', '2026-10-12', 'HYPO', 'Hypo setup'];
+  check('P3 share: nothing private appears in the public page (notes, account name, email, instruments, strategies, tags, screenshots, trade dates, hypothetical trades)', forbidden.every((f) => !t.includes(f) && !html.includes(f)), forbidden.filter((f) => t.includes(f) || html.includes(f)).join(','));
+  check('P3 share: public page is noindex (meta + header), no-store, no-referrer', /noindex/.test(await pubA.locator('meta[name=robots]').getAttribute('content')) && /noindex/.test(resA.headers()['x-robots-tag'] || '') && /no-store/.test(resA.headers()['cache-control'] || '') && resA.headers()['referrer-policy'] === 'no-referrer');
+  check('P3 share: a mistyped token, a token with extra characters and the signed-out Settings are not reachable (404)', (await pubA.goto(BASE + '/r/' + tok1 + 'x')).status() === 404 && (await pubA.goto(BASE + '/r/' + newTok())).status() === 404);
+  // default link: ratios and the shape of the curve only. No money may reach the page, the raw HTML or the data sent to the browser.
+  await prem.getByLabel('Label (only you see it)').fill('Ratios only');
+  await prem.getByRole('button', { name: 'Create share link' }).click();
+  await prem.waitForFunction((old) => { const el = document.querySelector('[data-testid=new-share-url]'); return el && el.textContent.trim() !== old; }, link1, { timeout: 10000 }); // the previous link's URL is still on screen until the new one arrives
+  const tok2 = (await prem.getByTestId('new-share-url').innerText()).trim().split('/r/')[1];
+  const row2 = (await db.query(`select show_amounts from tradenotes.share_links where token_hash = $1`, [sha256(tok2)])).rows[0];
+  const resB = await pubA.goto(BASE + '/r/' + tok2); const tB = await bodyOf(pubA); const htmlB = await pubA.content();
+  check('P3 share (default, amounts hidden): stored as hidden; the page shows win rate 75.0%, profit factor 3.38, average R 2.00R and the curve shape, says amounts are hidden',
+    row2.show_amounts === false && resB.status() === 200 && tB.includes('hide money amounts') && tB.includes('75.0%') && tB.includes('3.38') && tB.includes('2.00R') && /Closed trades\s*4/.test(tB) && /Shape of the equity curve over 4 closed trades/.test(htmlB), JSON.stringify({ r: row2.show_amounts, s: resB.status(), a: tB.includes('hide money amounts'), b: tB.includes('75.0%'), c: tB.includes('3.38'), d: tB.includes('2.00R'), e: /Closed trades\s*4/.test(tB), f: /Shape of the equity curve over 4 closed trades/.test(htmlB) }) + tB.slice(300, 900));
+  check('P3 share (default, amounts hidden): no money anywhere: no dollar amount in the text, no Net P&L / Expectancy / Max drawdown, none of the real totals in the HTML or the data sent to the browser, and no axis labels',
+    !/\$\s?\d/.test(tB) && !/Net P&L|Expectancy|Max drawdown/.test(tB) && !/(netPnl|expectancy|maxDrawdown|avgWin|avgLoss)\\?":\s*-?\d/.test(htmlB) && !/cumulative\\?":\s*-?\d{2,}/.test(htmlB) && !htmlB.includes('1,190'), JSON.stringify({ dollar: tB.match(/\$\s?\d.{0,20}/), words: tB.match(/Net P&L|Expectancy|Max drawdown/), keys: htmlB.match(/(netPnl|expectancy|maxDrawdown|avgWin|avgLoss)\\?":\s*-?\d.{0,10}/), cum: htmlB.match(/cumulative\\?":\s*-?\d{2,}.{0,10}/), c: htmlB.includes('1,190') }));
+  // another user cannot see, list or revoke the owner's links; forging the id in their own revoke form changes nothing
+  await db.query(`insert into tradenotes.share_links (user_id, label, token_hash, expires_at) values ($1,'B own link',$2, now() + interval '5 days')`, [oid, sha256('b-own-token-' + stamp)]);
+  await other.goto(BASE + '/app/settings#sharing'); t = await bodyOf(other);
+  check('P3 isolation: B\'s Settings list shows only B\'s link, not A\'s', t.includes('B own link') && !t.includes('For my mentor'));
+  await other.evaluate((id) => { document.querySelector('form input[name=id]').value = id; }, row1.id);
+  await other.getByRole('button', { name: /^Revoke link/ }).first().click();
+  await other.waitForURL('**/app/settings?revoked=1**');
+  const still = (await db.query(`select revoked_at from tradenotes.share_links where id = $1`, [row1.id])).rows[0];
+  check('P3 isolation: B submitting A\'s link id to the revoke action changes nothing (A\'s link still works)', still.revoked_at === null && (await pubA.goto(BASE + '/r/' + tok1)).status() === 200 && (await db.query(`select revoked_at from tradenotes.share_links where user_id = $1`, [oid])).rows[0].revoked_at === null);
+  // revoke by the owner: effective at once
+  await prem.goto(BASE + '/app/settings#sharing');
+  await prem.getByRole('button', { name: 'Revoke link For my mentor' }).click();
+  await prem.waitForURL('**/app/settings?revoked=1**');
+  t = await bodyOf(prem);
+  check('P3 share: the owner revokes the link; the list says revoked and the public page is 404 straight away', t.includes('Link revoked') && /For my mentor\s*\n?\s*revoked/i.test(t) && (await pubA.goto(BASE + '/r/' + tok1)).status() === 404);
+  // expired link and a link whose owner has no data
+  const tokExp = newTok(); await db.query(`insert into tradenotes.share_links (user_id, label, token_hash, scope, expires_at, created_at) values ($1,'old',$2,'30d', now() - interval '1 day', now() - interval '10 days')`, [pid, sha256(tokExp)]);
+  check('P3 share: an expired link is 404', (await pubA.goto(BASE + '/r/' + tokExp)).status() === 404);
+  const tokEmpty = newTok(); await db.query(`insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '2 days')`, [oid, sha256(tokEmpty)]);
+  await pubA.goto(BASE + '/r/' + tokEmpty);
+  check('P3 share: a user with no trades gets an honest empty report (no error, no numbers)', (await bodyOf(pubA)).includes('No closed trades in this period yet.') && !(await bodyOf(pubA)).includes('$1,190.00'));
+  // every plan can create a link; the cap of 5 active links is shown and enforced
+  await free.goto(BASE + '/app/settings#sharing');
+  await free.getByRole('button', { name: 'Create share link' }).click(); await free.getByTestId('new-share-url').waitFor({ timeout: 10000 });
+  check('P3 share (Free): can create a link (share links are on every plan)', /\/r\/[A-Za-z0-9_-]{43}$/.test((await free.getByTestId('new-share-url').innerText()).trim()));
+  const act = (await db.query(`select count(*)::int n from tradenotes.share_links where user_id = $1 and revoked_at is null and expires_at > now()`, [pid])).rows[0].n;
+  for (let i = 0; i < 5 - act; i++) await db.query(`insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '3 days')`, [pid, sha256('fill' + i + stamp)]);
+  await prem.goto(BASE + '/app/settings#sharing');
+  check('P3 share: at 5 active links the create button is disabled and says so', (await prem.getByRole('button', { name: 'Create share link' }).isDisabled()) && (await bodyOf(prem)).includes('5 active links, the most allowed'));
+
+  // ---------- 4. mobile quick-log
+  await quick.goto(BASE + '/app/quick'); t = await bodyOf(quick);
+  const f = (n) => quick.locator(`[data-testid=quick-form] [name=${n}]`);
+  check('P3 quick-log: starts from the last trade (USDJPY, long, size 1) and has exactly six fields (instrument, side, size, entry, stop, exit)',
+    (await f('symbol').inputValue()) === 'USDJPY' && (await quick.locator('[data-testid=quick-form] input[name=side]:checked').inputValue()) === 'long' && (await f('quantity').inputValue()) === '1'
+    && (await quick.locator('[data-testid=quick-form] input:not([type=radio]):not([type=hidden]), [data-testid=quick-form] select, [data-testid=quick-form] textarea').count()) === 5 && (await quick.locator('[data-testid=quick-form] input[type=radio]').count()) === 2, t.slice(0, 200));
+  const boxes = await quick.locator('[data-testid=quick-form] input:not([type=radio]):not([type=hidden]), [data-testid=quick-form] button, [data-testid=quick-form] label:has(input[type=radio])').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+  check('P3 quick-log (390px): big touch targets (every field, side button and the save button at least 48px tall) and no horizontal scroll', boxes.length === 8 && boxes.every((h) => h >= 48) && await noScroll(quick), JSON.stringify(boxes));
+  await f('symbol').fill('EURUSD'); await quick.locator('[data-testid=quick-form] label:has(input[value=short])').click();
+  await f('quantity').fill('2'); await f('entry_price').fill('1.1000'); await f('stop_price').fill('1.1050'); await f('exit_price').fill('1.0950');
+  await quick.getByRole('button', { name: 'Save trade' }).click();
+  await quick.getByTestId('quick-saved').waitFor({ timeout: 10000 });
+  check('P3 quick-log: one tap saves; confirmation shown; instrument, side and size stay for the next trade, prices clear', (await bodyOf(quick)).includes('Saved EURUSD short') && (await f('symbol').inputValue()) === 'EURUSD' && (await quick.locator('[data-testid=quick-form] input[name=side]:checked').inputValue()) === 'short' && (await f('quantity').inputValue()) === '2' && (await f('entry_price').inputValue()) === '' && (await f('exit_price').inputValue()) === '');
+  const qrow = (await db.query(`select * from tradenotes.trades where user_id = $1 and symbol = 'EURUSD' and side = 'short' and quantity = 2`, [await uid(mail('q'))])).rows[0];
+  check('P3 quick-log: an ordinary trade (forex inferred from your earlier EURUSD, lot size 100,000, planned risk 1,000.00, times set, closed with one exit)', qrow && qrow.asset_class === 'forex' && Number(qrow.multiplier) === 100000 && Number(qrow.initial_risk) === 1000 && qrow.opened_at && qrow.closed_at && (await db.query(`select count(*)::int n from tradenotes.trade_exits where trade_id = $1`, [qrow.id])).rows[0].n === 1, JSON.stringify(qrow));
+  await quick.goto(BASE + '/app'); t = await bodyOf(quick);
+  check('P3 quick-log: same metrics as the full form (dashboard $1,190.00 + $1,000.00 = $2,190.00 over 5 closed trades)', t.includes('$2,190.00') && /5 closed trades/.test(t), t.slice(0, 300));
+  await quick.goto(BASE + `/app/journal/${qrow.id}`); t = await bodyOf(quick);
+  check('P3 quick-log: the trade page shows +1.00R and +$1,000.00', t.includes('+1.00R') && t.includes('+$1,000.00'), t.slice(0, 300));
+  await quick.goto(BASE + '/app/quick');
+  check('P3 quick-log: the next visit starts from the trade you just logged (EURUSD, short, size 2)', (await f('symbol').inputValue()) === 'EURUSD' && (await quick.locator('[data-testid=quick-form] input[name=side]:checked').inputValue()) === 'short' && (await f('quantity').inputValue()) === '2');
+  await f('symbol').fill('GBPUSD'); await quick.locator('[data-testid=quick-form] label:has(input[value=long])').click(); await f('quantity').fill('1'); await f('entry_price').fill('1.3000');
+  await quick.getByRole('button', { name: 'Save trade' }).click(); await quick.getByTestId('quick-saved').waitFor({ timeout: 10000 });
+  const open = (await db.query(`select closed_at, (select count(*)::int from tradenotes.trade_exits e where e.trade_id = t.id) as exits from tradenotes.trades t where user_id = $1 and symbol = 'GBPUSD' and quantity = 1 and opened_at > now() - interval '1 hour'`, [await uid(mail('q'))])).rows;
+  check('P3 quick-log: leaving the exit blank saves an open trade (no exit, not counted as closed)', open.length === 1 && open[0].closed_at === null && open[0].exits === 0);
+  await quick.goto(BASE + '/app/quick');
+  await f('symbol').fill('EURUSD'); await quick.locator('[data-testid=quick-form] label:has(input[value=long])').click(); await f('quantity').fill('1'); await f('entry_price').fill('1.1000'); await f('stop_price').fill('1.2000');
+  await quick.getByRole('button', { name: 'Save trade' }).click();
+  await quick.getByText('For a long, the stop must be below entry').waitFor({ timeout: 10000 }).catch(() => {});
+  check('P3 quick-log: invalid input is refused with the same message as the full form, and nothing is saved', (await bodyOf(quick)).includes('For a long, the stop must be below entry') && (await db.query(`select count(*)::int n from tradenotes.trades where user_id = $1 and symbol = 'EURUSD'`, [await uid(mail('q'))])).rows[0].n === 3, '');
+  await other.goto(BASE + '/app'); t = await bodyOf(other);
+  check('P3 isolation: quick-logged trades belong to the user who logged them (B sees none)', !t.includes('$2,190.00') && t.includes('Start in 3 steps'));
+  // plan limit applies to quick-log exactly like the full form: a stale form at the limit is refused by the server
+  const lim = await newUser(browser, mail('l'), { viewport: { width: 390, height: 844 } });
+  const limRows = (n) => Array.from({ length: n }, (_, i) => ({ symbol: 'LIM' + i, side: 'long', qty: 1, entry: 10, exit: 11, open: '2026-09-01T08:00:00Z', close: '2026-09-01T09:00:00Z' }));
+  await seed(mail('l'), limRows(48));
+  await lim.goto(BASE + '/app/quick');
+  const lf = (n) => lim.locator(`[data-testid=quick-form] [name=${n}]`);
+  const logOne = async () => { await lf('symbol').fill('EURUSD'); await lf('quantity').fill('1'); await lf('entry_price').fill('1.1'); await lf('exit_price').fill('1.2'); await lim.getByRole('button', { name: 'Save trade' }).click(); };
+  await logOne(); await lim.getByTestId('quick-saved').waitFor({ timeout: 10000 });
+  await db.query(`insert into tradenotes.trades (user_id, account_id, symbol, side, quantity, entry_price, opened_at) select u.id, (select id from tradenotes.accounts where user_id = u.id limit 1), 'SNEAK', 'long', 1, 10, now() from public.tn_user u where u.email = $1`, [mail('l')]);
+  await logOne();
+  await lim.getByText("You've reached your plan's trade limit").waitFor({ timeout: 10000 }).catch(() => {});
+  check('P3 quick-log (Free): with the form open, the journal reaches 50 trades elsewhere -> the server refuses the next save (limit notice, upgrade path) and nothing is saved', (await bodyOf(lim)).includes("You've reached your plan's trade limit") && (await db.query(`select count(*)::int n from tradenotes.trades t join public.tn_user u on u.id = t.user_id where u.email = $1`, [mail('l')])).rows[0].n === 50);
+  await lim.goto(BASE + '/app/quick');
+  check('P3 quick-log (Free at the limit): the page shows the upgrade notice instead of the form', (await bodyOf(lim)).includes('used all 50 trades') && (await lim.locator('[data-testid=quick-form]').count()) === 0);
+  const lim2 = await newUser(browser, mail('m'), { viewport: { width: 390, height: 844 } });
+  await seed(mail('m'), limRows(49));
+  await lim2.goto(BASE + '/app/quick');
+  await lim2.locator('[data-testid=quick-form] [name=symbol]').fill('EURUSD'); await lim2.locator('[data-testid=quick-form] [name=quantity]').fill('1'); await lim2.locator('[data-testid=quick-form] [name=entry_price]').fill('1.1');
+  await lim2.getByRole('button', { name: 'Save trade' }).click(); await lim2.getByTestId('quick-saved').waitFor({ timeout: 10000 }).catch(() => {});
+  check('P3 quick-log (Free): saving the 50th (last allowed) trade keeps the "Saved" confirmation and adds the upgrade notice', (await bodyOf(lim2)).includes('Saved EURUSD') && (await bodyOf(lim2)).includes('used all 50 trades'));
+  // installability: manifest, icons, hint, and no service worker
+  const man = await (await quick.request.get(BASE + '/manifest.webmanifest')).json();
+  const icons = await Promise.all(man.icons.map(async (i) => { const r = await quick.request.get(BASE + i.src); return r.status() === 200 && r.headers()['content-type'] === 'image/png'; }));
+  check('P3 quick-log: web manifest opens the quick-log page full-screen, with 192 and 512 icons (and a maskable one) that load', man.start_url === '/app/quick' && man.display === 'standalone' && man.icons.some((i) => i.sizes === '192x192') && man.icons.some((i) => i.sizes === '512x512') && man.icons.some((i) => i.purpose === 'maskable') && icons.every(Boolean), JSON.stringify(man));
+  const iconDims = await Promise.all(man.icons.map(async (i) => { const b = await (await quick.request.get(BASE + i.src)).body(); return `${b.readUInt32BE(16)}x${b.readUInt32BE(20)}`; }));
+  check('P3 quick-log: every manifest icon really has the pixel size it declares (checked in the PNG header), as installability requires', man.icons.every((i, k) => i.sizes === iconDims[k]) && man.name && man.short_name && /^\//.test(man.start_url) && man.scope === '/' && !man.prefer_related_applications, JSON.stringify(iconDims));
+  await quick.goto(BASE + '/app/quick'); await quick.getByTestId('install-hint').waitFor({ timeout: 5000 }).catch(() => {});
+  check('P3 quick-log: an iPhone sees the add-to-home-screen hint (Share, then Add to Home Screen)', (await quick.getByTestId('install-hint').count()) === 1 && /Add to Home Screen/.test(await quick.getByTestId('install-hint').innerText()));
+  await quick.getByRole('button', { name: 'Dismiss this hint' }).click(); await quick.reload();
+  await quick.waitForLoadState('networkidle');
+  check('P3 quick-log: dismissing the hint is remembered; a desktop browser never sees it', (await quick.getByTestId('install-hint').count()) === 0 && (await (async () => { await prem.goto(BASE + '/app/quick'); await prem.waitForTimeout(500); return prem.getByTestId('install-hint').count(); })()) === 0);
+  check('P3 quick-log: no service worker is registered', (await quick.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)) === 0);
+
+  // ---------- 5. account deletion removes hypothetical trades, their screenshots and share links too
+  await db.query(`update tradenotes.share_links set revoked_at = now() where id = (select id from tradenotes.share_links where user_id = $1 and revoked_at is null and expires_at > now() limit 1)`, [pid]);
+  const tokLive = newTok(); await db.query(`insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '4 days')`, [pid, sha256(tokLive)]);
+  check('P3 delete account: (setup) the owner\'s link opens before deletion', (await pubA.goto(BASE + '/r/' + tokLive)).status() === 200);
+  const pidBefore = { bt: (await db.query('select count(*)::int n from tradenotes.backtest_trades where user_id = $1', [pid])).rows[0].n, sh: (await db.query('select count(*)::int n from tradenotes.share_links where user_id = $1', [pid])).rows[0].n };
+  await prem.goto(BASE + '/app/settings');
+  await prem.getByText('Delete my account', { exact: true }).click();
+  await prem.getByLabel('Type DELETE to confirm').fill('DELETE'); await prem.getByLabel('Current password').fill('correct-horse-battery');
+  await prem.getByRole('button', { name: 'Delete my account permanently' }).click();
+  await prem.waitForURL(BASE + '/?deleted=1', { timeout: 15000 }).catch(() => {});
+  const left = (await db.query(`select (select count(*) from tradenotes.backtest_trades where user_id = $1)::int bt, (select count(*) from tradenotes.backtest_screenshots where user_id = $1)::int shots, (select count(*) from tradenotes.share_links where user_id = $1)::int links`, [pid])).rows[0];
+  check('P3 delete account: hypothetical trades, their screenshots and share links are all gone', pidBefore.bt >= 2 && pidBefore.sh >= 5 && left.bt === 0 && left.shots === 0 && left.links === 0, JSON.stringify([pidBefore, left]));
+  check('P3 delete account: the deleted user\'s active share link no longer opens (404)', (await pubA.goto(BASE + '/r/' + tokLive)).status() === 404);
+  for (const p of [free, std, other, quick, lim, lim2]) await p.context().close();
+  await db.end();
 }

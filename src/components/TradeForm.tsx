@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { createTrade, updateTrade, type FormState } from "@/app/app/journal/actions";
+import { createBacktest, updateBacktest } from "@/app/app/backtests/actions";
+import { HYPOTHETICAL, HYPOTHETICAL_DETAIL } from "@/lib/backtest";
 import { ASSET_CLASSES, SESSIONS, EMOTIONS, MISTAKES, defaultMultiplier } from "@/lib/trade-schema";
 import { futuresSpec } from "@/lib/instruments";
 import { Card, Field, Notice, inputCls, btnCls, btnGhostCls } from "./ui";
@@ -42,8 +44,10 @@ function Chips({ name, legend, options, picked, toggle }: { name: string; legend
 
 /** `edit` pre-fills the form from a saved trade and submits to updateTrade instead of createTrade. */
 export type TradeInitial = { id: string; values: Record<string, string>; emotions: string[]; mistakes: string[] };
-export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount }: { accounts: Acct[]; defaultAsset: string; edit?: TradeInitial; defaultAccount?: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(edit ? updateTrade : createTrade, {});
+export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount, variant = "trade" }: { accounts: Acct[]; defaultAsset: string; edit?: TradeInitial; defaultAccount?: string; variant?: "trade" | "backtest" }) {
+  // "backtest" = the hypothetical log: same fields and the same validation, but no account, no currency conversion and no discipline section.
+  const bt = variant === "backtest";
+  const [state, action, pending] = useActionState<FormState, FormData>(bt ? (edit ? updateBacktest : createBacktest) : edit ? updateTrade : createTrade, {});
   const [asset, setAsset] = useState(edit?.values.asset_class ?? defaultAsset);
   const [side, setSide] = useState<"long" | "short">(edit?.values.side === "short" ? "short" : "long");
   const [emotions, setEmotions] = useState<Set<string>>(new Set(edit?.emotions ?? []));
@@ -81,6 +85,7 @@ export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount
         <Notice kind="error">{state.message}{errorCount > 0 && <> ({errorCount} field{errorCount === 1 ? "" : "s"})</>}</Notice>
       ) : null}
 
+      {bt && <Notice kind="warn"><p className="font-medium">{HYPOTHETICAL}</p><p className="mt-1">{HYPOTHETICAL_DETAIL}</p></Notice>}
       {edit && <input type="hidden" name="trade_id" value={edit.id} />}
       <Section step={1} title="The trade">
         <fieldset>
@@ -95,7 +100,7 @@ export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount
           </div>
         </fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
-          {accounts.length > 1
+          {bt ? null : accounts.length > 1
             ? <Field label="Account"><select name="account_id" defaultValue={v.account_id ?? defaultAccount} className={inputCls}>{accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></Field>
             : <input type="hidden" name="account_id" value={accounts[0]?.id} />}
           <Field label="Market">
@@ -111,7 +116,7 @@ export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount
           )}
           <Field label="Entry price" error={e.entry_price}><input name="entry_price" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.entry_price} required className={inputCls} {...inv("entry_price")} /></Field>
           <Field label="Entry time" hint="Stored and reported in UTC." error={e.opened_at}><input name="opened_at" type="datetime-local" defaultValue={v.opened_at ?? nowLocal()} required className={inputCls} {...inv("opened_at")} /></Field>
-          <Field label="Fees / commission / swap" hint="Total, in the quote currency. Leave blank for none." error={e.fees}><input name="fees" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.fees} className={inputCls} {...inv("fees")} /></Field>
+          <Field label="Fees / commission / swap" hint={bt ? "Total, in the same units as your prices. Leave blank for none." : "Total, in the quote currency. Leave blank for none."} error={e.fees}><input name="fees" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.fees} className={inputCls} {...inv("fees")} /></Field>
         </div>
       </Section>
 
@@ -146,13 +151,13 @@ export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount
             <Field label="Exit 2 size"><input name="exit2_qty" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.exit2_qty} className={inputCls} /></Field>
           </div>
         </details>
-        <details className="text-sm" open={Boolean(v.currency || v.fx_to_account || e.currency || e.fx_to_account)}>
+        {!bt && <details className="text-sm" open={Boolean(v.currency || v.fx_to_account || e.currency || e.fx_to_account)}>
           <summary className="cursor-pointer py-1 text-muted hover:text-fg">Quote currency isn&apos;t {acctCur}? (e.g. USDJPY on a {acctCur} account)</summary>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <Field label="Quote currency" error={e.currency}><input name="currency" maxLength={3} defaultValue={v.currency} placeholder={acctCur} autoCapitalize="characters" className={inputCls} {...inv("currency")} /></Field>
             <Field label={`1 quote unit = ? ${acctCur}`} hint="Required when the quote currency differs from your account" error={e.fx_to_account}><input name="fx_to_account" type="number" inputMode="decimal" step="any" min="0" defaultValue={v.fx_to_account} className={inputCls} {...inv("fx_to_account")} /></Field>
           </div>
-        </details>
+        </details>}
       </Section>
 
       <Section step={4} title="Context & notes" sub="optional">
@@ -166,18 +171,18 @@ export default function TradeForm({ accounts, defaultAsset, edit, defaultAccount
         <Field label="Lesson learned"><textarea name="lessons" rows={2} defaultValue={v.lessons} className={inputCls} /></Field>
       </Section>
 
-      <Section step={5} title="Discipline" sub="optional">
+      {!bt && <Section step={5} title="Discipline" sub="optional">
         <Chips name="emotions" legend="How did you feel?" options={EMOTIONS} picked={emotions} toggle={flip(setEmotions)} />
         <Chips name="mistakes" legend="Any mistakes?" options={MISTAKES} picked={mistakes} toggle={flip(setMistakes)} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Did you follow your plan?"><select name="followed_plan" defaultValue={v.followed_plan ?? ""} className={inputCls}><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></Field>
           <Field label="Discipline score (1–5)" hint="1 = broke my rules, 5 = followed them exactly."><select name="discipline_score" defaultValue={v.discipline_score ?? ""} className={inputCls}><option value="">—</option>{[1, 2, 3, 4, 5].map((x) => <option key={x}>{x}</option>)}</select></Field>
         </div>
-      </Section>
+      </Section>}
 
       <div className="sticky bottom-[4.5rem] z-20 -mx-4 flex items-center gap-3 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
-        <button disabled={pending} className={`${btnCls} flex-1 sm:flex-none sm:px-8`}>{pending ? "Saving…" : edit ? "Save changes" : "Save trade"}</button>
-        <Link href={edit ? `/app/journal/${edit.id}` : "/app/journal"} className={btnGhostCls}>Cancel</Link>
+        <button disabled={pending} className={`${btnCls} flex-1 sm:flex-none sm:px-8`}>{pending ? "Saving…" : edit ? "Save changes" : bt ? "Save hypothetical trade" : "Save trade"}</button>
+        <Link href={bt ? (edit ? `/app/backtests/${edit.id}` : "/app/backtests") : edit ? `/app/journal/${edit.id}` : "/app/journal"} className={btnGhostCls}>Cancel</Link>
         <span className="ml-auto hidden text-xs text-muted sm:block">Only instrument, size, entry price and time are required.</span>
       </div>
     </form>

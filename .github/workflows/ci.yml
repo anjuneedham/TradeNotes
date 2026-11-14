@@ -29,13 +29,21 @@ jobs:
         run: |
           npx next start -p 3111 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3111/login && break; sleep 1; done
-          for p in / "/?ref=abc123" /pricing /partners /login /signup /learn /legal/terms /legal/privacy /robots.txt /sitemap.xml /og; do
+          for p in / "/?ref=abc123" /pricing /demo /demo/analytics /demo/trades/demo-001 /partners /login /signup /learn /legal/terms /legal/privacy /robots.txt /sitemap.xml /og /manifest.webmanifest; do
             code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3111$p"); echo "$p -> $code"; [ "$code" = "200" ] || exit 1
           done
           # SEO essentials must stay present
           curl -s http://localhost:3111/pricing | grep -q 'rel="canonical"' || { echo "pricing: missing canonical"; exit 1; }
           curl -s http://localhost:3111/pricing | grep -q 'property="og:title"' || { echo "pricing: missing og:title"; exit 1; }
           curl -s http://localhost:3111/pricing | grep -q 'property="og:image"' || { echo "pricing: missing og:image"; exit 1; }
+          # The demo is public, carries its SAMPLE DATA banner on every page, and is in the sitemap; sample trades stay out of search.
+          for p in /demo /demo/analytics /demo/trades/demo-001; do curl -s "http://localhost:3111$p" | grep -q "SAMPLE DATA" || { echo "$p: missing SAMPLE DATA banner"; exit 1; }; done
+          curl -s http://localhost:3111/sitemap.xml | grep -q "/demo</loc>" || { echo "sitemap: /demo missing"; exit 1; }
+          curl -s http://localhost:3111/demo/trades/demo-001 | grep -q 'name="robots" content="noindex' || { echo "demo trade page must be noindex"; exit 1; }
+          curl -s http://localhost:3111/manifest.webmanifest | grep -q '"start_url":"/app/quick"' || { echo "manifest: start_url missing"; exit 1; }
+          # Share links: an unknown or malformed token is a 404 (no database needed for the malformed one), never indexed, never cached.
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3111/r/not-a-token); [ "$code" = "404" ] || { echo "/r/not-a-token -> $code (want 404)"; exit 1; }
+          curl -sI http://localhost:3111/r/not-a-token | grep -qi "x-robots-tag: noindex" || { echo "/r: X-Robots-Tag noindex header missing"; exit 1; }
           curl -s http://localhost:3111/robots.txt | grep -q "Disallow: /app" || { echo "robots.txt: /app not disallowed"; exit 1; }
 
   database:
@@ -68,4 +76,4 @@ jobs:
         run: node scripts/migrate.mjs
       - run: node scripts/verify-db.mjs
       - name: DB integration tests (founding seats, affiliate flow, SQL aggregation on 10,000 seeded trades)
-        run: npx vitest run src/lib/founding.db.test.ts src/lib/affiliate.db.test.ts src/lib/aggregate.db.test.ts
+        run: npx vitest run src/lib/founding.db.test.ts src/lib/affiliate.db.test.ts src/lib/aggregate.db.test.ts src/lib/screenshot-quota.db.test.ts

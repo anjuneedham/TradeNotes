@@ -11,6 +11,9 @@ import { isValidTimeZone } from "@/lib/timezone";
 import { getStore } from "@/lib/storage";
 import { PLANS } from "@/lib/plans";
 import { remindersLive } from "@/lib/reminders";
+import { newToken, hashToken } from "@/lib/share-token";
+import { UUID } from "@/lib/trade-save";
+import { parseScope, parseExpiryDays, cleanLabel, DEFAULT_EXPIRY_DAYS, MAX_ACTIVE_LINKS } from "@/lib/share";
 
 /** Preferences: explanation toggle (profiles.show_explanations, own row under RLS) and a per-device appearance cookie. */
 export async function savePreferences(formData: FormData) {
@@ -65,4 +68,40 @@ export async function deleteAccount(formData: FormData) {
   const jar = await cookies();
   for (const c of jar.getAll()) if (c.name.includes("better-auth")) jar.delete(c.name);
   redirect("/?deleted=1");
+}
+
+/** Result of creating a share link. The path (with the token) is returned ONCE, here; only its hash is stored. */
+export interface ShareState { path?: string; error?: string; label?: string | null; showAmounts?: boolean }
+
+/** Create a public read-only report link for the signed-in user. Own row only (row-level security); the database caps usable links at 5. */
+export async function createShareLink(_prev: ShareState, formData: FormData): Promise<ShareState> {
+  const { db, user, plan } = await getContext();
+  if (!PLANS[plan].shareLinks) return { error: "Share links are not part of your plan." };
+  const scope = parseScope(formData.get("scope")) ?? "all";
+  const days = parseExpiryDays(formData.get("expires_in")) ?? DEFAULT_EXPIRY_DAYS;
+  const label = cleanLabel(formData.get("label"));
+  const showAmounts = formData.get("show_amounts") === "on"; // money amounts are shown only when the owner ticks the box
+  const token = newToken();
+  try {
+    await db((q) => q("insert into tradenotes.share_links (user_id, label, token_hash, scope, show_amounts, expires_at) values ($1, $2, $3, $4, $6, now() + ($5::int * interval '1 day'))", [user.id, label, hashToken(token), scope, days, showAmounts]));
+  } catch (e) {
+    const m = e instanceof Error ? e.message : "";
+    if (/share link limit reached/.test(m)) return { error: `You can have ${MAX_ACTIVE_LINKS} active links at a time. Revoke one first.` };
+    if (/history limit/.test(m)) return { error: "You have created a lot of links. Contact support to clear old ones." };
+    console.error("createShareLink failed", m);
+    return { error: "Could not create the link. Please try again." };
+  }
+  revalidatePath("/app/settings");
+  return { path: `/r/${token}`, label, showAmounts };
+}
+
+/** Revoke one of the user's own links. Another user's id matches no row (row-level security), so nothing changes. */
+export async function revokeShareLink(formData: FormData) {
+  const { db } = await getContext();
+  const id = String(formData.get("id") ?? "");
+  if (UUID.test(id)) {
+    await db((q) => q("update tradenotes.share_links set revoked_at = now() where id = $1 and revoked_at is null", [id]));
+  }
+  revalidatePath("/app/settings");
+  redirect("/app/settings?revoked=1#sharing");
 }

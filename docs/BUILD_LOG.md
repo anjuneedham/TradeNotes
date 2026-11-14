@@ -10,7 +10,7 @@ Note: the session branch was created from an older commit (1458f71) that lacks t
 |---|---|---|---|
 | 1 Capture and evidence | `phase1-capture` (PR #1) | broker presets + auto-detect + fixtures; timezone setting; fill grouping; instrument specs; multiple accounts (switcher, limits, combined view); screenshots (Supabase Storage adapter + in-memory fake, caps, quotas) | built, reviewed, CI green; awaiting owner merge |
 | 2 Analytics and review | `claude/phase2-analytics-qa4aj3` (session-assigned name) | global filter bar; expectancy/drawdown/R distribution/heatmap/hold time/streaks/MAE-MFE/mistake cost; calendar; daily journal + weekly/monthly reviews; playbook adherence; 10k-trade performance | in progress (see Phase 2 below) |
-| 3 Differentiation | `phase3-growth` | strategy comparison; manual backtest log; /demo; share links; mobile quick-log | todo |
+| 3 Differentiation | `phase3-growth` | strategy comparison; manual backtest log; /demo; share links; mobile quick-log | built, see Phase 3 below |
 | 4 Memos | `phase4-memos` | broker sync, AI summaries, replay data licensing (memos only) | todo |
 
 ## Progress notes
@@ -49,3 +49,23 @@ The branch name is the one this session was assigned (the owner's prompt said `p
 - Final local run: lint/tsc exit 0, 260 unit + 3 DB tests, test-paste 40 + re-run, build with migrate (22 tables) + verify-db 72/0, e2e 174/174, e2e-billing 42/43 (same as main). The local Postgres died once mid-run (stale pid); restarted and rerun.
 - 10,000 trades: dashboard 209 ms, analytics 387 ms, journal 60 ms, calendar 48 ms (local, warm median).
 - Rating update and next steps: docs/READINESS_REVIEW.md (top). Not built: MAE/MFE, reminder emails.
+
+### 2026-11-13: Phase 3 plan (branch `phase3-growth`, from main @ fbb3be1)
+Note: the owner's prompt said main was at 8af47d1 and the next migration was 12. Main had moved on (Phase 2 merged, migrations up to 15), so the new migration is **16** and the table count goes **22 -> 25**.
+Baseline before any change (local Postgres 16, simulated Supabase roles): `npm ci` ok · lint exit 0 · `tsc --noEmit` exit 0 · `npm test` 277 passed / 3 skipped · `test-paste.sh` 40 PASS + re-run · `migrate.mjs` 22 tables · `verify-db.mjs` 72 passed, 0 failed · 3 DB tests passed.
+
+| # | Task | Decisions / assumptions (flagged for the owner) | Status |
+|---|---|---|---|
+| 1 | Strategy comparison `/app/strategies/compare` (Premium) | Real trades only. 2 to 4 strategies picked by name; same filters (strategy filter hidden, the selection decides). Metrics from `summarizeResults` so a number equals the analytics page. Curves by trade number, colour + line style per series. Gate in the page, so no trade data is loaded below Premium | DONE |
+| 2 | Manual backtest log (Premium) | **Two** new tables, not one: `backtest_trades` (exits as a JSON list, max 10) and `backtest_screenshots` (a screenshot needs its own row; the real table points at real trades). Screenshots: same bucket, prefix `<user>/backtest/<id>/`, same per-user quota and upload window. No account, no FX (amounts as typed, shown with the account currency as a label only). Own CSV export labelled HYPOTHETICAL in the first line, every row and the file name. After a downgrade entries stay readable/exportable/deletable, writes are refused by the server. Not included in comparison or share links | DONE |
+| 3 | Public `/demo`, `/demo/analytics`, `/demo/trades/<id>` | Data generated in code from a fixed seed (190 trades, Jan to Oct 2026, fixed "today"), no database. To show the **real components** the page bodies were extracted into `DashboardView`, `AnalyticsView`, `TradeView`, used by both /app and /demo (existing e2e 174/174 still pass). SAMPLE DATA banner in the demo layout. In sitemap + CI smoke; trade pages noindex | DONE |
+| 4 | Share links `/r/<token>` | One new table `share_links`. Token 256 bits, only the SHA-256 hash stored, shown once. `resolve_share_link(hash)` (SECURITY DEFINER) refuses revoked/expired. The public page is built from the `ShareReport` type (aggregates only) and tests scan the HTML for planted private strings. 404 for unknown/revoked/expired. **Assumptions:** scope = all time / this year / 90 days / 30 days; expiry 7/30/90 days (no "never"); max 5 usable links; **available on every plan** (growth feature; one flag `shareLinks` in PLANS to change); no view counter (privacy) | DONE (security-review: see QA file) |
+| 5 | Quick-log `/app/quick` | Six fields, 56px targets, defaults from the last trade (instrument, side, size), one-tap save. Goes through the same validation and insert as the full form (`lib/trade-save.ts`; the trade-saving helpers moved out of the server-action file). Times = now (edit later). Manifest + icons (generated from the logo with the pre-installed Chromium, no new tool) + add-to-home-screen hint. **No service worker** (not needed; stated in the UI) | DONE |
+| 6 | Plan copy | PLANS flags `comparison`, `backtesting` (existing flag, now means the backtest log), `shareLinks`; FEATURES_NOW rows, FEATURES_DEV now empty (replay removed: not built, not approved, would need paid market data: docs/BACKTEST_REPLAY_LICENSING.md); pricing/landing/billing blurbs; privacy page, disclaimer line, LEGAL_FILL_IN | DONE |
+| 7 | After the phase | PR, CI, code review (high), security review, plan matrix, 10k timings, QA file | DONE: PR #7, CI green on d4f2a12, code review 10 fixed, security review none, QA in docs/QA_RESULTS_2026-11-13_phase3.md |
+
+#### Phase 3 wrap-up, 2026-11-13
+- Final local run on d4f2a12: lint/tsc exit 0, 329 unit + DB tests, test-paste 40 + re-run, build with migrate (25 tables) + verify-db 101/0, e2e 252/252 (257/257 after the follow-up), e2e-billing 42/43 (same as main), viewport-check 21/21.
+- Found while testing: quick-log lost its "Saved" confirmation at the plan limit (fixed). Code review found a CSV bug that wrote negative numbers as text (fixed).
+- Not built: bar replay (needs a paid data licence: docs/BACKTEST_REPLAY_LICENSING.md). Owner decisions needed: share links on every plan, two backtest tables, legal wording (docs/LEGAL_FILL_IN.md).
+- Follow-up 2026-11-14: share links hide money amounts by default (opt-in per link, fixed at creation, removed server-side); storage adapter tested over real HTTP against a local Storage API emulation; installability confirmed by Chromium itself (scripts/check-installable.js). Real Supabase / production / a real phone remain owner-only (checklist in the QA file).

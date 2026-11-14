@@ -2,7 +2,7 @@
  * Object storage for trade screenshots, behind one small interface so unit tests, e2e and CI never need a Supabase account.
  * - Supabase adapter: Storage REST API with the service-role key (server only; never sent to the browser, never logged).
  * - Memory adapter: in-process Map, for tests and local e2e (SCREENSHOT_STORAGE=memory). Refused on Vercel production.
- * Paths are always "<user_id>/<trade_id>/<uuid>.<ext>", built on the server.
+ * Paths are always "<user_id>/<trade_id>/<uuid>.<ext>" (real trades) or "<user_id>/backtest/<backtest_id>/<uuid>.<ext>" (hypothetical trades), built on the server.
  */
 export interface ObjectStore {
   readonly kind: "supabase" | "memory";
@@ -17,7 +17,7 @@ export interface ObjectStore {
 
 export const BUCKET = "trade-screenshots";
 export const SIGNED_URL_TTL = 120;
-const PATH = /^[0-9a-f-]{36}(\/[0-9a-f-]{36}(\/[0-9a-f-]{36}\.(png|jpg|webp))?)?$/;
+const PATH = /^[0-9a-f-]{36}(\/(backtest\/)?[0-9a-f-]{36}(\/[0-9a-f-]{36}\.(png|jpg|webp))?)?$/;
 const assertPath = (p: string) => { if (!PATH.test(p)) throw new Error("invalid object path"); };
 
 export class MemoryStore implements ObjectStore {
@@ -79,10 +79,14 @@ export class SupabaseStore implements ObjectStore {
   async deletePrefix(prefix: string) {
     assertPath(prefix);
     const files: string[] = [];
-    for (const e of await this.list(prefix)) {
-      if (e.id) files.push(`${prefix}/${e.name}`);
-      else for (const f of await this.list(`${prefix}/${e.name}`)) if (f.id) files.push(`${prefix}/${e.name}/${f.name}`);
-    }
+    // Walk the folders below the prefix (<user>/<trade>/<file> and <user>/backtest/<id>/<file>: at most 3 levels), collecting every object.
+    const walk = async (dir: string, depth: number) => {
+      for (const e of await this.list(dir)) {
+        if (e.id) files.push(`${dir}/${e.name}`);
+        else if (depth < 3) await walk(`${dir}/${e.name}`, depth + 1);
+      }
+    };
+    await walk(prefix, 1);
     if (files.length) await this.delete(files.filter((f) => PATH.test(f)));
     return files.length;
   }

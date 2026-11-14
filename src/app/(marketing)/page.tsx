@@ -31,8 +31,10 @@ const built: [string, string][] = [
   ["Deeper analytics", "Drawdown and recovery, the spread of your results in R, which weekday and hour you trade best, results by time held, and what each mistake cost."],
   ["A review list", "Open trades, your largest loss and your costliest mistake, surfaced on the dashboard."],
   ["Explanations you can switch off", "Every figure links to a plain-English guide. Experienced traders can hide them."],
+  ["Mobile quick-log", "Six fields and big buttons for logging a trade from your phone. It starts from your last trade and can sit on your home screen."],
+  ["Read-only share links", "Share your win rate, profit factor and the shape of your equity curve through a link you can revoke. Money amounts stay hidden unless you choose to show them, and it never shows notes, instruments, account names, your email or screenshots."],
 ];
-const devList = () => [...(screenshotsLive() ? [] : ["Trade screenshots"]), "Strategy comparison", "Backtesting with historical replay"];
+const devList = () => [...(screenshotsLive() ? [] : ["Trade screenshots"])];
 
 export const metadata = pageMeta({ title: "TradeNotes — Trading Journal & Performance Analytics", description: "A trading journal that shows where your results come from: log trades, tag mistakes, and track win rate, expectancy and drawdown. Free plan, no card.", path: "/" });
 
@@ -62,6 +64,7 @@ export default function Home() {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>
+            <Link href="/demo" className={`${btnGhostCls} !px-6`}>See a live demo</Link>
             <Link href="/pricing" className={`${btnGhostCls} !px-6`}>See pricing</Link>
           </div>
           <p className="mt-3 text-sm text-muted">Free plan with {PLANS.free.tradeLimit} trades. No card required.</p>
@@ -109,10 +112,13 @@ export default function Home() {
         <dl className="mt-8 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
           {built.map(([t, d]) => (<div key={t} className="border-t border-border pt-4"><dt className="font-medium">{t}</dt><dd className="mt-1.5 text-sm leading-relaxed text-muted">{d}</dd></div>))}
         </dl>
-        <div className="mt-10 rounded-lg border border-border bg-raised px-5 py-4">
-          <p className="text-sm font-medium text-warn">In development — not available yet</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted">{devList().join(" · ")}. We don&apos;t promise dates, and we will say plainly on this site when each one ships.</p>
-        </div>
+        <p className="mt-8 text-sm leading-relaxed text-muted">{PLANS.pro.name} adds strategy comparison and a manual backtest log for hypothetical trades, kept apart from your real results. <Link href="/demo" className={linkCls}>Look around the demo</Link> or <Link href="/pricing" className={linkCls}>compare plans</Link>.</p>
+        {devList().length > 0 && (
+          <div className="mt-6 rounded-lg border border-border bg-raised px-5 py-4">
+            <p className="text-sm font-medium text-warn">In development — not available yet</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">{devList().join(" · ")}. We don&apos;t promise dates, and we will say plainly on this site when each one ships.</p>
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="who" className="border-y border-border bg-panel">

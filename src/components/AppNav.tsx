@@ -14,10 +14,12 @@ const NAV = [
   { href: "/app/calendar", label: "Calendar", icon: "M4 6h12v10H4zM4 9.5h12M7 4v3m6-3v3" },
   { href: "/app/reviews", label: "Reviews", icon: "M5 3h10v14H5zM8 7h4M8 10h4M8 13h2" },
   { href: "/app/playbook", label: "Playbook", icon: "M4 5l2 2 3-3M11 5h5M4 11l2 2 3-3M11 11h5M4 17h12" },
+  { href: "/app/strategies/compare", label: "Compare", icon: "M3 15l4-5 3 3 6-8M3 17h14" },
+  { href: "/app/backtests", label: "Backtests", icon: "M4 4v12h12M7 12l3-3 2 2 4-5" },
   { href: "/app/settings", label: "Settings", icon: "M4 6h8m3 0h1M4 14h1m3 0h8M13.5 4v4M6.5 12v4" },
 ] as const;
 /** Destinations that live under the phone's "More" tab (the bottom bar has room for four destinations and the Log button). */
-const MORE_PATHS = ["/app/more", "/app/reviews", "/app/playbook", "/app/settings", "/app/billing", "/app/accounts", "/app/import"];
+const MORE_PATHS = ["/app/more", "/app/reviews", "/app/playbook", "/app/strategies", "/app/backtests", "/app/quick", "/app/settings", "/app/billing", "/app/accounts", "/app/import"];
 const MORE_ICON = "M4 10h.01M10 10h.01M16 10h.01";
 const isActive = (path: string, href: string) => (href === "/app" ? path === "/app" : path === href || path.startsWith(href + "/"));
 

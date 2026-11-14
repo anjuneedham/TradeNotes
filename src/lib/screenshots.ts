@@ -15,6 +15,12 @@ export const allowanceBytes = (env: string | undefined = process.env.SCREENSHOT_
   const mb = Number(env);
   return Number.isFinite(mb) && mb > 0 ? Math.floor(mb * 1024 * 1024) : DEFAULT_ALLOWANCE_BYTES;
 };
+/**
+ * SQL for the signed-in user's screenshot bytes across BOTH kinds (real-trade and hypothetical-trade screenshots share one quota).
+ * Run under row-level security, so each table only contains the user's own rows. Used by the upload route; tested against a real database in
+ * screenshot-quota.db.test.ts.
+ */
+export const USER_SCREENSHOT_BYTES_SQL = "(coalesce((select sum(size_bytes) from tradenotes.trade_screenshots), 0) + coalesce((select sum(size_bytes) from tradenotes.backtest_screenshots), 0))::bigint";
 export const quotaBytes = (plan: PlanId) => PLANS[plan].screenshotQuotaMB * 1024 * 1024;
 
 export type ImageType = "image/png" | "image/jpeg" | "image/webp";

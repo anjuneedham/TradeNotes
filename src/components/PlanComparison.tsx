@@ -32,11 +32,13 @@ export function PlanComparison({ current }: { current?: PlanId }) {
           </tr>
         </thead>
         <tbody><Rows rows={featuresNow()} current={current} /></tbody>
-        <tbody>
-          <tr><th scope="colgroup" colSpan={4} className="border-t border-border-strong pb-1 pt-6 text-left text-xs font-normal text-muted">
-            <span className="font-medium text-warn">In development — not available yet.</span> No release date is promised. This shows which plan each is intended for.</th></tr>
-          <Rows rows={featuresDev()} current={current} />
-        </tbody>
+        {featuresDev().length > 0 && (
+          <tbody>
+            <tr><th scope="colgroup" colSpan={4} className="border-t border-border-strong pb-1 pt-6 text-left text-xs font-normal text-muted">
+              <span className="font-medium text-warn">In development — not available yet.</span> No release date is promised. This shows which plan each is intended for.</th></tr>
+            <Rows rows={featuresDev()} current={current} />
+          </tbody>
+        )}
       </table>
     </div>
   );

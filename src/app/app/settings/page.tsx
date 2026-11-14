@@ -7,6 +7,8 @@ import { remindersLive } from "@/lib/reminders";
 import { LEGAL, isFilled } from "@/lib/legal";
 import { logout } from "../../(auth)/actions";
 import { savePreferences, deleteAccount } from "./actions";
+import { ShareLinksPanel, type LinkRow } from "@/components/ShareLinksPanel";
+import { linkStatus } from "@/lib/share";
 import { Card, Notice, Badge, PageHeader, btnCls, btnGhostCls, linkCls, inputCls } from "@/components/ui";
 import { money } from "@/lib/format";
 import { COMMON_TIMEZONES } from "@/lib/timezone";
@@ -32,9 +34,10 @@ const DELETE_ERRORS: Record<string, string> = {
   subscription: "We couldn't cancel your subscription automatically, so nothing was deleted. Cancel it from Plan & billing first, or contact support.",
 };
 
-export default async function Settings({ searchParams }: { searchParams: Promise<{ saved?: string; delete_error?: string }> }) {
-  const { user, profile, accounts, plan, sub } = await getContext();
-  const { saved, delete_error: deleteError } = await searchParams;
+export default async function Settings({ searchParams }: { searchParams: Promise<{ saved?: string; delete_error?: string; revoked?: string }> }) {
+  const { user, profile, accounts, plan, sub, db } = await getContext();
+  const { saved, delete_error: deleteError, revoked } = await searchParams;
+  const links: LinkRow[] = (await db((q) => q<Omit<LinkRow, "status">>("select id, label, scope, expires_at, revoked_at, created_at, show_amounts from tradenotes.share_links order by created_at desc limit 20"))).map((l) => ({ ...l, status: linkStatus(l) }));
   const paid = plan !== "free";
   const t = (await cookies()).get("tn_theme")?.value;
   const theme = t === "light" || t === "dark" ? t : "system";
@@ -100,6 +103,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         </form>
       </Section>
 
+      <div id="sharing"><Section title="Sharing" sub="Public, read-only report links you control.">
+        {revoked && <div className="mb-3"><Notice kind="ok">Link revoked. It stopped working immediately.</Notice></div>}
+        {PLANS[plan].shareLinks ? <ShareLinksPanel links={links} currency={accounts[0]?.currency ?? "USD"} otherCurrencies={accounts.some((a) => a.currency !== (accounts[0]?.currency ?? "USD"))} /> : <p className="text-sm text-muted">Share links are not part of your plan.</p>}
+      </Section></div>
+
       <Section title="Security">
         {emailEnabled()
           ? <p className="text-sm text-muted">To change your password, <Link href="/forgot-password" className={linkCls}>request a reset link</Link>. It is emailed to {user.email} and signs you out everywhere once used.</p>
@@ -110,11 +118,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <div className="space-y-4 text-sm">
           <div>
             <a href="/app/export" className={btnGhostCls} download>Download my trades (CSV)</a>
-            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet. Screenshots, reviews and playbook rules are not included in the file: open a trade to view or save its screenshots, and read your reviews and rules on their pages.</p>
+            <p className="mt-2 text-xs text-muted">Every trade with its exits, notes and tags. Opens in any spreadsheet. Screenshots, reviews and playbook rules are not included in the file: open a trade to view or save its screenshots, and read your reviews and rules on their pages. Hypothetical backtest trades are never in this file; they have their own labelled export on the Backtests page.</p>
           </div>
           <details className="rounded-md border border-border p-3" open={Boolean(deleteError)}>
             <summary className="cursor-pointer font-medium">Delete my account</summary>
-            <p className="mt-2 text-muted">This permanently deletes your account, every trade, note, review, playbook rule and statistic. It can&apos;t be undone. Download your trades first if you want a copy.{paid ? " Your subscription is cancelled first so you are not charged again." : ""}</p>
+            <p className="mt-2 text-muted">This permanently deletes your account, every trade, hypothetical backtest trade, note, review, playbook rule, share link and statistic. It can&apos;t be undone. Download your trades first if you want a copy.{paid ? " Your subscription is cancelled first so you are not charged again." : ""}</p>
             {deleteError && <div className="mt-3"><Notice kind="error">{DELETE_ERRORS[deleteError] ?? "Your account was not deleted. Please try again."}</Notice></div>}
             <form action={deleteAccount} className="mt-3 grid gap-3 sm:max-w-sm">
               <label className="text-sm">Type DELETE to confirm<input name="confirm" autoComplete="off" required className={`${inputCls} mt-1`} /></label>

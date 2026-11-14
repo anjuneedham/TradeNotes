@@ -116,6 +116,29 @@ describe("storage adapters", () => {
     const bad = new SupabaseStore("https://fail.supabase.co", "SECRET-KEY", fake);
     await expect(bad.delete([`${U}/${T}/${F}.png`])).rejects.toThrow(/^(?!.*SECRET)/);
   });
+  it("hypothetical-trade screenshots (<user>/backtest/<id>/<file>) are accepted, and account deletion finds them three folders deep", async () => {
+    const B = "44444444-4444-4444-4444-444444444444";
+    const m = new MemoryStore();
+    await m.put(`${U}/backtest/${B}/${F}.png`, bytes(1), "image/png");
+    await m.put(`${T}/backtest/${B}/${F}.png`, bytes(2), "image/png");
+    expect(await m.deletePrefix(U)).toBe(1);
+    expect(m.objects.size).toBe(1);
+    await expect(m.put(`${U}/backtests/${B}/${F}.png`, bytes(1), "image/png")).rejects.toThrow();
+    const tree: Record<string, { name: string; id: string | null }[]> = {
+      [U]: [{ name: T, id: null }, { name: "backtest", id: null }],
+      [`${U}/${T}`]: [{ name: `${F}.png`, id: "1" }],
+      [`${U}/backtest`]: [{ name: B, id: null }],
+      [`${U}/backtest/${B}`]: [{ name: `${F}.png`, id: "2" }],
+    };
+    let deleted: string[] = [];
+    const fake = (async (url: string, init: RequestInit) => {
+      if (url.includes("/object/list/")) return new Response(JSON.stringify(tree[JSON.parse(String(init.body)).prefix] ?? []));
+      if (init.method === "DELETE") deleted = JSON.parse(String(init.body)).prefixes;
+      return new Response("{}");
+    }) as unknown as typeof fetch;
+    expect(await new SupabaseStore("https://proj.supabase.co", "k", fake).deletePrefix(U)).toBe(2);
+    expect(deleted.sort()).toEqual([`${U}/${T}/${F}.png`, `${U}/backtest/${B}/${F}.png`].sort());
+  });
   it("getStore: memory only outside Vercel production; Supabase only with both env vars; otherwise not available", () => {
     expect(getStore({ SCREENSHOT_STORAGE: "memory" } as unknown as NodeJS.ProcessEnv)?.kind).toBe("memory");
     expect(getStore({ SCREENSHOT_STORAGE: "memory", VERCEL_ENV: "production" } as unknown as NodeJS.ProcessEnv)).toBeNull();

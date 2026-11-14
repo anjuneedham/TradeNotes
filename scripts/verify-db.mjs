@@ -2,7 +2,7 @@
 // Behaviour tests run inside a transaction that is ROLLED BACK, so nothing is written to the database.
 import fs from "node:fs";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { connect } from "./db-connect.mjs";
 
 const c = await connect("verify");
@@ -24,13 +24,13 @@ const missing = expected.filter((e) => !actual.has(e));
 ok(`all ${expected.length} expected columns present with the right types`, missing.length === 0, missing.slice(0, 5).join(" ; "));
 
 const tables = await q(`select n.nspname s, c.relname t, c.relrowsecurity rls from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and (n.nspname='tradenotes' or (n.nspname='public' and c.relname like 'tn\\_%'))`);
-ok("22 TradeNotes tables exist", tables.length === 22, String(tables.length));
+ok("25 TradeNotes tables exist", tables.length === 25, String(tables.length));
 ok("row-level security enabled on every TradeNotes table", tables.every((t) => t.rls), tables.filter((t) => !t.rls).map((t) => t.t).join(","));
 const pol = await q(`select tablename t, count(*)::int k from pg_policies where schemaname='tradenotes' group by 1`);
 const polMap = Object.fromEntries(pol.map((r) => [r.t, r.k]));
-ok("policies: profiles=2, subscriptions=1, payments=1, 9 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews","playbook_items","trade_checks"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions, JSON.stringify(polMap));
+ok("policies: profiles=2, subscriptions=1, payments=1, 12 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews","playbook_items","trade_checks","backtest_trades","backtest_screenshots","share_links"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions, JSON.stringify(polMap));
 const trg = (await q(`select tgname from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='tradenotes' and not t.tgisinternal`)).map((r) => r.tgname);
-const wantTrg = ["profiles_protect_admin","profiles_protect_counters","exits_owner","shots_owner","shots_count","trades_refs","imports_refs","reviews_cap","playbook_items_refs","trade_checks_refs"];
+const wantTrg = ["profiles_protect_admin","profiles_protect_counters","exits_owner","shots_owner","shots_count","trades_refs","imports_refs","reviews_cap","playbook_items_refs","trade_checks_refs","backtest_trades_check","backtest_shots_check","share_links_check"];
 ok("safety triggers present", wantTrg.every((t) => trg.includes(t)), `have: ${trg.join(",")}`);
 const fns = await q(`select p.proname, p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='tradenotes'`);
 const fm = Object.fromEntries(fns.map((f) => [f.proname, f.prosecdef]));
@@ -107,6 +107,72 @@ try {
   ok("B cannot add an item to A's strategy", await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'hijack')", [B, st.id]));
   ok("B cannot tick an item on A's trade, or tick A's item on own trade", (await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) values ($1,$2,$3,true)", [t.id, pi.id, B])) && (await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) select (select id from tradenotes.trades limit 1), $1, $2, true", [pi.id, B])));
   ok("B cannot write a playbook row as A", (await errors("insert into tradenotes.playbook_items (user_id, strategy_id, text) values ($1,$2,'forged')", [A, st.id])) && (await errors("insert into tradenotes.trade_checks (trade_id,item_id,user_id,followed) values ($1,$2,$3,true)", [t.id, pi.id, A])));
+  // Phase 3 (growth): hypothetical trades, their screenshots, and share links. All per-user; backtests never touch real trades.
+  await as(A);
+  const sha = (x) => createHash("sha256").update(x).digest("hex");
+  const tradesBefore = await n("select count(*)::int n from tradenotes.trades");
+  const [bt] = await q(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, closed_at, exits) values ($1,'EURUSD','long',1,1.1,'2026-01-05T09:00Z','2026-01-05T10:00Z','[{"quantity":1,"price":1.12}]') returning id`, [A]);
+  ok("A can record a hypothetical trade, and the real trades table is untouched", (await n("select count(*)::int n from tradenotes.backtest_trades")) === 1 && (await n("select count(*)::int n from tradenotes.trades")) === tradesBefore);
+  ok("a hypothetical trade needs valid exits (positive quantity and price), at most 10, and cannot close before it opens",
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"quantity":-1,"price":1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"quantity":"a","price":1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"price":1.1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[{"quantity":1}]')`, [A])) &&
+    (await errors(`insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',1,1,now(),'[null]')`, [A])) &&
+    (await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, exits) values ($1,'X','long',11,1,now(),(select jsonb_agg(jsonb_build_object('quantity',1,'price',1)) from generate_series(1,11)))", [A])) &&
+    (await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at, closed_at) values ($1,'X','long',1,1,'2026-01-02','2026-01-01')", [A])));
+  const bshot = (u, b) => `${u}/backtest/${b}/${randomUUID()}.png`;
+  const winBefore = await n("select shot_window_count::int n from tradenotes.profiles where id = $1", [A]);
+  ok("A can attach a screenshot to a hypothetical trade; it counts in the same hourly upload window as real screenshots", !(await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path,size_bytes,content_type) values ($1,$2,$3,1000,'image/png')", [bt.id, A, bshot(A, bt.id)])) && (await n("select shot_window_count::int n from tradenotes.profiles where id = $1", [A])) === winBefore + 1);
+  ok("hypothetical screenshot paths must use the <user>/backtest/<id>/ prefix (a real-trade path or another user's prefix is refused)",
+    (await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path) values ($1,$2,$3)", [bt.id, A, shot(A, bt.id)])) &&
+    (await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path) values ($1,$2,$3)", [bt.id, A, bshot(B, bt.id)])));
+  for (let i = 0; i < 4; i++) await q("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path,size_bytes) values ($1,$2,$3,10)", [bt.id, A, bshot(A, bt.id)]);
+  ok("a 6th screenshot on one hypothetical trade is refused", await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path) values ($1,$2,$3)", [bt.id, A, bshot(A, bt.id)]));
+  const usedAfter = Number((await q("select tradenotes.storage_used_bytes() as b"))[0].b);
+  ok("total storage still reads as a non-negative number with hypothetical screenshots present", Number.isFinite(usedAfter) && usedAfter >= 0);
+  ok("a user cannot keep more than 2,000 hypothetical trades", !(await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at) select $1, 'CAP', 'long', 1, 1, now() from generate_series(1, 1999) g", [A])) && (await n("select count(*)::int n from tradenotes.backtest_trades")) === 2000 && (await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at) values ($1,'ONE-TOO-MANY','long',1,1,now())", [A])));
+  await q("delete from tradenotes.backtest_trades where symbol = 'CAP'");
+  const hashA = sha("token-a-" + A), hashOld = sha("token-old-" + A), hashRev = sha("token-rev-" + A);
+  ok("A can create a share link (hash only, expiry within a year)", !(await errors("insert into tradenotes.share_links (user_id, label, token_hash, scope, expires_at) values ($1,'x',$2,'all', now() + interval '30 days')", [A, hashA])));
+  ok("a share link stores a 64-hex hash (not a raw token), an expiry in the future and at most a year ahead, and a known scope",
+    (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,'plain-token', now() + interval '1 day')", [A])) &&
+    (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() - interval '1 day')", [A, sha("p1")])) &&
+    (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '400 days')", [A, sha("p2")])) &&
+    (await errors("insert into tradenotes.share_links (user_id, token_hash, scope, expires_at) values ($1,$2,'everything', now() + interval '1 day')", [A, sha("p3")])));
+  const resolve = async (h) => (await q("select user_id, scope, show_amounts from tradenotes.resolve_share_link($1)", [h]));
+  const got = await resolve(hashA);
+  ok("a valid link resolves to its owner and scope; an unknown hash resolves to nothing", got.length === 1 && got[0].user_id === A && got[0].scope === "all" && (await resolve(sha("nope"))).length === 0);
+  const hashAmt = sha("token-amt-" + A);
+  await q("insert into tradenotes.share_links (user_id, token_hash, show_amounts, expires_at) values ($1,$2,true, now() + interval '1 day')", [A, hashAmt]);
+  ok("money amounts are hidden unless the owner opted in: the default link resolves with show_amounts = false, the opted-in one with true, and the choice cannot be changed afterwards",
+    got[0].show_amounts === false && (await resolve(hashAmt))[0].show_amounts === true && (await errors("update tradenotes.share_links set show_amounts = not show_amounts where token_hash = $1", [hashA])) && (await errors("update tradenotes.share_links set show_amounts = false where token_hash = $1", [hashAmt])));
+  await q("update tradenotes.share_links set revoked_at = now() where token_hash = $1", [hashAmt]);
+  await q("insert into tradenotes.share_links (user_id, token_hash, scope, expires_at, created_at) values ($1,$2,'30d', now() - interval '1 day', now() - interval '10 days')", [A, hashOld]);
+  ok("an expired link resolves to nothing", (await resolve(hashOld)).length === 0);
+  await q("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '7 days')", [A, hashRev]);
+  ok("A can revoke a link, and a revoked link resolves to nothing", (await c.query("update tradenotes.share_links set revoked_at = now() where token_hash = $1", [hashRev])).rowCount === 1 && (await resolve(hashRev)).length === 0);
+  ok("a revoked link cannot be revived, and a link's hash, scope, expiry and owner cannot be changed",
+    (await errors("update tradenotes.share_links set revoked_at = null where token_hash = $1", [hashRev])) &&
+    (await errors("update tradenotes.share_links set expires_at = now() + interval '300 days' where token_hash = $1", [hashA])) &&
+    (await errors("update tradenotes.share_links set token_hash = $2 where token_hash = $1", [hashA, sha("swap")])) &&
+    (await errors("update tradenotes.share_links set scope = '30d' where token_hash = $1", [hashA])));
+  ok("a user cannot have more than 5 usable links", !(await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) select $1::uuid, encode(sha256(('bulk' || g || $1::uuid::text)::bytea), 'hex'), now() + interval '1 day' from generate_series(1, 4) g", [A])) && (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '1 day')", [A, sha("one-too-many")])));
+  await as(B);
+  ok("B sees none of A's hypothetical trades, screenshots or share links", (await n("select count(*)::int n from tradenotes.backtest_trades")) === 0 && (await n("select count(*)::int n from tradenotes.backtest_screenshots")) === 0 && (await n("select count(*)::int n from tradenotes.share_links")) === 0);
+  ok("B cannot edit or delete A's hypothetical trades or screenshots", (await c.query("update tradenotes.backtest_trades set symbol = 'HACK'")).rowCount === 0 && (await c.query("delete from tradenotes.backtest_trades")).rowCount === 0 && (await c.query("update tradenotes.backtest_screenshots set caption = 'x'")).rowCount === 0 && (await c.query("delete from tradenotes.backtest_screenshots")).rowCount === 0);
+  ok("B cannot attach a screenshot to A's hypothetical trade, or write one as A", (await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path) values ($1,$2,$3)", [bt.id, B, bshot(B, bt.id)])) && (await errors("insert into tradenotes.backtest_screenshots (backtest_id,user_id,storage_path) values ($1,$2,$3)", [bt.id, A, bshot(A, bt.id)])));
+  ok("B cannot write a hypothetical trade as A", await errors("insert into tradenotes.backtest_trades (user_id, symbol, side, quantity, entry_price, opened_at) values ($1,'X','long',1,1,now())", [A]));
+  ok("B cannot revoke, relabel or delete A's share links, and cannot create one as A", (await c.query("update tradenotes.share_links set revoked_at = now()")).rowCount === 0 && (await c.query("update tradenotes.share_links set label = 'x'")).rowCount === 0 && (await c.query("delete from tradenotes.share_links")).rowCount === 0 && (await errors("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '1 day')", [A, sha("forged")])));
+  ok("A's link still works after B's attempts to revoke it", (await resolve(hashA)).length === 1);
+  const hashB = sha("token-b-" + B);
+  await q("insert into tradenotes.share_links (user_id, token_hash, expires_at) values ($1,$2, now() + interval '1 day')", [B, hashB]);
+  ok("B has their own links, sees exactly one, and it resolves to B", (await n("select count(*)::int n from tradenotes.share_links")) === 1 && (await resolve(hashB))[0]?.user_id === B);
+  for (const role of ["anon", "authenticated"]) {
+    if ((await n("select count(*)::int n from pg_roles where rolname = $1", [role])) === 1) {
+      ok(`${role} (public API key) cannot run resolve_share_link`, !(await q("select has_function_privilege($1, 'tradenotes.resolve_share_link(text)', 'execute') as p", [role]))[0].p);
+    }
+  }
   ok("B cannot make themselves admin", await errors("update tradenotes.profiles set is_admin = true"));
   const upd = await (async () => { try { await c.query("savepoint su"); const r = await c.query("update tradenotes.subscriptions set plan='pro'"); await c.query("release savepoint su"); return r.rowCount; } catch { await c.query("rollback to savepoint su"); return 0; } })();
   ok("self-upgrade changed 0 rows", upd === 0, String(upd));
@@ -131,7 +197,7 @@ try {
     await c.query("reset role");
     let can = true; try { await c.query("savepoint r"); await c.query(`set local role ${role}`); await c.query("release savepoint r"); } catch { await c.query("rollback to savepoint r"); can = false; }
     if (!can) { skipped(`${role} API role checks`, "role not present or not switchable"); continue; }
-    for (const tbl of ["public.tn_user","public.tn_session","public.tn_account","public.tn_verification","public.tn_rate_limit","tradenotes.trades","tradenotes.profiles","tradenotes.subscriptions"]) {
+    for (const tbl of ["public.tn_user","public.tn_session","public.tn_account","public.tn_verification","public.tn_rate_limit","tradenotes.trades","tradenotes.profiles","tradenotes.subscriptions","tradenotes.backtest_trades","tradenotes.backtest_screenshots","tradenotes.share_links"]) {
       await c.query("reset role"); await c.query(`set local role ${role}`);
       ok(`${role} (public API key) cannot read ${tbl}`, await errors(`select 1 from ${tbl} limit 1`));
     }

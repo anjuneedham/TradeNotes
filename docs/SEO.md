@@ -21,3 +21,15 @@ Turn /learn into articles (what is R-multiple, expectancy, profit factor, tradin
 
 ## Known content issue
 `/pricing` FAQ "How does upgrading work?" still says plans are switched on by hand. Update it after the real payment test confirms automatic activation, because the FAQPage markup repeats that text.
+
+## Public demo and share links (added 2026-11-13, Phase 3)
+Rules (enforced by `src/lib/seo.ts`, `src/lib/seo.test.ts`, and the "Smoke test public pages" step in `.github/workflows/ci.yml`):
+| Path | Indexed? | Why |
+|---|---|---|
+| `/demo`, `/demo/analytics` | **Yes**, in `sitemap.xml` (priority 0.8 and 0.6), canonical set | Real, useful pages for "trading journal demo" searches. Fictional sample data, labelled SAMPLE DATA on every page |
+| `/demo/trades/<id>` | **No** (`noindex, follow`), not in the sitemap | One sample trade is thin content. Still linked from the demo and checked in CI (200 and noindex) |
+| `/r/<token>` (share links) | **No** (`noindex, nofollow, noarchive` meta AND `X-Robots-Tag` header, `Cache-Control: no-store`, `Referrer-Policy: no-referrer`) | Private by design. Deliberately **not** in robots.txt: a crawler that finds a link must be able to read its noindex. Revoked, expired and unknown links are all 404 |
+| `/app/quick`, `/manifest.webmanifest` | App is already disallowed; the manifest is public (200 in CI) | Home-screen install for quick-log |
+CI fails if: the demo pages are not 200, any demo page lacks the text `SAMPLE DATA`, `/demo` leaves the sitemap, a demo trade page loses `noindex`, the manifest loses `start_url`, `/r/<junk>` stops being 404, or `/r/*` loses its `X-Robots-Tag`.
+Linked from: the landing page hero ("See a live demo"), the landing "What you get" section, and the pricing page intro.
+Owner action: after the next deploy, resubmit `https://tradenotes.dev/sitemap.xml` in Search Console (it now lists two more URLs). Do not add `/r/` to robots.txt.

@@ -1,9 +1,10 @@
 /** Single source of truth for plan limits. Enforced server-side; UI reads the same table.
+ *  `backtesting` = the manual backtest log (Premium); `comparison` = strategy comparison (Premium); `shareLinks` = public read-only report links (every plan: ASSUMPTION, flagged for the owner).
  *  Plan ids (free/starter/pro) are stored in tradenotes.subscriptions and must not change; only the display names were renamed (Standard, Premium). */
 export const PLANS = {
-  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 50,   csvImport: false, backtesting: false, accounts: 1,  screenshotQuotaMB: 0,    calendar: false, reviews: false, playbook: false },
-  starter: { name: "Standard", monthly: 12, annual: 120, tradeLimit: 2000, csvImport: true,  backtesting: false, accounts: 2,  screenshotQuotaMB: 500,  calendar: true,  reviews: true,  playbook: true },
-  pro:     { name: "Premium", monthly: 24, annual: 240, tradeLimit: null, csvImport: true,  backtesting: true,  accounts: 10, screenshotQuotaMB: 2048, calendar: true,  reviews: true,  playbook: true },
+  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 50,   csvImport: false, backtesting: false, accounts: 1,  screenshotQuotaMB: 0,    calendar: false, reviews: false, playbook: false, comparison: false, shareLinks: true },
+  starter: { name: "Standard", monthly: 12, annual: 120, tradeLimit: 2000, csvImport: true,  backtesting: false, accounts: 2,  screenshotQuotaMB: 500,  calendar: true,  reviews: true,  playbook: true, comparison: false, shareLinks: true },
+  pro:     { name: "Premium", monthly: 24, annual: 240, tradeLimit: null, csvImport: true,  backtesting: true,  accounts: 10, screenshotQuotaMB: 2048, calendar: true,  reviews: true,  playbook: true, comparison: true, shareLinks: true },
 } as const;
 /** Free trial on every paid plan checkout (the HandyPay products below are configured with the same 14 days; we also send it with the session). The founding-member price is an inline custom amount and has NO trial. */
 export const TRIAL_DAYS = 14;

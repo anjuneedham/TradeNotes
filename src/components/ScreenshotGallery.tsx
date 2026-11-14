@@ -27,7 +27,8 @@ async function compress(file: Blob): Promise<Blob> {
   throw new Error("This image is too large even after compression.");
 }
 
-export function ScreenshotGallery({ tradeId, shots, state, max }: { tradeId: string; shots: Shot[]; state: "ok" | "plan" | "unavailable"; max: number }) {
+/** `kind="backtest"` attaches to a hypothetical trade (same bucket and quota, separate path prefix); `planText` replaces the default plan-gate wording. */
+export function ScreenshotGallery({ tradeId, shots, state, max, kind = "trade", planText }: { tradeId: string; shots: Shot[]; state: "ok" | "plan" | "unavailable"; max: number; kind?: "trade" | "backtest"; planText?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +43,7 @@ export function ScreenshotGallery({ tradeId, shots, state, max }: { tradeId: str
       try {
         const blob = await compress(f);
         const fd = new FormData();
-        fd.set("trade_id", tradeId); fd.set("file", blob, "screenshot");
+        fd.set(kind === "backtest" ? "backtest_id" : "trade_id", tradeId); fd.set("file", blob, "screenshot");
         const res = await fetch("/app/screenshots", { method: "POST", body: fd });
         if (!res.ok) { setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Upload failed."); break; }
       } catch (e) { setError(e instanceof Error ? e.message : "Upload failed."); break; }
@@ -77,7 +78,7 @@ export function ScreenshotGallery({ tradeId, shots, state, max }: { tradeId: str
       </div>
       {state === "unavailable" && <div className="mt-3"><Notice>Screenshot uploads aren&apos;t available yet. Everything else works as normal.</Notice></div>}
       {state === "plan" && (
-        <div className="mt-3"><Notice kind="warn">Attach chart screenshots to your trades on Standard and Premium. {shots.length > 0 && "Your existing screenshots stay visible. "}<Link href="/app/billing" className="underline underline-offset-2">See plans</Link></Notice></div>
+        <div className="mt-3"><Notice kind="warn">{planText ?? "Attach chart screenshots to your trades on Standard and Premium."} {shots.length > 0 && "Your existing screenshots stay visible. "}<Link href="/app/billing" className="underline underline-offset-2">See plans</Link></Notice></div>
       )}
       {error && <div className="mt-3"><Notice kind="error">{error}</Notice></div>}
       {shots.length > 0 && (

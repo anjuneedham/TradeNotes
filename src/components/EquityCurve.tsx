@@ -9,7 +9,7 @@ export interface EquityPoint { cumulative: number; closedAt: string | null; n?: 
  * Cumulative net P&L after each closed trade. One series, so no legend: the card title names it.
  * The line is drawn in the neutral accent ink; green/red are reserved for results in text.
  */
-export default function EquityCurve({ points, currency, height = 200, total }: { points: EquityPoint[]; currency: string; height?: number; total?: number }) {
+export default function EquityCurve({ points, currency, height = 200, total, values = true }: { points: EquityPoint[]; currency: string; height?: number; total?: number; /** false: show the shape only (no axis amounts, no amounts in the tooltip or the accessible name). Used by share links whose owner hides money. */ values?: boolean }) {
   const [hover, setHover] = useState<number | null>(null);
   if (points.length < 2) return <p className="text-sm text-muted">The equity curve appears once you have at least 2 closed trades.</p>;
 
@@ -39,13 +39,15 @@ export default function EquityCurve({ points, currency, height = 200, total }: {
     <figure>
       <div className="flex gap-2">
         <div className="fig relative w-16 shrink-0 text-right text-[11px] text-muted sm:w-20" style={{ height }} aria-hidden="true">
-          <span className="absolute right-0 top-0 -translate-y-1/2">{money(max, currency)}</span>
-          {min < 0 && max > 0 && Math.abs(y(0) - 0) > 14 && Math.abs(y(0) - H) > 14 && <span className="absolute right-0 -translate-y-1/2" style={{ top: pctY(0) }}>{money(0, currency)}</span>}
-          <span className="absolute bottom-0 right-0 translate-y-1/2">{money(min, currency)}</span>
+          {values && <>
+            <span className="absolute right-0 top-0 -translate-y-1/2">{money(max, currency)}</span>
+            {min < 0 && max > 0 && Math.abs(y(0) - 0) > 14 && Math.abs(y(0) - H) > 14 && <span className="absolute right-0 -translate-y-1/2" style={{ top: pctY(0) }}>{money(0, currency)}</span>}
+            <span className="absolute bottom-0 right-0 translate-y-1/2">{money(min, currency)}</span>
+          </>}
         </div>
         <div className="relative min-w-0 flex-1 touch-pan-y" style={{ height }} onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setHover(null)}>
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible" role="img"
-            aria-label={`Equity curve: cumulative net P&L over ${all} closed trades, ending at ${signedMoney(last, currency)}. Lowest point ${money(min, currency)}, highest ${money(max, currency)}.`}>
+            aria-label={values ? `Equity curve: cumulative net P&L over ${all} closed trades, ending at ${signedMoney(last, currency)}. Lowest point ${money(min, currency)}, highest ${money(max, currency)}.` : `Shape of the equity curve over ${all} closed trades. Money amounts are hidden by the owner.`}>
             <line x1="0" x2={W} y1={y(max)} y2={y(max)} stroke="var(--border)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
             <line x1="0" x2={W} y1={y(min)} y2={y(min)} stroke="var(--border)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
             <line x1="0" x2={W} y1={y(0)} y2={y(0)} stroke="var(--border-strong)" strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
@@ -59,8 +61,8 @@ export default function EquityCurve({ points, currency, height = 200, total }: {
             <div className="pointer-events-none absolute top-0 z-10 w-max max-w-[14rem] rounded-md border border-border-strong bg-raised px-2.5 py-1.5 text-xs shadow-lg"
               style={ords[h.i] / all > 0.5 ? { right: `${(1 - ords[h.i] / all) * 100}%`, marginRight: 10 } : { left: `${(ords[h.i] / all) * 100}%`, marginLeft: 10 }}>
               <p className="text-muted">{h.i === 0 ? "Start" : `Trade ${ord(h.i)} of ${all}${h.at ? ` · ${shortDate(h.at)}` : ""}`}</p>
-              <p className="fig mt-0.5 font-medium text-fg">{signedMoney(h.v, currency)} <span className="font-sans font-normal text-muted">cumulative</span></p>
-              {h.i > 0 && <p className="fig text-muted">{signedMoney(h.step, currency)} <span className="font-sans">{h.gap === 1 ? "this trade" : `over the last ${h.gap} trades`}</span></p>}
+              {values && <p className="fig mt-0.5 font-medium text-fg">{signedMoney(h.v, currency)} <span className="font-sans font-normal text-muted">cumulative</span></p>}
+              {values && h.i > 0 && <p className="fig text-muted">{signedMoney(h.step, currency)} <span className="font-sans">{h.gap === 1 ? "this trade" : `over the last ${h.gap} trades`}</span></p>}
             </div>
           )}
         </div>
