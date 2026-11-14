@@ -97,6 +97,7 @@ Also log daily: videos, views, DMs sent/replies, partner messages/active partner
 ## 11. Email and the path to 8.0
 - **Email marketing / lifecycle plan:** `EMAIL_LIFECYCLE_PLAN.md`. Email turns free signups into activated and paying members; it doesn't create signups. Production has Resend configured but no `CRON_SECRET`, so scheduled emails are off. Build order: consent + tables, lifecycle cron, sequence templates, `/challenge` capture page.
 - **6.5 → 8.0 (industry-specific score):** `ROADMAP_TO_8.md`. Every scorecard row must hit its target (+1.62 weighted); order: real broker exports, screenshots end to end, reminders/goals/journal, then the smaller rows. Items that also help revenue first.
+- **Discord community (journal, discipline, guided execution):** `DISCORD_COMMUNITY_PLAN.md`. Own server + own bot (slash commands over HTTP on the current Vercel project), 30-day Challenge from 1 Dec; process coaching only.
 - **HQ platform (hq.tradenotes.dev, planned):** `HQ_PLATFORM_PLAN.md`; visual roadmap `docs/hq/roadmap.html`. v1 is read-only (goal tracker, funnel by source, payments panel, stuck users).
 - **Can a customer pay today and get what we say?** `PAYING_CUSTOMER_AUDIT.md`: features mostly yes; the money path has never run for real, so do one purchase + refund first.
 - Add to the daily scoreboard once built: first-trade-within-3-days rate, email clicks per template, unsubscribe rate.
