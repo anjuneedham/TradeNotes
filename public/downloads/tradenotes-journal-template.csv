@@ -1,0 +1,3 @@
+Date,Account (prop challenge / live / demo),Instrument,Direction (long/short),Setup / strategy,Session,Entry,Stop loss,Take profit,Exit,Size (lots / contracts / shares),Fees $,Planned risk $ (loss if stop is hit),Net P&L $ (after fees),R-multiple (Net P&L / Planned risk),Followed plan? (Y/N),Mistake tag (moved stop / FOMO / revenge / none),Emotion before,Screenshot link,Notes / lesson
+2026-11-02,Prop challenge,EURUSD,long,London breakout,London,1.0850,1.0820,1.0910,1.0910,1,7,300,593,=N2/M2,Y,none,Calm,,"Example row: delete it. Risked $300, made $593 after fees = +1.98R."
+2026-11-03,Prop challenge,NQ,short,VWAP rejection,New York,21050,21070,21010,21070,1,4,400,-404,=N3/M3,N,moved stop,Impatient,,"Example row: delete it. Moved the stop once, loss was still about 1R."

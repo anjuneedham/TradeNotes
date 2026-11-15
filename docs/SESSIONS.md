@@ -24,6 +24,15 @@ One entry per working session, newest first. Each entry records what was asked, 
 - Homepage (`src/app/(marketing)/page.tsx`): added a real screenshot of the full `/demo` dashboard (`public/screenshots/demo-dashboard.webp`, taken from production) below the hero. It's labelled as sample data and links to `/demo`. No horizontal scroll at 1280px or 390px. Lint and typecheck pass.
 - Added this log, and a rule in `CLAUDE.md` to update it every session.
 
+### Changed (later the same day): SEO + email list
+- **Article 1** `/learn/r-multiple-prop-firm-challenge`: R-multiple explained for prop firm challenges, with two calculators (one trade's R; challenge target and limits in R), worked forex and futures examples, FAQ + Article JSON-LD. Angle chosen from a web search showing prop-firm journaling as the current topic in this niche (Semrush had no API units).
+- **Email list**: new table `tradenotes.leads` (`db/paste/17_leads.sql`; owner-only, RLS on, no grants, like the affiliate tables; checks added to `verify-db.mjs`, now 26 tables, 78 checks pass locally). `LeadForm` with consent checkbox and honeypot; `/free/unsubscribe?t=` page. Privacy policy updated.
+- **Free products**: `/free` (journal template CSV) and `/free/review-checklist`.
+- `?src=` attribution now also runs on `/learn/*`, `/free*` and `/demo*` (it didn't before, so tagged links to the demo were not tracked).
+- Plans: `docs/CONTENT_CALENDAR.md` (3/week queue), `docs/DIGITAL_PRODUCTS_PLAN.md`, `docs/OUTREACH_TEMPLATES.md` + `docs/OUTREACH_TRACKER.csv`.
+- Verified locally: pages 200 at 1280/390 with no horizontal scroll, calculator output, lead saved with source tag, CSV download, unsubscribe page; typecheck, lint, 330 unit tests pass.
+- Not built yet: sending emails to the list (plan says start at ~25 emails).
+
 ### Test data left in production
 - Account `anjuneedham+tntest1794725746@gmail.com` (unverified, no trades). Safe to delete.
 

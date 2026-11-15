@@ -252,3 +252,11 @@ tradenotes.share_links.scope|text|NO|||
 tradenotes.share_links.token_hash|text|NO|||
 tradenotes.share_links.user_id|uuid|NO|||
 tradenotes.share_links.show_amounts|boolean|NO|||
+tradenotes.leads.consent_at|timestamp with time zone|NO|||
+tradenotes.leads.created_at|timestamp with time zone|NO|||
+tradenotes.leads.email|text|NO|||
+tradenotes.leads.id|uuid|NO|||
+tradenotes.leads.magnet|text|NO|||
+tradenotes.leads.source|text|YES|||
+tradenotes.leads.unsubscribe_token|text|NO|||
+tradenotes.leads.unsubscribed_at|timestamp with time zone|YES|||

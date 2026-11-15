@@ -30,4 +30,4 @@ function handle(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/", "/pricing", "/learn", "/partners", "/app/:path*", "/login", "/signup"] };
+export const config = { matcher: ["/", "/pricing", "/learn", "/learn/:path*", "/free/:path*", "/free", "/demo", "/demo/:path*", "/partners", "/app/:path*", "/login", "/signup"] };
