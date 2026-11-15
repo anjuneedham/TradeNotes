@@ -11,6 +11,7 @@ const NAV = [
   { href: "/app", label: "Dashboard", icon: "M3 10.5 10 4l7 6.5M5 9v7h10V9" },
   { href: "/app/journal", label: "Journal", icon: "M5 3h9a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1ZM8 7h5M8 10.5h5" },
   { href: "/app/analytics", label: "Analytics", icon: "M4 16V9m4 7V4m4 12v-5m4 5V7" },
+  { href: "/app/coach", label: "AI Coach", icon: "M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6zM15.5 14l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" },
   { href: "/app/calendar", label: "Calendar", icon: "M4 6h12v10H4zM4 9.5h12M7 4v3m6-3v3" },
   { href: "/app/reviews", label: "Reviews", icon: "M5 3h10v14H5zM8 7h4M8 10h4M8 13h2" },
   { href: "/app/playbook", label: "Playbook", icon: "M4 5l2 2 3-3M11 5h5M4 11l2 2 3-3M11 11h5M4 17h12" },
@@ -19,7 +20,7 @@ const NAV = [
   { href: "/app/settings", label: "Settings", icon: "M4 6h8m3 0h1M4 14h1m3 0h8M13.5 4v4M6.5 12v4" },
 ] as const;
 /** Destinations that live under the phone's "More" tab (the bottom bar has room for four destinations and the Log button). */
-const MORE_PATHS = ["/app/more", "/app/reviews", "/app/playbook", "/app/strategies", "/app/backtests", "/app/quick", "/app/settings", "/app/billing", "/app/accounts", "/app/import"];
+const MORE_PATHS = ["/app/more", "/app/calendar", "/app/reviews", "/app/playbook", "/app/strategies", "/app/backtests", "/app/quick", "/app/settings", "/app/billing", "/app/accounts", "/app/import"];
 const MORE_ICON = "M4 10h.01M10 10h.01M16 10h.01";
 const isActive = (path: string, href: string) => (href === "/app" ? path === "/app" : path === href || path.startsWith(href + "/"));
 
@@ -75,7 +76,7 @@ export function AppNav({ logout, switcher, children }: { logout: ReactNode; swit
         <main id="main" className="mx-auto max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-16 md:pt-8">{children}</main>
       </div>
 
-      {/* Mobile bottom tab bar: Dashboard, Journal, a central Log action, Analytics, Calendar and More */}
+      {/* Mobile bottom tab bar: Dashboard, Journal, a central Log action, Analytics, AI Coach and More */}
       <nav aria-label="App" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)] text-[11px] md:hidden">
         {NAV.slice(0, 2).map((n) => <Tab key={n.href} {...n} on={active(n.href)} />)}
         <Link href="/app/journal/new" aria-current={onNew ? "page" : undefined} className="flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium text-fg">

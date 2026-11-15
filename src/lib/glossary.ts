@@ -1,5 +1,7 @@
 export interface Term { slug: string; term: string; short: string; formula?: string; body: string }
 export const GLOSSARY: Term[] = [
+  { slug: "score", term: "TradeNotes Score", short: "A 0–100 health check of your trading across six factors.", formula: "average of six 0–100 axes: profit factor (2.5 = 100), average win ÷ average loss (2.5 = 100), win rate (60% = 100), green days (65% = 100), drawdown control (1 − max drawdown ÷ gross profit), discipline (playbook rules followed, or trades with no mistake tag)",
+    body: "The score needs at least 10 closed trades. Each axis is capped at 100 so one strong number cannot hide a weak one. The lowest axis is shown as the thing to fix first. Like every figure here it describes your recorded past trades and is not a prediction." },
   { slug: "win-rate", term: "Win rate", short: "Share of closed trades that made money after fees.", formula: "winning trades ÷ all closed trades",
     body: "Win rate alone says little. A 30% win rate can be profitable if winners are much bigger than losers; a 70% win rate can lose money if a few losses are huge. Always read it next to average win, average loss and expectancy." },
   { slug: "expectancy", term: "Expectancy", short: "Average net result per trade.", formula: "net P&L ÷ number of closed trades",

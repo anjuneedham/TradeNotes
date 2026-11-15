@@ -4,6 +4,34 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-15 (later): Paid-plan build: AI Coach, Score, insights, pricing; coach limits; merge
+
+**Asked:** review traffic; make paid plans clearly worth paying for (inspired by, not copying, paid journals); add an AI coach to the $24 plan; remove "Plain terms"; coach allowance of US$2 (Standard) and double for Premium; frame the coach with attractive limits per tier; merge; instructions to turn Claude credits into API credits; rate the app.
+
+### Found
+- Traffic (Vercel Web Analytics): 0 visitors until 2026-11-12, then 10, 14, 17, 13 a day (about 54 visitors, 73 views); 62 of 73 views on `/`, one visitor through signup and onboarding. Runtime errors: a one-off burst on 11-12 (edge `crypto`), none since.
+- Production database (Supabase, read-only queries): 5 users, 2 trades, 3 free subscriptions, 0 paid, 1 `billing_events` row (`checkout.session.expired`, `ignored:no-matching-user`), 21 tables before this change. `HANDYPAY_API_KEY`, `HANDYPAY_WEBHOOK_SECRET`, `RESEND_API_KEY` set in Vercel production; `ANTHROPIC_API_KEY` not set.
+- Legal config already filled (business name, support email, address, refund 14 days, `counselReviewed: true`); `npm run check:legal` passes.
+- Claude plan credits can't be spent on the API, but Max ($100), Ultra ($200) and Team seats include monthly API credits that are linked to a Console org (help.claude.com article 17154008). Details in `docs/AI_COACH_SETUP.md`.
+- My first attempt this session (on the old branch) was built on a main 90 commits behind and was discarded; everything was redone on `origin/main`.
+
+### Changed
+- AI Coach (`src/lib/coach.ts`, `src/app/app/coach/*`, `src/components/CoachChat.tsx`): Sonnet 5.5 agent with 4 read-only tools over the user's own results (RLS); cost metered per question in micro-dollars from the tokens the API reports; monthly dollar caps in `PLANS.*.aiBudgetCents`: Free 5 cents (3 questions, a taste), Standard 200 (about 130), Premium 400 (about 260); UI shows "about N of M questions left" and a tier-aware upgrade link; refusal fallback on.
+- DB `db/paste/18_ai_coach.sql` (`tradenotes.ai_messages`, RLS, append-only for clients); `migrate.mjs` expects 27 tables; `verify-db.mjs` adds coach isolation and append-only checks (81 pass locally).
+- TradeNotes Score and ten automatic insights (`src/lib/insights.ts`, `src/components/PerformancePanel.tsx`), on the dashboard and the public demo; Free sees 1 insight and a blurred score preview, Standard the score and 3 insights, Premium all.
+- Pricing: "Plain terms" removed; cards list what each tier adds; FAQ no longer says activation is manual and explains the coach questions; comparison rows for coach, score, insights. Nav: AI Coach added (Calendar moved to More on phones). Privacy policy names Anthropic. Motion utilities in `globals.css`.
+- Tests: 349 pass (insights, score, coach tools, cost metering, question counts). Production build passes. Browser run against a fake Claude API: Free, Standard, exhausted allowance, mobile, no page errors.
+
+### Test data left behind
+Local only: Postgres databases `tn_paste`, `tn_main` in this sandbox (several throwaway users). **Nothing written to production** (production access was read-only SQL).
+
+### Still open
+- Owner: add `ANTHROPIC_API_KEY` (see `docs/AI_COACH_SETUP.md`); link Max/Ultra credits or buy credits; make one real payment and confirm `billing_events` shows `applied:`.
+- After 20 real coach questions, check `cents_per_question` and adjust `AI_QUESTION_COST_CENTS`.
+- DMARC record for `tradenotes.dev`; real broker exports for the importers; coach and Score not checked on a real phone.
+
+---
+
 ## 2026-11-15: Paywall, distribution bottleneck, email check, homepage screenshot
 
 **Asked:** build a Superwall paywall; find the distribution bottleneck; confirm email works; add a product screenshot; document every session from now on. Founder reports the first 2 videos got little response.

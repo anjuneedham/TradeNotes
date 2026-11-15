@@ -260,3 +260,12 @@ tradenotes.leads.magnet|text|NO|||
 tradenotes.leads.source|text|YES|||
 tradenotes.leads.unsubscribe_token|text|NO|||
 tradenotes.leads.unsubscribed_at|timestamp with time zone|YES|||
+tradenotes.ai_messages.content|text|NO|||
+tradenotes.ai_messages.cost_micros|bigint|NO|64|0|
+tradenotes.ai_messages.created_at|timestamp with time zone|NO|||
+tradenotes.ai_messages.id|bigint|NO|64|0|
+tradenotes.ai_messages.input_tokens|integer|NO|32|0|
+tradenotes.ai_messages.model|text|YES|||
+tradenotes.ai_messages.output_tokens|integer|NO|32|0|
+tradenotes.ai_messages.role|text|NO|||
+tradenotes.ai_messages.user_id|uuid|NO|||

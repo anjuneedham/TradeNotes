@@ -1,4 +1,4 @@
-import { PLANS, type PlanId } from "./plans";
+import { PLANS, aiQuestions, type PlanId } from "./plans";
 import { remindersLive } from "./reminders";
 
 /**
@@ -25,6 +25,9 @@ export const FEATURES_NOW: FeatureRow[] = [
   { label: "Broker import", detail: "Recognises MetaTrader 4/5, cTrader, TradingView, Tradovate, NinjaTrader, Thinkorswim, Interactive Brokers, Webull, Binance and Bybit exports, or map any CSV yourself. Time zones, fills grouped into trades, duplicates skipped, roll back any import.", cells: { free: false, starter: true, pro: true } },
   { label: "Futures, options, forex and crypto specs", detail: "Contract point values, option multipliers, pips and lots handled for you.", cells: all(true) },
   { label: "Multiple trading accounts", detail: "Switch between accounts or view them combined.", cells: { free: "1", starter: `Up to ${PLANS.starter.accounts}`, pro: `Up to ${PLANS.pro.accounts}` } },
+  { label: "AI Coach", detail: `Ask about your own trades in plain English: "why was last week red?", "what is my most expensive habit?", "which setup should I drop?". The coach looks up your stats, tags and playbook results and answers with your numbers and things to try next. Questions per month, about: Free ${aiQuestions("free")} (a taste), ${PLANS.starter.name} ${aiQuestions("starter")}, ${PLANS.pro.name} ${aiQuestions("pro")}. Refilled on the 1st. Not financial advice.`, cells: { free: `${aiQuestions("free")} to try`, starter: `~${aiQuestions("starter")} / month`, pro: `~${aiQuestions("pro")} / month` } },
+  { label: "TradeNotes Score", detail: "One 0–100 rating across profit factor, win size vs loss size, win rate, consistency, drawdown control and discipline, with the weakest one named as the thing to fix first.", cells: { free: PLANS.free.score, starter: PLANS.starter.score, pro: PLANS.pro.score } },
+  { label: "Automatic insights", detail: "Findings about your own trades, spotted for you: your costliest mistake in dollars, best and worst hour to enter, the emotion that loses you money, your weakest instrument, and red days that follow red days.", cells: { free: `${PLANS.free.insights}`, starter: `${PLANS.starter.insights}`, pro: "All" } },
   { label: "Calendar view", detail: "A month grid of daily profit or loss and trade count in your time zone, weekly totals, and a click through to that day's trades. Not colour-dependent: signs and sizes are written out.", cells: { free: PLANS.free.calendar, starter: PLANS.starter.calendar, pro: PLANS.pro.calendar } },
   { label: "Daily, weekly and monthly reviews", detail: "A five-part template (what worked, what to repeat, mistakes, rule breaks, next plan) with your numbers filled in, and a history.", cells: { free: PLANS.free.reviews, starter: PLANS.starter.reviews, pro: PLANS.pro.reviews } },
   { label: "Playbook and rule adherence", detail: "An entry checklist per strategy, ticked on each trade, with your results compared when you followed your rules and when you did not.", cells: { free: PLANS.free.playbook, starter: PLANS.starter.playbook, pro: PLANS.pro.playbook } },
@@ -48,12 +51,34 @@ export const featuresDev = (): FeatureRow[] => (screenshotsLive() ? FEATURES_DEV
 export const FEATURES_DEV: FeatureRow[] = [];
 export const PLAN_BLURB: Record<PlanId, string> = {
   free: "Everything you need to start journaling and see your numbers.",
-  starter: "The full journal with room for an active trader's history, plus the calendar, reviews and playbook.",
-  pro: "No trade limit, plus strategy comparison and a manual backtest log for testing ideas on paper.",
+  starter: "Your own AI trading coach (about " + aiQuestions("starter") + " questions a month) and TradeNotes Score, plus the calendar, reviews and playbook that turn a log into a routine.",
+  pro: "Double the AI Coach (about " + aiQuestions("pro") + " questions a month), every insight, unlimited trades, strategy comparison and a manual backtest log.",
+};
+
+/** The selling points on each pricing card: what this tier gets you that the one below does not. */
+export const PLAN_HIGHLIGHTS: Record<PlanId, [string, string][]> = {
+  free: [
+    ["Full journal and dashboard", "Partial exits, fees, forex lots, futures and options specs."],
+    ["Deep analytics", "R distribution, heatmap, hold time and what each mistake cost."],
+    ["Try the AI Coach", `${aiQuestions("free")} questions a month, free, to see what it finds in your trades.`],
+    ["Your first insight", "One automatic finding from your own trades."],
+  ],
+  starter: [
+    [`AI Coach: about ${aiQuestions("starter")} questions a month`, "Ask why a week went red or what to stop doing. Every answer uses your own numbers and ends with something to try next."],
+    ["TradeNotes Score", "One 0–100 rating across six factors and the one thing to fix first."],
+    ["Calendar and reviews", "Green and red days at a glance; daily, weekly and monthly reviews with your numbers filled in."],
+    ["Playbook and broker import", `Entry checklists with rule-adherence results; import from 10 brokers. Up to ${PLANS.starter.tradeLimit?.toLocaleString("en-US")} trades.`],
+  ],
+  pro: [
+    [`AI Coach: about ${aiQuestions("pro")} questions a month`, "Double the Standard allowance: a weekly review, a monthly deep-dive and daily check-ins without watching the counter."],
+    ["Every insight", "All automatic findings, not just the top three."],
+    ["Strategy comparison", "Up to four strategies side by side, with their equity curves on one chart."],
+    ["Backtest log, no limits", `Test ideas on paper, kept apart from real trades. Unlimited trades, up to ${PLANS.pro.accounts} accounts.`],
+  ],
 };
 export const planHeadline = (id: PlanId) => (id === "free" ? `Up to ${limit(id)} trades` : id === "starter" ? `Up to ${limit(id)} trades` : "Unlimited trades");
 
 /** One sentence used by pricing/landing/billing copy, so all three say the same true thing. */
 /** What Premium adds on top of Standard (each is enforced on the server from the same PLANS flags). */
-export const premiumAddsText = () => "unlimited trades, up to " + PLANS.pro.accounts + " trading accounts, strategy comparison and the manual backtest log";
-export const paidAddsText = () => `a higher trade limit, broker import, more trading accounts, the calendar, daily/weekly/monthly reviews and the playbook${screenshotsLive() ? " and trade screenshots" : ""}`;
+export const premiumAddsText = () => "double the AI Coach allowance (about " + aiQuestions("pro") + " questions a month), every automatic insight, unlimited trades, up to " + PLANS.pro.accounts + " trading accounts, strategy comparison and the manual backtest log";
+export const paidAddsText = () => `the AI Coach, the TradeNotes Score, more automatic insights, a higher trade limit, broker import, more trading accounts, the calendar, daily/weekly/monthly reviews and the playbook${screenshotsLive() ? " and trade screenshots" : ""}`;

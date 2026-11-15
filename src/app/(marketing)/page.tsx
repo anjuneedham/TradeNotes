@@ -160,7 +160,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-sm text-muted">Today the paid plans add {paidAddsText()}. Start on Free and move up only if you need the room.</p>
+        <p className="mt-4 text-sm text-muted">Paid plans add {paidAddsText()}. Start on Free and move up when you want the coach.</p>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border-strong bg-panel px-5 py-6 sm:px-8">
           <p className="text-lg font-medium tracking-tight">Log your most recent trade. See what it tells you.</p>
           <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>

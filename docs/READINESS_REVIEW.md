@@ -1,3 +1,15 @@
+# Rating: 2026-11-15, with the AI Coach, Score and insights (my own judgement; local verification only)
+**Stated assumptions (from the owner, NOT verified by me):** (1) legal review is done (`LEGAL.counselReviewed` is true and the legal check passes; I did not see the review); (2) the first payment works. **Evidence against assuming (2) fully:** the production database on 2026-11-15 has 5 accounts, 3 free subscriptions, 0 payments and one webhook event (`checkout.session.expired`, ignored: no matching user); the webhook secret and API key are set in Vercel. So the webhook endpoint is alive, but a completed payment has not been seen by the app. Real traffic: about 54 visitors and 73 page views in 4 days (Vercel Web Analytics), almost all on the homepage, one person through signup.
+| Lens | Rating | Was (11-14, in main) | If an assumption is false |
+|---|---|---|---|
+| **Overall app** | **8.4** | 8.2 | 7.9 |
+| **Industry-specific** (retail trading journal), by the brief's table | **6.7** | 6.5 | 6.7 (not affected) |
+| **App-type-specific** (paid B2C subscription app) | **8.3** | 7.9 | 7.6 |
+Industry table moves: analytics depth 7.5 to **8.0** (TradeNotes Score, ten automatic insights, AI Coach over the same numbers; no MAE/MFE or saved views), review workflow 6 to **6.5** (coach answers "review my last week"; still no goals or free-form journal). Weighted: 1.5 + 2.0 + 1.3 + 0.4 + 0.7 + 0.8 = **6.7**; target 8.0 not reached (data capture is still unverified against real broker exports).
+**Why not higher:** the coach has never called the real Claude API (only a local fake; no key in production yet); average real cost per question is unmeasured (1.5 cents is an estimate); zero real users or payments; no DMARC record; Sentry server events and real screenshot storage were never verified in production; the coach page and Score were not tested on a phone.
+**What moves it next:** key added and 20 real questions run (+0.1); first real payment seen in `billing_events` as `applied:` (+0.2); 10 real broker exports imported (+0.5 on the industry score); 10 real users logging trades (+0.3).
+
+---
 # Final re-score: 2026-11-14, after Phase 4 (memos only; nothing was built in this phase)
 Two columns, as asked. **In main** = the code at `origin/main` (eea2ef1), judged from the QA files of 2026-11-13/14 plus today's baseline run. **Live on tradenotes.dev** = what I could observe from outside today with unauthenticated requests: `/`, `/pricing`, `/demo` (190 sample trades, SAMPLE DATA banner), `/demo/analytics`, `/manifest.webmanifest` return 200, an unknown `/r/<token>` returns 404, and signed-in routes (`/app/calendar`, `/reviews`, `/playbook`, `/strategies/compare`, `/backtest`, `/accounts`, `/import`, `/settings`, `/app/quick`) answer 307 (they exist and redirect to login). The pricing page lists share links, strategy comparison and the backtest log, so the live site is at least at Phase 3. I **cannot** confirm the deployed commit, and I did not sign in to production. Nothing here was measured in production. All scores are my own judgement.
 
