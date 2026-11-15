@@ -20,7 +20,7 @@ Auth, onboarding, trade logging (forex lots, partial exits, FX), journal, dashbo
 - **Payments are manual:** you activate plans after seeing the Handypay payment; extend monthly (`DEPLOYMENT.md`).
 - **No email:** no confirmation, no password reset until a domain + Resend exist. Anyone can sign up with any email; because payments are matched by email, check payer email = signup email before activating.
 - **No CSV import, no trade edit page, no backtesting.** Say so; don't screenshot or script anything that implies they exist.
-- Free-plan cap: 50 trades. Starter/Pro limits are enforced server-side but nobody has a paid plan until you activate them.
+- Free-plan cap: 30 trades. Starter/Pro limits are enforced server-side but nobody has a paid plan until you activate them.
 
 ## 4. Day-of operations (tomorrow)
 | Time | Task |

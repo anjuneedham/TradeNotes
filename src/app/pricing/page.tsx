@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
 
 const features: Record<string, string[]> = {
-  free: ["Up to 50 trades", "Manual trade entry, incl. partial exits and forex lots", "Dashboard with plain-English explanations", "Breakdowns by strategy, session, instrument and weekday", "Beginner guides"],
+  free: ["Up to 30 trades", "Manual trade entry, incl. partial exits and forex lots", "Dashboard with plain-English explanations", "Breakdowns by strategy, session, instrument and weekday", "Beginner guides"],
   starter: ["Up to 2,000 trades", "Everything in Free"],
   pro: ["Unlimited trades", "Everything in Starter"],
 };
