@@ -29,7 +29,7 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ### Open / next
 1. Merge this branch into `main` to deploy the screenshot.
-2. Add `www.tradenotes.dev` in Vercel, redirecting to the main domain.
+2. ~~Add `www.tradenotes.dev`~~ **Done.** Added to the Vercel project as a permanent 308 redirect to `tradenotes.dev`; the path is kept. Verified: `https://www.tradenotes.dev/pricing` returns 308 to `https://tradenotes.dev/pricing`.
 3. Add a DMARC TXT record: `_dmarc` → `v=DMARC1; p=none;`.
 4. Distribution: tag every video link with `?src=tt-vN`, test new opening hooks (about 5 posts per hook), and send 25 direct messages a day. Re-check `signup_source` counts next session.
 5. Superwall stays parked until there's a native app or Stripe is connected.
