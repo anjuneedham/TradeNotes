@@ -37,6 +37,7 @@ One entry per working session, newest first. Each entry records what was asked, 
 - **PR #10 merged** (squash) into `main` after all 3 CI checks passed; the production deploy succeeded (article and `/free` return 200; the sitemap lists 13 URLs; `tradenotes.leads` exists with RLS on and no risky grants).
 - Analytics baseline (Vercel, 12–15 Nov): 51 visitors, 49 of them saw only the homepage; 1 visit from google.com; no `?src=` tags recorded yet (tracking started with this deploy).
 - Wrote `docs/prompts/ARTICLE_VIDEO_PROMPT.md`: a reusable prompt for a Fable session that uses the vibloid Short generator to make 3 hook variants of a video for an article. First run: article 1, tag `tt-v3`.
+- Added `docs/videos/VIDEO_03_R_MULTIPLE.md`: the video brief (3 hooks, script, post copy, approval checklist, results table). The Fable session (session_01FRK8F87ZX3LAi6HyzzvM8w) is producing the videos.
 - Scheduled task `trig_01496zCk5mkJNK2ePXiTup2C` (3 articles a week) was created without GitHub/Vercel/Supabase connectors and may not be able to open PRs. If the first run on 2026-11-16 fails, recreate it in claude.ai Routines with GitHub enabled.
 
 ### Test data left in production
