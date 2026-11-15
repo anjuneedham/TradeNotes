@@ -3,7 +3,7 @@
  *  `aiBudgetCents` = monthly AI Coach allowance in US cents of Anthropic usage (calendar month, UTC); `insights` = automatic findings shown on the dashboard.
  *  Plan ids (free/starter/pro) are stored in tradenotes.subscriptions and must not change; only the display names were renamed (Standard, Premium). */
 export const PLANS = {
-  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 50,   csvImport: false, backtesting: false, accounts: 1,  screenshotQuotaMB: 0,    calendar: false, reviews: false, playbook: false, comparison: false, shareLinks: true, aiBudgetCents: 0,   score: false, insights: 1 },
+  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 50,   csvImport: false, backtesting: false, accounts: 1,  screenshotQuotaMB: 0,    calendar: false, reviews: false, playbook: false, comparison: false, shareLinks: true, aiBudgetCents: 5,   score: false, insights: 1 },
   starter: { name: "Standard", monthly: 12, annual: 120, tradeLimit: 2000, csvImport: true,  backtesting: false, accounts: 2,  screenshotQuotaMB: 500,  calendar: true,  reviews: true,  playbook: true, comparison: false, shareLinks: true, aiBudgetCents: 200, score: true,  insights: 3 },
   pro:     { name: "Premium", monthly: 24, annual: 240, tradeLimit: null, csvImport: true,  backtesting: true,  accounts: 10, screenshotQuotaMB: 2048, calendar: true,  reviews: true,  playbook: true, comparison: true, shareLinks: true, aiBudgetCents: 400, score: true,  insights: 99 },
 } as const;
@@ -34,3 +34,11 @@ export const isInterval = (v: unknown): v is Interval => v === "month" || v === 
 export const ANNUAL_MONTHS_FREE = 2;
 /** Full list price in cents for a paid plan and billing interval. */
 export const priceCents = (plan: Exclude<PlanId, "free">, interval: Interval) => (interval === "year" ? PLANS[plan].annual : PLANS[plan].monthly) * 100;
+
+/** What one coach question costs us on average, in US cents (measured 0.8 to 2 cents). Used only to turn the dollar allowance into "about N questions" for display. The dollar allowance is what is enforced. */
+export const AI_QUESTION_COST_CENTS = 1.5;
+/** "About N questions a month" for a plan: whole numbers under 30, otherwise rounded down to the nearest 10. */
+export const aiQuestions = (plan: PlanId): number => {
+  const n = PLANS[plan].aiBudgetCents / AI_QUESTION_COST_CENTS;
+  return n < 30 ? Math.floor(n) : Math.floor(n / 10) * 10;
+};

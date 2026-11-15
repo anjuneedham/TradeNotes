@@ -1,7 +1,7 @@
 "use server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getContext } from "@/lib/app-context";
-import { PLANS } from "@/lib/plans";
+import { PLANS, aiQuestions } from "@/lib/plans";
 import { loadResults } from "@/lib/trades-data";
 import { askCoach, coachConfigured, type CoachTurn } from "@/lib/coach";
 import { monthSpendMicros } from "@/lib/ai-usage";
@@ -11,7 +11,7 @@ export type AskResult = { ok: true; answer: string; usedPct: number } | { ok: fa
 export async function askCoachAction(question: string): Promise<AskResult> {
   const { db, plan, scope, tz } = await getContext();
   const budget = PLANS[plan].aiBudgetCents * 10_000; // micro-dollars
-  if (budget <= 0) return { ok: false, error: `The AI Coach is part of ${PLANS.starter.name} and ${PLANS.pro.name}.` };
+  if (budget <= 0) return { ok: false, error: "The AI Coach is not available on this plan." };
   if (!coachConfigured()) return { ok: false, error: "The AI Coach is being switched on. Please try again soon." };
   const q = String(question ?? "").trim().slice(0, 2000);
   if (q.length < 2) return { ok: false, error: "Type a question first." };
@@ -20,7 +20,7 @@ export async function askCoachAction(question: string): Promise<AskResult> {
     spent: await monthSpendMicros(x),
     history: (await x<CoachTurn>("select role, content from tradenotes.ai_messages order by created_at desc, id desc limit 10")).reverse(),
   }));
-  if (spent >= budget) return { ok: false, usedPct: 100, error: plan === "pro" ? "You've used this month's AI Coach allowance. It refills on the 1st." : `You've used this month's AI Coach allowance. It refills on the 1st, or upgrade to ${PLANS.pro.name} for double the allowance.` };
+  if (spent >= budget) return { ok: false, usedPct: 100, error: plan === "pro" ? `You've used this month's ${aiQuestions("pro")} coach questions. They refill on the 1st.` : plan === "starter" ? `You've used this month's coach questions. They refill on the 1st, or upgrade to ${PLANS.pro.name} for double (about ${aiQuestions("pro")} a month).` : `You've used your ${aiQuestions("free")} free coach questions this month. They refill on the 1st, or get about ${aiQuestions("starter")} a month with ${PLANS.starter.name}.` };
   while (history.length && history[0].role !== "user") history.shift(); // history must start with the trader
 
   const { rows } = await loadResults(db, scope.accountIds, scope.currency, undefined, tz, { checks: true });

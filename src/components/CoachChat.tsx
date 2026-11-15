@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { askCoachAction } from "@/app/app/coach/actions";
-import { Meter } from "./ui";
+import Link from "next/link";
+import { Meter, linkCls } from "./ui";
 
 type Msg = { role: "user" | "assistant"; content: string };
 const PROMPTS = ["Review my last week", "What's my most expensive habit?", "Which setup should I trade more — or drop?", "Am I overtrading?", "When do I trade best?", "Give me 3 rules for next week"];
 
-export function CoachChat({ initial, usedPct: used0, resetLabel, planName, disabled = false }: { initial: Msg[]; usedPct: number; resetLabel?: string; planName?: string; disabled?: boolean }) {
+export function CoachChat({ initial, usedPct: used0, total, resetLabel, planName, upgrade, disabled = false }: { initial: Msg[]; usedPct: number; total: number; resetLabel?: string; planName?: string; upgrade?: { href: string; label: string } | null; disabled?: boolean }) {
   const [msgs, setMsgs] = useState<Msg[]>(initial);
   const [text, setText] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -55,8 +56,11 @@ export function CoachChat({ initial, usedPct: used0, resetLabel, planName, disab
       </form>
       {planName && (
         <div className="space-y-1.5">
-          <Meter value={used} max={100} label="AI Coach allowance used this month" />
-          <p className="text-xs text-muted">{used}% of this month&apos;s {planName} AI allowance used{resetLabel ? ` · refills ${resetLabel}` : ""}</p>
+          <Meter value={used} max={100} label="AI Coach questions used this month" />
+          <p className="flex flex-wrap items-center justify-between gap-x-3 text-xs text-muted">
+            <span>About {Math.max(0, Math.floor(total * (1 - used / 100)))} of {total} questions left this month on {planName}{resetLabel ? ` · refills ${resetLabel}` : ""}</span>
+            {upgrade && <Link href={upgrade.href} className={linkCls}>{upgrade.label} →</Link>}
+          </p>
         </div>
       )}
     </div>

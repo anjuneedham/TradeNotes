@@ -99,3 +99,12 @@ describe("cost metering (micro-dollars)", () => {
     expect(costMicros("some-new-model", { input_tokens: 1000, output_tokens: 1000 })).toBe(24_000);
   });
 });
+
+import { aiQuestions, PLANS } from "./plans";
+describe("coach limits shown as questions", () => {
+  it("free 3, Standard 130, Premium 260 (premium is double)", () => {
+    expect([aiQuestions("free"), aiQuestions("starter"), aiQuestions("pro")]).toEqual([3, 130, 260]);
+    expect(PLANS.pro.aiBudgetCents).toBe(2 * PLANS.starter.aiBudgetCents);
+  });
+  it("the free taste can never cost more than 5 cents a month", () => { expect(PLANS.free.aiBudgetCents).toBeLessThanOrEqual(5); });
+});
