@@ -30,6 +30,7 @@ One entry per working session, newest first. Each entry records what was asked, 
 ### Open / next
 1. Merge this branch into `main` to deploy the screenshot.
 2. ~~Add `www.tradenotes.dev`~~ **Done.** Added to the Vercel project as a permanent 308 redirect to `tradenotes.dev`; the path is kept. Verified: `https://www.tradenotes.dev/pricing` returns 308 to `https://tradenotes.dev/pricing`.
+2b. **SEO (checked 2026-11-15):** robots.txt, sitemap (10 URLs), canonicals and titles are fine, and nothing is set to noindex. **Google Search Console is not verified**: there's no `google-site-verification` TXT record, so the sitemap was never submitted. The domain is about 5 days old, with no backlinks and one /learn page. Semrush keyword data was unavailable (account out of API units).
 3. Add a DMARC TXT record: `_dmarc` → `v=DMARC1; p=none;`.
 4. Distribution: tag every video link with `?src=tt-vN`, test new opening hooks (about 5 posts per hook), and send 25 direct messages a day. Re-check `signup_source` counts next session.
 5. Superwall stays parked until there's a native app or Stripe is connected.
