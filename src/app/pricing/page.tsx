@@ -2,14 +2,14 @@ import Link from "next/link";
 import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
 
 const features: Record<string, string[]> = {
-  free: ["Up to 50 trades", "Manual trade entry, incl. partial exits and forex lots", "Dashboard with plain-English explanations", "Breakdowns by strategy, session, instrument and weekday", "Beginner guides"],
-  starter: ["Up to 2,000 trades", "Everything in Free"],
-  pro: ["Unlimited trades", "Everything in Starter"],
+  free: ["Up to 50 trades", "Manual trade entry, incl. partial exits and forex lots", "Dashboard with animated equity curve", "Breakdowns by strategy, session, instrument and weekday", "1 automatic insight", "Beginner guides"],
+  starter: ["Up to 2,000 trades", "Everything in Free", "P&L calendar with weekly totals", "Reports: time of day, hold time, R distribution", "Mistake & emotion cost analysis", "Plan-adherence tracking", "3 automatic insights"],
+  pro: ["Unlimited trades", "Everything in Starter", "✦ AI Coach — 25 questions a day about your own trades", "TradeNotes Score (0–100, six factors)", "All automatic insights"],
 };
 
 const soon: Record<string, string[]> = {
   free: [],
-  starter: ["CSV import", "Trade screenshots", "Calendar view and weekly reviews"],
+  starter: ["CSV import", "Trade screenshots", "Weekly reviews"],
   pro: ["Backtesting with historical replay", "Strategy comparison", "Multiple accounts"],
 };
 
@@ -27,7 +27,8 @@ export default function Pricing() {
         {(Object.keys(PLANS) as (keyof typeof PLANS)[]).map((id) => {
           const p = PLANS[id];
           return (
-            <div key={id} className={`rounded-lg border bg-panel p-6 ${id === "pro" ? "border-accent" : "border-border"}`}>
+            <div key={id} className={`card-hover glass relative rounded-xl border p-6 ${id === "pro" ? "border-accent shadow-xl shadow-accent/20" : "border-border"}`}>
+              {id === "pro" && <span className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-accent to-accent-2 px-3 py-0.5 text-xs font-semibold text-white">Most popular</span>}
               <h2 className="text-lg font-semibold">{p.name}</h2>
               <p className="mt-2 text-3xl font-semibold">${p.monthly}<span className="text-base font-normal text-muted">/mo</span></p>
               {p.annual > 0 && <p className="text-xs text-muted">Billed monthly. Annual billing coming soon.</p>}
@@ -47,7 +48,7 @@ export default function Pricing() {
           );
         })}
       </div>
-      <p className="mx-auto mt-8 max-w-2xl text-center text-xs text-muted">Today the paid plans mainly raise your trade limit. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date. </p>
+      <p className="mx-auto mt-8 max-w-2xl text-center text-xs text-muted">You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date. The AI Coach analyses your recorded trades only and does not give financial advice.</p>
       <p className="mt-3 text-center text-xs text-muted">Prices in USD. Taxes may apply. See <Link href="/legal/terms" className="underline">Terms</Link> for cancellation and refunds.</p>
     </div>
   );

@@ -136,3 +136,10 @@ tradenotes.trades.target_price|numeric|YES|20|8|
 tradenotes.trades.timeframe|text|YES|||
 tradenotes.trades.updated_at|timestamp with time zone|NO|||
 tradenotes.trades.user_id|uuid|NO|||
+tradenotes.ai_messages.content|text|NO|||
+tradenotes.ai_messages.created_at|timestamp with time zone|NO|||
+tradenotes.ai_messages.id|bigint|NO|64|0|
+tradenotes.ai_messages.input_tokens|integer|NO|32|0|
+tradenotes.ai_messages.output_tokens|integer|NO|32|0|
+tradenotes.ai_messages.role|text|NO|||
+tradenotes.ai_messages.user_id|uuid|NO|||

@@ -39,6 +39,7 @@ export default function Privacy() {
         <li><strong>Supabase</strong> — database hosting (United States).</li>
         <li><strong>Vercel</strong> — website hosting and server logs (United States).</li>
         <li><strong>Resend</strong> — sending our account emails.</li>
+        <li><strong>Anthropic</strong> — powers the optional AI Coach (Pro). Only when you ask the coach a question, your trade data, tags and notes are sent to generate the answer (United States). Anthropic does not train its models on this data.</li>
         <li><strong>{LEGAL.paymentProvider}</strong> — payments.</li>
       </ul>
       <p>Your data is therefore processed outside {LEGAL.country}, mainly in the United States. We may also disclose information where the law requires.</p>

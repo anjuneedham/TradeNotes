@@ -1,8 +1,8 @@
 /** Single source of truth for plan limits. Enforced server-side; UI reads the same table. */
 export const PLANS = {
-  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 50,   csvImport: false, backtesting: false, accounts: 1 },
-  starter: { name: "Starter", monthly: 12, annual: 108, tradeLimit: 2000, csvImport: true,  backtesting: false, accounts: 2 },
-  pro:     { name: "Pro",     monthly: 24, annual: 216, tradeLimit: null, csvImport: true,  backtesting: true,  accounts: 10 },
+  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 50,   csvImport: false, backtesting: false, accounts: 1,  calendar: false, reports: false, score: false, insights: 1,  coach: false, coachDailyMessages: 0 },
+  starter: { name: "Starter", monthly: 12, annual: 108, tradeLimit: 2000, csvImport: true,  backtesting: false, accounts: 2,  calendar: true,  reports: true,  score: false, insights: 3,  coach: false, coachDailyMessages: 0 },
+  pro:     { name: "Pro",     monthly: 24, annual: 216, tradeLimit: null, csvImport: true,  backtesting: true,  accounts: 10, calendar: true,  reports: true,  score: true,  insights: 99, coach: true,  coachDailyMessages: 25 },
 } as const;
 /** Handypay hosted subscription links (public by design; contain no secrets). Plan activation is NOT driven by these links. */
 export const CHECKOUT_URLS: Record<"starter" | "pro", string> = {

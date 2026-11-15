@@ -1,12 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0b0f14; --panel: #121821; --border: #1f2a37; --fg: #e6edf3; --muted: #8b98a5;
-  --accent: #3b82f6; --win: #22c55e; --loss: #ef4444;
+  --bg: #070a0f; --panel: #0e131b; --panel-2: #131a24; --border: #1d2633; --fg: #e8eef5; --muted: #8592a3;
+  --accent: #6d5efc; --accent-2: #22d3ee; --win: #22c55e; --loss: #f43f5e; --warn: #f59e0b;
 }
 @theme inline {
-  --color-bg: var(--bg); --color-panel: var(--panel); --color-border: var(--border);
-  --color-fg: var(--fg); --color-muted: var(--muted); --color-accent: var(--accent);
-  --color-win: var(--win); --color-loss: var(--loss);
+  --color-bg: var(--bg); --color-panel: var(--panel); --color-panel-2: var(--panel-2); --color-border: var(--border);
+  --color-fg: var(--fg); --color-muted: var(--muted); --color-accent: var(--accent); --color-accent-2: var(--accent-2);
+  --color-win: var(--win); --color-loss: var(--loss); --color-warn: var(--warn);
 }
-body { background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+body {
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(109,94,252,.12), transparent 60%),
+              radial-gradient(900px 500px at 110% 10%, rgba(34,211,238,.08), transparent 60%), var(--bg);
+  background-attachment: fixed; color: var(--fg);
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+/* Motion ------------------------------------------------------------------ */
+@keyframes fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes draw { from { stroke-dashoffset: var(--len, 2000); } to { stroke-dashoffset: 0; } }
+@keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(109,94,252,.5); } 100% { box-shadow: 0 0 0 12px rgba(109,94,252,0); } }
+
+.anim-fade-up { animation: fade-up .5s cubic-bezier(.2,.7,.2,1) both; }
+.stagger > * { animation: fade-up .5s cubic-bezier(.2,.7,.2,1) both; }
+.stagger > *:nth-child(1) { animation-delay: .02s } .stagger > *:nth-child(2) { animation-delay: .06s }
+.stagger > *:nth-child(3) { animation-delay: .10s } .stagger > *:nth-child(4) { animation-delay: .14s }
+.stagger > *:nth-child(5) { animation-delay: .18s } .stagger > *:nth-child(6) { animation-delay: .22s }
+.stagger > *:nth-child(7) { animation-delay: .26s } .stagger > *:nth-child(8) { animation-delay: .30s }
+.anim-draw { stroke-dasharray: var(--len, 2000); animation: draw 1.4s cubic-bezier(.6,.1,.2,1) both; }
+.anim-grow-x { transform-origin: left; animation: grow-x .8s cubic-bezier(.2,.7,.2,1) both; }
+.anim-grow-y { transform-origin: bottom; transform-box: fill-box; animation: grow-y .7s cubic-bezier(.2,.7,.2,1) both; }
+.anim-float { animation: float 5s ease-in-out infinite; }
+.pulse-ring { animation: pulse-ring 1.8s ease-out infinite; }
+.shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); background-size: 200% 100%; animation: shimmer 2.2s linear infinite; }
+
+.card-hover { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.card-hover:hover { transform: translateY(-2px); border-color: rgba(109,94,252,.45); box-shadow: 0 10px 30px -12px rgba(109,94,252,.35); }
+.text-gradient { background: linear-gradient(90deg, #a5b4fc, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.glass { background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)), var(--panel); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; }
+}
