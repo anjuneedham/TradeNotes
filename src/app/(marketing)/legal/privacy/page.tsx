@@ -24,6 +24,7 @@ export default function Privacy() {
         <li><strong>Sign-in records:</strong> when you log in we store your IP address and browser details with the session, for security.</li>
         <li><strong>Where you came from:</strong> if you arrive through a link tagged with a source (for example from a social post), we remember that tag so we can learn which channels work.</li>
         <li><strong>Payments:</strong> handled by {LEGAL.paymentProvider}. We never see or store your card number. We receive and keep a record of each payment (amount, currency, date, status and receipt link), the plan, and {LEGAL.paymentProvider}’s customer and subscription identifiers, so we can switch paid features on and off and show your payment history.</li>
+        <li><strong>AI Coach (paid plans):</strong> the questions you ask the coach and its answers, with the token count and cost of each, so we can show your monthly allowance. Kept until you delete your account.</li>
         <li><strong>Free downloads:</strong> if you request a free download (such as the journal template), we store the email you give us, which download, the source tag you arrived with (if any), and when you agreed to receive emails. We use it to send occasional trading-journal tips (about one a week). Every email has an unsubscribe link, and you can also reply to ask us to delete your address. This list is separate from TradeNotes accounts.</li>
         <li><strong>Emails:</strong> messages we send you (confirmation, password reset), your replies to support, and, only if you turn it on in Settings (paid plans), one short weekly reminder to write your review. That reminder contains a link and no trading figures, and has an unsubscribe link. We keep a record that it was sent and when.</li>
       </ul>
@@ -43,6 +44,7 @@ export default function Privacy() {
       <ul>
         <li><strong>Supabase</strong> — database hosting and private file storage for screenshots (United States). Screenshots are kept in a private bucket and shown to you only through short-lived links that expire within minutes.</li>
         <li><strong>Vercel</strong> — website hosting and server logs (United States).</li>
+        <li><strong>Anthropic</strong> — powers the AI Coach on paid plans (United States). Only when you ask the coach a question, the figures it needs from your trades (results, tags, strategy and instrument names, dates) and your question are sent to generate the answer. Anthropic does not use this data to train its models.</li>
         <li><strong>Resend</strong> — sending our account emails.</li>
         <li><strong>{LEGAL.paymentProvider}</strong> — payments.</li>
       </ul>

@@ -23,12 +23,14 @@ export interface DashboardLinks {
  * The dashboard body: key figures, equity curve, what to review, last 30 days vs the 30 before, latest trades, strategy table.
  * Rendered by /app (real data, with the filter bar) and /demo (static sample data), so both show exactly the same components.
  */
-export function DashboardView({ title = "Dashboard", sub, bar, rows, excluded, recentRows, latest, cur, showHelp, now, links, scopeMixed = false, emptyNote, footerExtra }: {
+export function DashboardView({ title = "Dashboard", sub, bar, rows, excluded, recentRows, latest, cur, showHelp, now, links, scopeMixed = false, emptyNote, footerExtra, topExtra }: {
   title?: string; sub: ReactNode; bar?: ReactNode; rows: ResultRow[]; excluded: Record<ExclusionReason, string[]>;
   /** Results for the 60 days before `now` (other filters applied, the date filter not), for "last 30 days vs the 30 before". */
   recentRows: ResultRow[]; latest: LatestRow[]; cur: string; showHelp: boolean; now: Date; links: DashboardLinks; scopeMixed?: boolean;
   /** Shown instead of the figures when there are no closed trades. */
   emptyNote: ReactNode; footerExtra?: ReactNode;
+  /** Rendered under the filter bar, above the figures (Score, insights, coach). */
+  topExtra?: ReactNode;
 }) {
   const d30 = new Date(now.getTime() - 30 * 86400000), d60 = new Date(now.getTime() - 60 * 86400000);
   const s = summarizeResults(rows, excluded);
@@ -48,6 +50,7 @@ export function DashboardView({ title = "Dashboard", sub, bar, rows, excluded, r
     <div className="space-y-5">
       <PageHeader title={title} sub={sub} />
       {bar}
+      {topExtra}
 
       {excludedN > 0 && (
         <Notice>

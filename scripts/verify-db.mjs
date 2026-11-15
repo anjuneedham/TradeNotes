@@ -24,11 +24,11 @@ const missing = expected.filter((e) => !actual.has(e));
 ok(`all ${expected.length} expected columns present with the right types`, missing.length === 0, missing.slice(0, 5).join(" ; "));
 
 const tables = await q(`select n.nspname s, c.relname t, c.relrowsecurity rls from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and (n.nspname='tradenotes' or (n.nspname='public' and c.relname like 'tn\\_%'))`);
-ok("26 TradeNotes tables exist", tables.length === 26, String(tables.length));
+ok("27 TradeNotes tables exist", tables.length === 27, String(tables.length));
 ok("row-level security enabled on every TradeNotes table", tables.every((t) => t.rls), tables.filter((t) => !t.rls).map((t) => t.t).join(","));
 const pol = await q(`select tablename t, count(*)::int k from pg_policies where schemaname='tradenotes' group by 1`);
 const polMap = Object.fromEntries(pol.map((r) => [r.t, r.k]));
-ok("policies: profiles=2, subscriptions=1, payments=1, 12 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews","playbook_items","trade_checks","backtest_trades","backtest_screenshots","share_links"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions && !polMap.leads, JSON.stringify(polMap));
+ok("policies: profiles=2, subscriptions=1, payments=1, 13 user tables=1 each, audit_log=0, billing_events=0", polMap.profiles === 2 && polMap.subscriptions === 1 && ["accounts","strategies","imports","trades","trade_exits","trade_screenshots","reviews","playbook_items","trade_checks","backtest_trades","backtest_screenshots","share_links","ai_messages"].every((t) => polMap[t] === 1) && polMap.payments === 1 && !polMap.audit_log && !polMap.billing_events && !polMap.affiliates && !polMap.referrals && !polMap.commissions && !polMap.leads, JSON.stringify(polMap));
 const trg = (await q(`select tgname from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='tradenotes' and not t.tgisinternal`)).map((r) => r.tgname);
 const wantTrg = ["profiles_protect_admin","profiles_protect_counters","exits_owner","shots_owner","shots_count","trades_refs","imports_refs","reviews_cap","playbook_items_refs","trade_checks_refs","backtest_trades_check","backtest_shots_check","share_links_check"];
 ok("safety triggers present", wantTrg.every((t) => trg.includes(t)), `have: ${trg.join(",")}`);
@@ -52,6 +52,7 @@ try {
   const [t] = await q("insert into tradenotes.trades (user_id,account_id,symbol,side,quantity,entry_price,opened_at) values ($1,$2,'EURUSD','long',1,1.1,now()) returning id", [A, acct.id]);
   await q("insert into tradenotes.trade_exits (trade_id,user_id,quantity,price) values ($1,$2,1,1.2)", [t.id, A]);
   const [st] = await q("insert into tradenotes.strategies (user_id,name) values ($1,'S') returning id", [A]);
+  await q("insert into tradenotes.ai_messages (role, content) values ('user', 'q')");
   ok("A sees own trade and exit", (await n("select count(*)::int n from tradenotes.trades")) === 1 && (await n("select count(*)::int n from tradenotes.trade_exits")) === 1);
 
   await as(B); await q("select tradenotes.ensure_user()");
@@ -180,6 +181,10 @@ try {
   ok("B cannot insert a payment record", await errors("insert into tradenotes.payments (id,user_id,amount_cents,currency,status) values ('x',$1,100,'USD','paid')", [B]));
   ok("B cannot read or write billing events", (await errors("select 1 from tradenotes.billing_events")) && (await errors("insert into tradenotes.billing_events (id,type,payload) values ('e','t','{}')")));
   ok("B cannot read or write affiliate tables or the email list", (await errors("select 1 from tradenotes.leads")) && (await errors("insert into tradenotes.leads (email, magnet) values ('x@y.z','a')")) && (await errors("select 1 from tradenotes.affiliates")) && (await errors("select 1 from tradenotes.referrals")) && (await errors("select 1 from tradenotes.commissions")) && (await errors("insert into tradenotes.commissions (affiliate_id,payment_id,base_cents,commission_cents,payable_after) values (gen_random_uuid(),'x',1,1,now())")));
+  ok("B cannot see A's coach messages", (await n("select count(*)::int n from tradenotes.ai_messages")) === 0);
+  ok("B cannot write a coach message as A", await errors("insert into tradenotes.ai_messages (user_id, role, content) values ($1, 'user', 'x')", [A]));
+  await q("insert into tradenotes.ai_messages (role, content, cost_micros) values ('user', 'mine', 10)");
+  ok("coach log is append-only (the AI allowance cannot be reset)", (await errors("delete from tradenotes.ai_messages")) && (await errors("update tradenotes.ai_messages set cost_micros = 0")));
   await c.query("reset role");
   await c.query("insert into tradenotes.payments (id,user_id,amount_cents,currency,status) values ($1,$2,2400,'USD','paid')", [`verify-${A}`, A]);
   await as(B);

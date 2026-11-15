@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/plans";
-import { PLAN_ORDER, PLAN_BLURB, planHeadline, featuresDev, paidAddsText, premiumAddsText } from "@/lib/plan-features";
+import { PLAN_ORDER, PLAN_BLURB, PLAN_HIGHLIGHTS, planHeadline, featuresDev, paidAddsText, premiumAddsText } from "@/lib/plan-features";
 import { PlanComparison } from "@/components/PlanComparison";
 import { pageMeta, jsonLd } from "@/lib/seo";
 import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
@@ -11,9 +11,10 @@ export const metadata = pageMeta({ title: "Pricing — TradeNotes", description:
 export const revalidate = 60; // seat count refreshes at most once a minute
 
 const faq = (): [string, string][] => [
-  ["What do I get for paying today?", `${paidAddsText().charAt(0).toUpperCase()}${paidAddsText().slice(1)}. Premium adds ${premiumAddsText()}. Every other journaling and analytics feature that exists today is in the Free plan. Paid plans are early access at launch pricing; features marked “in development” are not available yet and have no promised date.`],
+  ["What do I get for paying?", `${paidAddsText().charAt(0).toUpperCase()}${paidAddsText().slice(1)}. Premium adds ${premiumAddsText()}.`],
+  ["How does the AI Coach allowance work?", `Each paid plan includes a monthly amount of AI usage: US$${PLANS.starter.aiBudgetCents / 100} on Standard and US$${PLANS.pro.aiBudgetCents / 100} on Premium. A typical question uses about 1 to 2 cents, so that is roughly ${Math.round(PLANS.starter.aiBudgetCents / 1.5)} questions a month on Standard and twice that on Premium. The coach page shows how much you have used, and it refills on the 1st of each month. The coach analyses your own recorded trades and does not give financial advice.`],
   ["Is there a free trial?", `Yes. Every paid plan (Standard and Premium, monthly or annual) starts with a ${TRIAL_DAYS}-day free trial. You enter your card at checkout and are charged when the trial ends; cancel before then and you pay nothing. The limited founding-member price has no trial. The Free plan needs no card and has no time limit.`],
-  ["How does upgrading work?", "You subscribe through Handypay's hosted checkout using the same email as your TradeNotes account. We confirm the payment and switch your plan on by hand, usually within a few hours and within one business day."],
+  ["How does upgrading work?", "Choose a plan, pay on Handypay's secure checkout, and you come back to TradeNotes with your new plan switched on automatically, usually within a minute. We never see your card."],
   ["When am I charged?", "When your 14-day free trial ends (the founding-member price is charged when you subscribe), then automatically each month (or each year, if you choose annual and get 2 months free) on the same date until you cancel. Prices are in US dollars; taxes may apply."],
   ["What happens if I cancel or a payment fails?", "You keep paid access until the end of the period you paid for, then your account returns to Free. Nothing is deleted. If you hold more trades than the Free limit you can still view and analyse all of them — you just can't add new ones."],
   ["Can I get a refund?", "See the Terms for the current refund window on your first payment."],
@@ -36,14 +37,19 @@ export default async function Pricing() {
           const prev = PLAN_ORDER[PLAN_ORDER.indexOf(id) - 1];
           const dev = featuresDev().filter((f) => f.cells[id] !== false && (!prev || f.cells[prev] === false)); // only what this tier adds
           return (
-            <section key={id} aria-labelledby={`plan-${id}`} className={`flex flex-col rounded-lg border bg-panel p-5 sm:p-6 ${id === "starter" ? "border-fg" : "border-border"}`}>
+            <section key={id} aria-labelledby={`plan-${id}`} className={`tn-lift flex flex-col rounded-lg border bg-panel p-5 sm:p-6 ${id === "starter" ? "border-fg" : "border-border"}`}>
               <div className="flex items-center justify-between gap-2"><h2 id={`plan-${id}`} className="text-lg font-semibold">{p.name}</h2>{id === "starter" && <Badge tone="neutral">Most traders</Badge>}</div>
               <p className="mt-3"><span className="fig text-4xl font-medium">${p.monthly}</span><span className="text-sm text-muted"> / month</span></p>
               {id !== "free" && <p className="mt-1 text-xs text-muted">or ${p.annual} / year ({ANNUAL_MONTHS_FREE} months free)</p>}
               <p className="mt-3 text-sm text-muted">{PLAN_BLURB[id]}</p>
-              <ul className="mt-5 space-y-2 text-sm">
-                <li className="font-medium">{planHeadline(id)}</li>
-                <li className="text-muted">{id === "free" ? "Full journal, dashboard and analytics" : id === "starter" ? "Everything in Free" : "Everything in Standard"}</li>
+              <p className="mt-5 text-sm font-medium">{planHeadline(id)}{id !== "free" && <span className="font-normal text-muted"> · everything in {id === "starter" ? "Free" : PLANS.starter.name}, plus:</span>}</p>
+              <ul className="tn-stagger mt-3 space-y-3 text-sm">
+                {PLAN_HIGHLIGHTS[id].map(([t, d]) => (
+                  <li key={t} className="flex gap-2.5">
+                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="mt-0.5 shrink-0 text-win"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <span><span className="font-medium">{t}</span><span className="block text-xs text-muted">{d}</span></span>
+                  </li>
+                ))}
               </ul>
               {dev.length > 0 && (
                 <div className="mt-5 border-t border-border pt-4 text-xs text-muted">
@@ -62,11 +68,8 @@ export default async function Pricing() {
         })}
       </div>
 
-      <p className="mt-5 rounded-md border border-border bg-raised px-4 py-3 text-sm leading-relaxed">
-        <strong className="font-medium">Plain terms:</strong> today the paid plans add {paidAddsText()}, and {PLANS.pro.name} also adds {premiumAddsText()}. You are buying early access at launch pricing; items marked “in development” are not available yet and have no promised date.
-      </p>
-      <p className="mt-3 text-sm text-muted">
-        <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months (Starter ${foundingPriceCents("starter") / 100}/mo, Pro ${foundingPriceCents("pro") / 100}/mo), applied automatically at checkout, in exchange for honest feedback. After {FOUNDING_OFFER.months} months the normal price applies. {seats === null ? "" : seats > 0 ? `${seats} of ${FOUNDING_OFFER.seats} seats left.` : "All founding seats are taken."}
+      <p className="mt-6 text-sm text-muted">
+        <strong className="font-medium text-fg">Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months ({PLANS.starter.name} ${foundingPriceCents("starter") / 100}/mo, {PLANS.pro.name} ${foundingPriceCents("pro") / 100}/mo), applied automatically at checkout, in exchange for honest feedback. After {FOUNDING_OFFER.months} months the normal price applies. {seats === null ? "" : seats > 0 ? `${seats} of ${FOUNDING_OFFER.seats} seats left.` : "All founding seats are taken."}
       </p>
 
       <section aria-labelledby="compare" className="mt-16">

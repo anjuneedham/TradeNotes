@@ -5,12 +5,15 @@ import { FilterBar } from "@/components/FilterBar";
 import { loadResults, loadLatest, loadFilterOptions, type LoadedResults, type LatestRow } from "@/lib/trades-data";
 import { Card, Notice, Badge, btnCls, linkCls, PageHeader } from "@/components/ui";
 import { DashboardView } from "@/components/DashboardView";
+import { PerformancePanel } from "@/components/PerformancePanel";
+import { tradeScore, insights } from "@/lib/insights";
+import { PLANS } from "@/lib/plans";
 
 export const metadata = { title: "Dashboard — TradeNotes" };
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const ctx = await getContext();
-  const { db, profile, tz } = ctx;
+  const { db, profile, tz, plan } = ctx;
   const f = withKnownAccount(parseFilters(await searchParams), ctx.accounts.map((a) => a.id));
   const scope = scopeFor(ctx.accounts, ctx.scope, f.account);
   const filtered = activeFilterCount(f) > 0;
@@ -24,7 +27,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     // the five latest trades, and the dropdown values. The database filters and computes per-trade results; metrics.ts aggregates.
     const noDate = f.range === "all" && !f.from && !f.to; // then the main result already covers the last 60 days: no second query
     let main: LoadedResults;
-    [main, latest, options] = await Promise.all([loadResults(db, scope.accountIds, cur, f, tz), loadLatest(db, scope.accountIds, cur, f, tz, 5), loadFilterOptions(db, ctx.accounts)]);
+    [main, latest, options] = await Promise.all([loadResults(db, scope.accountIds, cur, f, tz, { checks: true }), loadLatest(db, scope.accountIds, cur, f, tz, 5), loadFilterOptions(db, ctx.accounts)]);
     loaded = main;
     windowed = noDate ? main : await loadResults(db, scope.accountIds, cur, f, tz, { window: { start: d60, end: null } });
   }
@@ -64,6 +67,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <DashboardView
       sub={<>{scope.label} · {cur} · {rows.length} closed trade{rows.length === 1 ? "" : "s"}, {dateLabel(f)}</>}
+      topExtra={rows.length > 0 ? <PerformancePanel plan={plan} score={PLANS[plan].score ? tradeScore(rows, tz) : null} found={insights(rows, cur, tz)} tradeCount={rows.length} /> : null}
       bar={bar} rows={rows} excluded={excluded} recentRows={windowed.rows} latest={latest} cur={cur} showHelp={showHelp} now={now} scopeMixed={scope.mixed}
       links={{ trade: (id) => `/app/journal/${id}`, analytics: filterHref("/app/analytics", f), mistakes: "/app/analytics#mistake-cost", learn: "/learn", journal: "/app/journal", openTrades: "/app/journal?status=open" }}
       emptyNote={!filtered ? "Statistics appear once you have at least one closed trade." : <>No closed trades match these filters. <Link href={filterHref("/app", NO_FILTERS)} className={linkCls}>Reset filters</Link></>}
