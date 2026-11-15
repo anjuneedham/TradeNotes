@@ -1,0 +1,239 @@
+{
+  "_template": {
+    "name": "Sample-data reveal",
+    "use_when": "One pattern is easier to see than to explain. Show labelled SAMPLE trades, add one cut of the data, reveal the split, then deflate it honestly.",
+    "structure": "kinetic hook (tease, no numbers) -> promise with SAMPLE badge opens loop A ('the pattern is not where you look') -> chips: looks random -> typing: add one tag -> kpis: the split (pays loop A) -> twist kinetic: small sample, a question not an answer -> app beat -> payoff -> endcard CTA",
+    "replace": "The chips, the tag, the kpis cards and all words. The kpis numbers MUST be recomputed from the chips (here: after-loss trades 3,4,5,8,9 = -$95; the rest = +$65; net -$30). Narration stays number-free; numbers live only in SAMPLE-badged scenes."
+  },
+  "slug": "template-sample-data-reveal",
+  "title": "One tag in your journal can expose your worst habit",
+  "channel": {
+    "name": "Andrew Builds (TradeNotes)",
+    "kind": "brand",
+    "niche": "trading",
+    "appName": "TradeNotes",
+    "appBlurb": "a trading journal and performance analytics app"
+  },
+  "style": {
+    "preset": "andrew",
+    "accent": "#F2B01E",
+    "bg": "#0A0F1A"
+  },
+  "body": {
+    "hook": "One tag in your journal can expose your worst habit.",
+    "promise": "Watch ten sample trades. The pattern is not in the wins or the losses.",
+    "beats": [
+      {
+        "narration": "At first it looks random. Wins, losses, nothing that stands out.",
+        "visual_query": "sample trades",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "chips",
+          "caption": "Looks random. It is not.",
+          "items": [
+            {
+              "t": "+$40",
+              "k": "win"
+            },
+            {
+              "t": "-$25",
+              "k": "loss"
+            },
+            {
+              "t": "-$60",
+              "k": "loss"
+            },
+            {
+              "t": "-$45",
+              "k": "loss"
+            },
+            {
+              "t": "+$30",
+              "k": "win"
+            },
+            {
+              "t": "+$50",
+              "k": "win"
+            },
+            {
+              "t": "-$35",
+              "k": "loss"
+            },
+            {
+              "t": "-$40",
+              "k": "loss"
+            },
+            {
+              "t": "+$20",
+              "k": "win"
+            },
+            {
+              "t": "+$35",
+              "k": "win"
+            }
+          ]
+        }
+      },
+      {
+        "narration": "Now add one tag to every trade: was it taken right after a loss?",
+        "visual_query": "add a tag",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "typing",
+          "label": "New tag",
+          "text": "after-loss: yes / no",
+          "caption": "Same trades. One extra column."
+        }
+      },
+      {
+        "narration": "In this sample, the trades taken right after a loss do most of the damage. Same trader, same setup.",
+        "visual_query": "the split",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kpis",
+          "title": "Split by tag",
+          "note": "10 SAMPLE trades, not real results. Far too few to conclude anything.",
+          "cards": [
+            {
+              "label": "After a loss",
+              "value": "-$95",
+              "tone": "loss",
+              "hint": "5 trades."
+            },
+            {
+              "label": "All other trades",
+              "value": "+$65",
+              "tone": "win",
+              "hint": "5 trades."
+            },
+            {
+              "label": "Net",
+              "value": "-$30",
+              "hint": "What the P&L alone shows."
+            },
+            {
+              "label": "Sample size",
+              "value": "10 trades",
+              "hint": "A question, not a conclusion."
+            }
+          ]
+        }
+      },
+      {
+        "narration": "But here is the twist. Ten trades prove nothing. This is a question to ask of your own data, not an answer.",
+        "visual_query": "twist",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kinetic",
+          "lines": [
+            {
+              "text": "A QUESTION."
+            },
+            {
+              "text": "NOT AN ANSWER.",
+              "color": "amber"
+            }
+          ],
+          "sub": "Small samples are mostly noise.",
+          "badge": true
+        }
+      },
+      {
+        "narration": "I built TradeNotes, my own trading journal, so I'm biased. It lets you tag trades and split your results by tag.",
+        "visual_query": "app",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "checklist",
+          "title": "Tags to try",
+          "items": [
+            "After a loss",
+            "Time of day",
+            "Planned or not"
+          ]
+        }
+      },
+      {
+        "narration": "So the habit was never in the results. It was in what happened just before the trade. Every trade still carries risk of loss. A tag only shows where to look.",
+        "visual_query": "payoff",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kinetic",
+          "lines": [
+            {
+              "text": "LOOK BEFORE"
+            },
+            {
+              "text": "THE TRADE,",
+              "color": "amber"
+            },
+            {
+              "text": "NOT AFTER."
+            }
+          ]
+        }
+      }
+    ],
+    "cta": "Pick one tag and log it on your next twenty trades. Not financial advice.",
+    "claims": [],
+    "scenes": {
+      "hook": {
+        "kind": "kinetic",
+        "lines": [
+          {
+            "text": "ONE TAG",
+            "color": "amber"
+          },
+          {
+            "text": "CAN EXPOSE"
+          },
+          {
+            "text": "YOUR WORST"
+          },
+          {
+            "text": "HABIT.",
+            "color": "loss"
+          }
+        ]
+      },
+      "promise": {
+        "kind": "kinetic",
+        "lines": [
+          {
+            "text": "10 SAMPLE",
+            "color": "amber"
+          },
+          {
+            "text": "TRADES"
+          }
+        ],
+        "sub": "The pattern is not in the wins or losses.",
+        "badge": true
+      },
+      "cta": {
+        "kind": "endcard",
+        "title": "TradeNotes",
+        "tagline": "Pick one tag. Log it on your next twenty trades.",
+        "small": "Education only. Not financial advice."
+      }
+    }
+  },
+  "post": {
+    "ytTitle": "One journal tag that can expose your worst trading habit",
+    "ytDesc": "Ten SAMPLE trades (not real trades) look random until you add one tag: was the trade taken right after a loss? This short shows how a tag turns a P&L into a question about your own behavior. Ten trades prove nothing, so treat it as something to check in your own journal. Trading carries risk of loss. I built TradeNotes, so I'm biased. Educational content only, not financial advice.",
+    "tiktok": "One tag in your journal can expose your worst habit. Ten sample trades, one extra column. Sample data, education only, not financial advice. I built TradeNotes.",
+    "tags": [
+      "trading journal",
+      "revenge trading",
+      "trading psychology",
+      "trade tags",
+      "trade review",
+      "TradeNotes"
+    ],
+    "hashtags": [
+      "#tradingjournal",
+      "#tradingpsychology",
+      "#revengetrading",
+      "#daytrading"
+    ]
+  }
+}

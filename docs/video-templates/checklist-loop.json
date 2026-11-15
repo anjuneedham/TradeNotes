@@ -1,0 +1,172 @@
+{
+  "_template": {
+    "name": "Checklist / process loop",
+    "use_when": "The video teaches a routine the viewer can do today. Steps are the spine; the skipped step is the loop.",
+    "structure": "kinetic hook (identity call-out) -> promise opens loop A (N steps, the last is the skipped one) -> step beats (checklist, typing) -> twist dots beat (why the last step matters) -> app beat -> payoff kinetic (the whole loop in one line) -> endcard with a do-this-today CTA",
+    "replace": "Steps, rule text, counts and all words. Keep 'Step one/two/three', the history-not-prediction line whenever backtesting is mentioned, the risk sentence, the ownership line and 'Not financial advice.'"
+  },
+  "slug": "template-checklist-loop",
+  "title": "Your weekly trade review is missing a step",
+  "channel": {
+    "name": "Andrew Builds (TradeNotes)",
+    "kind": "brand",
+    "niche": "trading",
+    "appName": "TradeNotes",
+    "appBlurb": "a trading journal and performance analytics app"
+  },
+  "style": {
+    "preset": "andrew",
+    "accent": "#F2B01E",
+    "bg": "#0A0F1A"
+  },
+  "body": {
+    "hook": "Your weekly trade review is missing a step. Probably the important one.",
+    "promise": "It is a ten-minute loop with three steps. The third is the one people skip.",
+    "beats": [
+      {
+        "narration": "Step one: find the leak. Sort the week by tag and pick the habit that shows up most.",
+        "visual_query": "find the leak",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "checklist",
+          "title": "Step 1: find the leak",
+          "items": [
+            "Sort the week by tag",
+            "Pick ONE habit"
+          ]
+        }
+      },
+      {
+        "narration": "Step two: question the fix. Backtest the rule that would have blocked it. That shows history, not what will happen.",
+        "visual_query": "test the fix",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "typing",
+          "label": "Step 2: rule to test",
+          "text": "No new trade for 30 minutes after a loss.",
+          "caption": "History, not a prediction."
+        }
+      },
+      {
+        "narration": "Step three, the skipped one: write the rule where you will see it before Monday's first trade.",
+        "visual_query": "write it down",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "checklist",
+          "title": "Step 3: write the rule",
+          "items": [
+            "One rule, one line",
+            "Seen before trade one"
+          ]
+        }
+      },
+      {
+        "narration": "Here is why. Next week's review starts with one count: the days you followed it.",
+        "visual_query": "next week",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "dots",
+          "total": 5,
+          "label": "days you followed the rule",
+          "caption": "Next week's first number."
+        }
+      },
+      {
+        "narration": "I built TradeNotes, my own trading journal, so I'm biased. It keeps your tags and notes in one place for that review.",
+        "visual_query": "app",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "checklist",
+          "title": "One place",
+          "items": [
+            "Tags",
+            "Notes",
+            "The weekly review"
+          ]
+        }
+      },
+      {
+        "narration": "So the journal finds the leak, the backtest questions the fix, the review closes it. None of that removes the risk of loss. It keeps you honest.",
+        "visual_query": "payoff",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kinetic",
+          "lines": [
+            {
+              "text": "FIND THE LEAK."
+            },
+            {
+              "text": "TEST THE FIX."
+            },
+            {
+              "text": "CLOSE IT.",
+              "color": "amber"
+            }
+          ],
+          "sub": "Ten minutes, once a week."
+        }
+      }
+    ],
+    "cta": "Set a ten-minute timer this weekend and run the loop once. Not financial advice.",
+    "claims": [],
+    "scenes": {
+      "hook": {
+        "kind": "kinetic",
+        "lines": [
+          {
+            "text": "YOUR WEEKLY"
+          },
+          {
+            "text": "REVIEW IS"
+          },
+          {
+            "text": "MISSING",
+            "color": "loss"
+          },
+          {
+            "text": "A STEP.",
+            "color": "amber"
+          }
+        ]
+      },
+      "promise": {
+        "kind": "kinetic",
+        "lines": [
+          {
+            "text": "10 MINUTES.",
+            "color": "amber"
+          },
+          {
+            "text": "3 STEPS."
+          }
+        ],
+        "sub": "The third is the one people skip."
+      },
+      "cta": {
+        "kind": "endcard",
+        "title": "TradeNotes",
+        "tagline": "Ten-minute timer. This weekend. Run the loop once.",
+        "small": "Education only. Not financial advice."
+      }
+    }
+  },
+  "post": {
+    "ytTitle": "Your weekly trade review is missing a step",
+    "ytDesc": "A ten-minute weekly loop: the journal finds the leak, a backtest questions the fix, and the review writes the rule down. A backtest shows what a rule did historically (hypothetical, not a prediction), and nothing here removes the risk of loss. I built TradeNotes, so I'm biased. Educational content only, not financial advice.",
+    "tiktok": "Your weekly trade review is missing a step. Ten minutes, three steps, and the third is the one people skip. Education only, not financial advice. I built TradeNotes.",
+    "tags": [
+      "trade review",
+      "trading journal",
+      "backtesting",
+      "trading routine",
+      "trading discipline",
+      "TradeNotes"
+    ],
+    "hashtags": [
+      "#tradingjournal",
+      "#tradereview",
+      "#backtesting",
+      "#daytrading"
+    ]
+  }
+}

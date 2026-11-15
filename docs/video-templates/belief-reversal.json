@@ -1,0 +1,203 @@
+{
+  "_template": {
+    "name": "Belief-reversal explainer",
+    "use_when": "The viewer believes X; the video shows the three things hiding behind X. No data needed.",
+    "structure": "kinetic hook (belief + reversal) -> promise opens loop A (named count, tease #3) -> 3 numbered beats, each ending on a forward pull -> twist beat ('the part people skip') -> app beat with ownership line -> payoff kinetic closes the hook -> endcard CTA",
+    "replace": "Every narration line, every scene text, slug, title and post copy. Keep the beat order, the 'Number one/two/three' spine, the risk sentence, 'I built TradeNotes ... so I'm biased' and 'Not financial advice.'"
+  },
+  "slug": "template-belief-reversal",
+  "title": "Your backtest looks great, and that might be the problem",
+  "channel": {
+    "name": "Andrew Builds (TradeNotes)",
+    "kind": "brand",
+    "niche": "trading",
+    "appName": "TradeNotes",
+    "appBlurb": "a trading journal and performance analytics app"
+  },
+  "style": {
+    "preset": "andrew",
+    "accent": "#F2B01E",
+    "bg": "#0A0F1A"
+  },
+  "body": {
+    "hook": "Your backtest looks great. That might be the problem.",
+    "promise": "Three quiet errors can flatter a backtest. The third hides in plain sight.",
+    "beats": [
+      {
+        "narration": "Number one: look-ahead. The test used information you would not have had at that moment.",
+        "visual_query": "look-ahead",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "checklist",
+          "title": "#1 Look-ahead",
+          "items": [
+            "Signal needs the close",
+            "Entry at that same close",
+            "You could not have known"
+          ]
+        }
+      },
+      {
+        "narration": "Number two: overfitting. Tune enough settings and almost any idea fits the past. And the past is all it fits.",
+        "visual_query": "overfitting",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "dots",
+          "total": 12,
+          "label": "settings tried on the same data",
+          "caption": "One was always going to fit."
+        }
+      },
+      {
+        "narration": "Number three, in plain sight: costs. Fees and slippage repeat on every single trade.",
+        "visual_query": "costs",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kpis",
+          "title": "Hypothetical backtest",
+          "note": "SAMPLE numbers. Hypothetical, not real results.",
+          "cards": [
+            {
+              "label": "Before costs",
+              "value": "+$420",
+              "tone": "win",
+              "hint": "What the test reported."
+            },
+            {
+              "label": "Fees + slippage",
+              "value": "-$380",
+              "tone": "loss",
+              "hint": "Small per trade, on every trade."
+            },
+            {
+              "label": "After costs",
+              "value": "+$40",
+              "hint": "Same idea, same trades."
+            },
+            {
+              "label": "Trades",
+              "value": "190",
+              "hint": "Costs scale with this number."
+            }
+          ]
+        }
+      },
+      {
+        "narration": "Here is the part people skip. Even a clean backtest only describes history. It is not a forecast, and live trades can still lose money.",
+        "visual_query": "twist",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kinetic",
+          "lines": [
+            {
+              "text": "HISTORY."
+            },
+            {
+              "text": "NOT A FORECAST",
+              "color": "amber"
+            }
+          ],
+          "sub": "Risk of loss does not go away."
+        }
+      },
+      {
+        "narration": "I built TradeNotes, my own trading journal, so I'm biased. It logs what you actually did, so you can hold it next to the test.",
+        "visual_query": "app",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "checklist",
+          "title": "Compare the two",
+          "items": [
+            "What the test said",
+            "What you actually did"
+          ]
+        }
+      },
+      {
+        "narration": "So a great backtest is not a finish line. It is a claim you still have to check.",
+        "visual_query": "payoff",
+        "visual_type": "scene",
+        "scene": {
+          "kind": "kinetic",
+          "lines": [
+            {
+              "text": "NOT A"
+            },
+            {
+              "text": "FINISH LINE."
+            },
+            {
+              "text": "A CLAIM",
+              "color": "amber"
+            },
+            {
+              "text": "TO CHECK.",
+              "color": "amber"
+            }
+          ]
+        }
+      }
+    ],
+    "cta": "Before you trust a test, ask those three questions. Not financial advice.",
+    "claims": [],
+    "scenes": {
+      "hook": {
+        "kind": "kinetic",
+        "lines": [
+          {
+            "text": "YOUR BACKTEST"
+          },
+          {
+            "text": "LOOKS GREAT.",
+            "color": "win"
+          },
+          {
+            "text": "THAT MIGHT BE"
+          },
+          {
+            "text": "THE PROBLEM.",
+            "color": "amber"
+          }
+        ]
+      },
+      "promise": {
+        "kind": "kinetic",
+        "lines": [
+          {
+            "text": "3 QUIET",
+            "color": "amber"
+          },
+          {
+            "text": "ERRORS"
+          }
+        ],
+        "sub": "The third hides in plain sight."
+      },
+      "cta": {
+        "kind": "endcard",
+        "title": "TradeNotes",
+        "tagline": "Look-ahead, overfitting, costs. Ask all three before you trust a test.",
+        "small": "Education only. Not financial advice."
+      }
+    }
+  },
+  "post": {
+    "ytTitle": "Your backtest looks great. That might be the problem.",
+    "ytDesc": "Three quiet errors that can flatter a backtest: look-ahead, overfitting and missing costs. The numbers on screen are SAMPLE, hypothetical figures, not real results. A backtest describes what an idea did historically; it is not a prediction, and trading carries risk of loss. I built TradeNotes, so I'm biased. Educational content only, not financial advice.",
+    "tiktok": "Your backtest looks great, and that might be the problem. Three quiet errors, the third in plain sight. Hypothetical sample numbers, education only, not financial advice. I built TradeNotes.",
+    "tags": [
+      "backtesting",
+      "overfitting",
+      "look-ahead bias",
+      "trading costs",
+      "trading journal",
+      "TradeNotes"
+    ],
+    "hashtags": [
+      "#backtesting",
+      "#tradingjournal",
+      "#daytrading",
+      "#tradingeducation"
+    ]
+  }
+}
