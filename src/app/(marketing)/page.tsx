@@ -88,6 +88,13 @@ export default function Home() {
           <p className="mt-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs leading-relaxed">Based on {s.tradeCount} closed trades. Under 30 trades, results are mostly luck — don&apos;t draw conclusions yet.</p>
         </div>
       </section>
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <Link href="/demo" className="group block overflow-hidden rounded-xl border border-border bg-panel">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/screenshots/demo-dashboard.webp" width={1600} height={716} loading="lazy" alt="The TradeNotes dashboard filled with a sample journal of 190 trades: net P&L, win rate, profit factor, expectancy, average win and loss, average R, max drawdown and equity curve" className="block h-auto w-full" />
+        </Link>
+        <p className="mt-3 text-center text-sm text-muted">The full dashboard, filled with a sample journal (fictional trades, not real results). <Link href="/demo" className={linkCls}>Click around the live demo</Link>, no account needed.</p>
+      </section>
 
       <section aria-labelledby="how" className="border-y border-border bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-14">
