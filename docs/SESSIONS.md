@@ -40,6 +40,8 @@ One entry per working session, newest first. Each entry records what was asked, 
 - Added `docs/videos/VIDEO_03_R_MULTIPLE.md`: the video brief (3 hooks, script, post copy, approval checklist, results table). The Fable session (session_01FRK8F87ZX3LAi6HyzzvM8w) is producing the videos.
 - Scheduled task `trig_01496zCk5mkJNK2ePXiTup2C` (3 articles a week) was created without GitHub/Vercel/Supabase connectors and may not be able to open PRs. If the first run on 2026-11-16 fails, recreate it in claude.ai Routines with GitHub enabled.
 
+- **Signup check (2026-11-15 ~08:00 UTC):** 5 accounts total; the only non-test one signed up 07:04 UTC, email verified, no source tag, 0 trades (almost certainly the founder's own email-confirmation test). `tradenotes.leads` has **0** rows, 0 payments, 0 partners. Correction: an earlier note here and in chat said leads held 1 row; that was a misread of `count(*)` on a FROM-less query. Traffic since the PR #10 deploy: about 14 homepage visitors, 3 on the article, 1 on `/free`, 2 on `/pricing`, no google.com referrals.
+
 ### Test data left in production
 - Account `anjuneedham+tntest1794725746@gmail.com` (unverified, no trades). Safe to delete.
 
