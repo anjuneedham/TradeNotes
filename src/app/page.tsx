@@ -24,6 +24,13 @@ export default function Home() {
         </div>
         <p className="mt-3 text-xs text-muted">Free plan, no card required.</p>
       </section>
+      <section className="-mt-6 mb-16">
+        <div className="overflow-hidden rounded-xl border border-border bg-panel shadow-2xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/screenshots/dashboard.webp" width={1650} height={1256} alt="TradeNotes dashboard: net P&L, win rate, profit factor, expectancy, average R, drawdown and equity curve for 10 logged forex trades" className="block h-auto w-full" />
+        </div>
+        <p className="mt-2 text-center text-xs text-muted">The real dashboard, filled with 10 example trades. Not real results.</p>
+      </section>
       <section className="grid gap-4 sm:grid-cols-2">
         {pillars.map(([t, d]) => (
           <div key={t} className="rounded-lg border border-border bg-panel p-6">
