@@ -2,7 +2,7 @@
 > **DRAFT — not reviewed by a lawyer.** Generated from `src/app/(marketing)/legal/subscription/page.tsx` by `scripts/legal-to-md.py`. Values in [brackets] come from `src/lib/legal.ts`; `[businessName]` and `[supportEmail]` are still unset. See LEGAL_INFORMATION_SOURCES.md.
 
 ## 1. Plans and prices
-- **Free** — US$0. Up to 50 trades. No card needed.
+- **Free** — US$0. Up to 30 trades. No card needed.
 - **Standard** — US$12 per month. Up to 2,000 trades.
 - **Premium** — US$24 per month. Unlimited trades.
 What each plan includes today is listed on the pricing page. Features marked “in development” are not part of any plan until they are released. Prices are in US dollars; your bank may add conversion or foreign-transaction fees, and taxes may apply.

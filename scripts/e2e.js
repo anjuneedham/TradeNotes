@@ -144,7 +144,7 @@ async function logTrade(page, o) {
   await A.locator('tbody tr', { hasText: 'ES' }).filter({ hasNotText: 'EURUSD' }).getByRole('button', { name: /Confirm delete/ }).click();
   await A.waitForURL('**/app/journal?deleted=1');
   await A.goto(BASE + '/app/billing');
-  check('billing: shows current plan and usage against the limit', /Free/.test(await A.locator('body').innerText()) && /3\s*of 50/.test(await A.locator('body').innerText()));
+  check('billing: shows current plan and usage against the limit', /Free/.test(await A.locator('body').innerText()) && /3\s*of 30/.test(await A.locator('body').innerText()));
   await A.goto(BASE + '/app/settings');
   await A.getByLabel('Light', { exact: true }).check();
   await A.getByRole('button', { name: 'Save preferences' }).click();
@@ -1008,7 +1008,7 @@ async function phase3(browser, stamp) {
   // plan limit applies to quick-log exactly like the full form: a stale form at the limit is refused by the server
   const lim = await newUser(browser, mail('l'), { viewport: { width: 390, height: 844 } });
   const limRows = (n) => Array.from({ length: n }, (_, i) => ({ symbol: 'LIM' + i, side: 'long', qty: 1, entry: 10, exit: 11, open: '2026-09-01T08:00:00Z', close: '2026-09-01T09:00:00Z' }));
-  await seed(mail('l'), limRows(48));
+  await seed(mail('l'), limRows(28));
   await lim.goto(BASE + '/app/quick');
   const lf = (n) => lim.locator(`[data-testid=quick-form] [name=${n}]`);
   const logOne = async () => { await lf('symbol').fill('EURUSD'); await lf('quantity').fill('1'); await lf('entry_price').fill('1.1'); await lf('exit_price').fill('1.2'); await lim.getByRole('button', { name: 'Save trade' }).click(); };
@@ -1016,15 +1016,15 @@ async function phase3(browser, stamp) {
   await db.query(`insert into tradenotes.trades (user_id, account_id, symbol, side, quantity, entry_price, opened_at) select u.id, (select id from tradenotes.accounts where user_id = u.id limit 1), 'SNEAK', 'long', 1, 10, now() from public.tn_user u where u.email = $1`, [mail('l')]);
   await logOne();
   await lim.getByText("You've reached your plan's trade limit").waitFor({ timeout: 10000 }).catch(() => {});
-  check('P3 quick-log (Free): with the form open, the journal reaches 50 trades elsewhere -> the server refuses the next save (limit notice, upgrade path) and nothing is saved', (await bodyOf(lim)).includes("You've reached your plan's trade limit") && (await db.query(`select count(*)::int n from tradenotes.trades t join public.tn_user u on u.id = t.user_id where u.email = $1`, [mail('l')])).rows[0].n === 50);
+  check('P3 quick-log (Free): with the form open, the journal reaches 30 trades elsewhere -> the server refuses the next save (limit notice, upgrade path) and nothing is saved', (await bodyOf(lim)).includes("You've reached your plan's trade limit") && (await db.query(`select count(*)::int n from tradenotes.trades t join public.tn_user u on u.id = t.user_id where u.email = $1`, [mail('l')])).rows[0].n === 30);
   await lim.goto(BASE + '/app/quick');
-  check('P3 quick-log (Free at the limit): the page shows the upgrade notice instead of the form', (await bodyOf(lim)).includes('used all 50 trades') && (await lim.locator('[data-testid=quick-form]').count()) === 0);
+  check('P3 quick-log (Free at the limit): the page shows the upgrade notice instead of the form', (await bodyOf(lim)).includes('used all 30 trades') && (await lim.locator('[data-testid=quick-form]').count()) === 0);
   const lim2 = await newUser(browser, mail('m'), { viewport: { width: 390, height: 844 } });
   await seed(mail('m'), limRows(49));
   await lim2.goto(BASE + '/app/quick');
   await lim2.locator('[data-testid=quick-form] [name=symbol]').fill('EURUSD'); await lim2.locator('[data-testid=quick-form] [name=quantity]').fill('1'); await lim2.locator('[data-testid=quick-form] [name=entry_price]').fill('1.1');
   await lim2.getByRole('button', { name: 'Save trade' }).click(); await lim2.getByTestId('quick-saved').waitFor({ timeout: 10000 }).catch(() => {});
-  check('P3 quick-log (Free): saving the 50th (last allowed) trade keeps the "Saved" confirmation and adds the upgrade notice', (await bodyOf(lim2)).includes('Saved EURUSD') && (await bodyOf(lim2)).includes('used all 50 trades'));
+  check('P3 quick-log (Free): saving the 50th (last allowed) trade keeps the "Saved" confirmation and adds the upgrade notice', (await bodyOf(lim2)).includes('Saved EURUSD') && (await bodyOf(lim2)).includes('used all 30 trades'));
   // installability: manifest, icons, hint, and no service worker
   const man = await (await quick.request.get(BASE + '/manifest.webmanifest')).json();
   const icons = await Promise.all(man.icons.map(async (i) => { const r = await quick.request.get(BASE + i.src); return r.status() === 200 && r.headers()['content-type'] === 'image/png'; }));

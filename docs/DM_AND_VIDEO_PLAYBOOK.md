@@ -2,7 +2,7 @@
 Written 2026-11-14 against `main` and the live site `https://tradenotes.dev`. Companion to `HQ.md`, `SALES_PLAYBOOK.md`, `CONTENT_ENGINE.md`.
 Platform limits and free-tier details below are from memory: verify in each app.
 **Link to use everywhere:** `https://tradenotes.dev/?src=tt-dm` (TikTok DMs), `?src=tt-organic`, `?src=yt-organic`, `?src=ig-dm`. Note: `tradenotes.dev` is the real domain (no extra "s").
-**What you may mention (all live):** free plan, 14-day free trial on paid plans, monthly or yearly billing, broker import, calendar, reviews, public `/demo`. **Do not mention:** reminder emails, replay/historical-data backtesting, AI summaries, screenshots, the group call or coaching, until each is live and written. The founding offer (50% off for the first 10 paying members) is live but verify the checkout first (`HQ.md` section 1).
+**What you may mention (all live):** free plan, 14-day free trial on paid plans, monthly or yearly billing, broker import, calendar, reviews, public `/demo`. **Do not mention:** reminder emails, replay/historical-data backtesting, AI summaries, screenshots, the group call or coaching, until each is live and written. The founding offer (50% off for the first 100 paying members) is live but verify the checkout first (`HQ.md` section 1).
 
 ## 1. Ready-to-send DMs
 ### A. People who followed you (no other info). Link included, rotate the wording
@@ -74,7 +74,7 @@ That's exactly what the journal is for. It's free to start and takes about a min
 Try it with one recent trade and tell me what's confusing. Happy to do a 10-minute walkthrough if you want.
 ```
 If they already use another journal or a broker export: "You can import a CSV from most brokers (MetaTrader, cTrader, TradingView, IBKR and others) so you don't retype old trades." Say this only if you've confirmed their broker is in the supported list on the pricing page.
-If they ask the price: "Free to start (50 trades). Standard is $12 a month and Premium $24, both with a 14-day free trial. No card for the free plan."
+If they ask the price: "Free to start (30 trades). Standard is $12 a month and Premium $24, both with a 14-day free trial. No card for the free plan."
 
 **Rules:** one block per person; never send the same text twice; comment on their video first; stop for the day if TikTok warns you; no profit claims; log every DM (handle, tier, date, replied, interested, signed up, objection). Review reply rate by tier after every 100 DMs.
 

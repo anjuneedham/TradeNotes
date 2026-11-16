@@ -11,20 +11,20 @@ There is exactly **one** paywall in the product today: the trade limit. Every ot
 
 ## Flow 1 — approaching the limit (available now)
 Trigger: `limit − used ≤ max(5, 10 % of limit)` on `/app/journal/new`.
-> **3 of 50 trades left on the Free plan.** See plans
+> **3 of 30 trades left on the Free plan.** See plans
 
 Neutral notice above the form. The form works normally.
 
 ## Flow 2 — at the limit, before typing (available now)
 Trigger: `!canAddTrade(plan, used)` when `/app/journal/new` renders. The form is not shown, so nobody fills thirty fields to be refused.
-> **You've used all 50 trades on the Free plan**
+> **You've used all 30 trades on the Free plan**
 > Everything you've logged stays available, and your statistics keep working. To log more trades, move to a plan with a higher limit.
 > [See plans] [Back to journal]
 
 ## Flow 3 — limit reached at save (available now)
 Trigger: the `createTrade` transaction finds the count at the limit (for example two tabs). The action returns `{ code: "limit", message, values }`.
 > **You've reached your plan's trade limit**
-> Your Free plan allows 50 trades. Upgrade to log more. Nothing was saved. Your existing trades and statistics are not affected.
+> Your Free plan allows 30 trades. Upgrade to log more. Nothing was saved. Your existing trades and statistics are not affected.
 > [See plans]
 
 The typed values remain in the form.

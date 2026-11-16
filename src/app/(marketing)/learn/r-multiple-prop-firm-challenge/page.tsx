@@ -84,7 +84,7 @@ export default function Article() {
         <li>Tag any rule you broke: moved stop, oversized, revenge trade.</li>
         <li>Every 30 trades, add up your total R and your R by setup. Find the setup to keep and the mistake that cost the most.</li>
       </ol>
-      <p className={P}>A spreadsheet works. Our free template below has the R column built in. Or <Link href="/signup?src=article-rmultiple" className={linkCls}>let TradeNotes do it</Link>: enter your stop and it calculates R, expectancy, R by setup and your costliest mistake for you, free for 50 trades. <Link href="/demo" className={linkCls}>See it with sample data</Link>.</p>
+      <p className={P}>A spreadsheet works. Our free template below has the R column built in. Or <Link href="/signup?src=article-rmultiple" className={linkCls}>let TradeNotes do it</Link>: enter your stop and it calculates R, expectancy, R by setup and your costliest mistake for you, free for 30 trades. <Link href="/demo" className={linkCls}>See it with sample data</Link>.</p>
 
       <div className="mt-10"><LeadForm title="Free: trading journal template with R-multiple column" /></div>
 

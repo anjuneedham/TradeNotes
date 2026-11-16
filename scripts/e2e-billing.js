@@ -63,9 +63,9 @@ mock.listen(9998, '127.0.0.1', async () => {
 
     // --- server-side entitlement: Free limit is enforced even with a hand-built request
     await db.query(`insert into tradenotes.trades (user_id, account_id, symbol, side, quantity, entry_price, opened_at)
-      select $1, a.id, 'SEED', 'long', 1, 1, now() from tradenotes.accounts a, generate_series(1, 50) where a.user_id = $1`, [A.id]);
+      select $1, a.id, 'SEED', 'long', 1, 1, now() from tradenotes.accounts a, generate_series(1, 30) where a.user_id = $1`, [A.id]);
     await A.p.goto(BASE + '/app/journal/new');
-    check('Free user at 50 trades sees the limit notice', (await A.p.locator('main').innerText()).includes("You've used all 50 trades"));
+    check('Free user at 50 trades sees the limit notice', (await A.p.locator('main').innerText()).includes("You've used all 30 trades"));
 
     // --- 3/4/5. plan selection -> checkout (session carries user id + plan in metadata)
     await A.p.goto(BASE + '/app/billing');
@@ -140,7 +140,7 @@ mock.listen(9998, '127.0.0.1', async () => {
     s = await sub(A.email);
     check('11/13. subscription ended -> canceled (Free)', s.status === 'canceled');
     await A.p.goto(BASE + '/app/journal/new');
-    check('Free limit applies again after expiry; data kept', (await A.p.locator('main').innerText()).includes("You've used all 50 trades") && (await db.query('select count(*)::int n from tradenotes.trades where user_id=$1', [A.id])).rows[0].n === 50);
+    check('Free limit applies again after expiry; data kept', (await A.p.locator('main').innerText()).includes("You've used all 30 trades") && (await db.query('select count(*)::int n from tradenotes.trades where user_id=$1', [A.id])).rows[0].n === 30);
     check('ended email sent', await wait(() => mails.some((m) => m.to === A.email && /plan has ended/.test(m.subject))));
     const stale = await hook('customer.subscription.updated', { id: `sub_A1_${stamp}`, status: 'active', current_period_end: T + 90 * 86400, metadata: { user_id: A.id, plan: 'starter' } }, { created: T - 100 });
     check('stale/out-of-order event cannot re-activate', stale.status === 200 && (await sub(A.email)).status === 'canceled', JSON.stringify(stale.body));
