@@ -4,6 +4,15 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16 — Marketing funnel pages
+
+- **Asked:** build funnel pages (prop-firm landing, feature, import, compare, how-it-works/FAQ, changelog, learn guides) with attributable CTAs and cross-links; add docs/PAGE_BRIEF_TEMPLATE.md.
+- **Found:** homepage dead-ended (analytics: 62 of 73 views on `/`). Signup page does not read `?src` (auth code, not touched), so attribution relies on page-view analytics of `/signup?src=…` URLs.
+- **Changed:** `src/lib/marketing.ts` (data), `src/components/Funnel.tsx` (CTA, next steps, page frame), routes `/prop-firm-traders`, `/features`(+7), `/import`(+11), `/compare`(+5), `/how-it-works`, `/changelog`, `/learn/[slug]`(3 guides); footer hub links, nav links, homepage next-steps, learn hub categories, sitemap via `FUNNEL_PATHS`.
+- **Evidence:** competitor prices fetched 2026-11-16 from TradeZella, Edgewonk, TradesViz pricing pages. TraderSync (403) and Tradervue (404) could not be read, so no facts are stated for them. tsc, eslint, vitest (349 passed), build OK.
+- **Test data left:** none.
+- **Open:** record `src` at signup (needs auth code change, owner decision); re-check competitor prices periodically.
+
 ## 2026-11-16 (later): Paid-features rework memo (Fable agent)
 
 **Asked:** why the industry score is 6.7; have Fable rework the paid features; can news, full replays and broker connections be built or run on free infrastructure.

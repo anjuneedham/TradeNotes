@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FUNNEL_PATHS } from "./marketing";
 
 /** Edge-safe, dependency-free SEO helpers (no database imports). */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://tradenotes.dev").replace(/\/$/, "");
@@ -6,7 +7,7 @@ export const SITE_NAME = "TradeNotes";
 export const SITE_TAGLINE = "Trading journal & performance analytics";
 
 /** Public, indexable pages. The sitemap and tests read this list; anything not here is not advertised to search engines. */
-export const PUBLIC_PATHS = ["/", "/pricing", "/demo", "/demo/analytics", "/learn", "/learn/r-multiple-prop-firm-challenge", "/free", "/free/review-checklist", "/partners", "/legal/terms", "/legal/privacy", "/legal/disclaimer", "/legal/subscription"] as const;
+export const PUBLIC_PATHS = ["/", "/pricing", "/demo", "/demo/analytics", "/learn", "/learn/r-multiple-prop-firm-challenge", "/free", "/free/review-checklist", "/partners", "/legal/terms", "/legal/privacy", "/legal/disclaimer", "/legal/subscription", ...FUNNEL_PATHS];
 /**
  * Not listed on purpose: /demo/trades/* (single sample trades are thin pages, set to noindex) and /r/<token> (private share links: noindex, nofollow,
  * noarchive, 404 once revoked or expired; not in robots.txt, so a crawler that finds one can read its noindex instead of guessing).

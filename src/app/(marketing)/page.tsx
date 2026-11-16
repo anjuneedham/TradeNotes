@@ -7,6 +7,7 @@ import { summarize, type TradeInput } from "@/lib/metrics";
 import { signedMoney, pct, num, pnlClass } from "@/lib/format";
 import { Stat } from "@/components/stats";
 import EquityCurve from "@/components/EquityCurve";
+import { NextSteps } from "@/components/Funnel";
 import { Badge, Eyebrow, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 
 /* The preview below renders the real dashboard components and the real metrics engine over a small,
@@ -163,8 +164,9 @@ export default function Home() {
         <p className="mt-4 text-sm text-muted">Paid plans add {paidAddsText()}. Start on Free and move up when you want the coach.</p>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border-strong bg-panel px-5 py-6 sm:px-8">
           <p className="text-lg font-medium tracking-tight">Log your most recent trade. See what it tells you.</p>
-          <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>
+          <Link href="/signup?src=home-bottom" className={`${btnCls} !px-6`}>Start free</Link>
         </div>
+        <NextSteps links={[{ href: "/prop-firm-traders", label: "Trading a prop firm challenge? Start here" }, { href: "/features", label: "See every feature" }, { href: "/import", label: "Import from your platform" }]} />
         <p className="mt-6 text-xs text-muted">TradeNotes does not provide financial advice and does not promise trading results.</p>
       </section>
     </div>
