@@ -4,6 +4,26 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16 (later): Paid-features rework memo (Fable agent)
+
+**Asked:** why the industry score is 6.7; have Fable rework the paid features; can news, full replays and broker connections be built or run on free infrastructure.
+
+### Found
+- The 6.7 is the weighted scorecard in `docs/READINESS_REVIEW.md`; every row is below target (capture 6, review 6.5, visual evidence 3-4, accounts 7).
+- Research is in `docs/decisions/PAID_FEATURES_REWORK.md` (written by a Fable subagent; web research only, nothing prototyped, no vendor contacted). Several claims are marked unverified in its section H (Finnhub, FMP, Forex Factory and Tradovate pages could not be opened; MetaApi, Twelve Data, Massive, Trading Economics prices conflict between sources).
+
+### Changed
+- Added `docs/decisions/PAID_FEATURES_REWORK.md` and this entry. No application code changed.
+
+### Test data left behind
+None.
+
+### Still open
+- Owner decisions listed in the memo; verify its unverified claims before spending money.
+- `FEATURE_ROADMAP.md` and `UNIT_ECONOMICS.md` are stale against the memo.
+
+---
+
 ## 2026-11-16: Free plan 30 trades, founding offer 100 seats; distribution plan; merge
 
 **Asked:** a zero-budget plan to reach 1,000 free and 100 paying users in 45 days (prop-firm focus); daily 8-hour routine; check new signups; explain the HandyPay webhook/API; change Free to 30 trades and the founding offer to 100 seats; merge to main; updated ratings.
