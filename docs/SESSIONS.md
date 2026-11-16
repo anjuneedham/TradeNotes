@@ -4,6 +4,26 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16 (later still): Merge funnel pages; src capture coverage
+
+**Asked:** merge the funnel pages and memo to main; add `?src` capture at signup.
+
+### Found
+- `?src=` capture already existed: `src/middleware.ts` sets the `tn_src` cookie (first tag wins, 30 days) and `src/lib/app-context.ts` saves it to `tradenotes.profiles.signup_source` at first sign-in. The funnel agent's report that signup does not read `src` was wrong.
+- Real gap: the middleware matcher did not cover the new routes, so a first-touch tag on a direct landing (e.g. `/prop-firm-traders?src=tt-dm`) was dropped and the on-site CTA tag (`?src=prop-firm-traders`) became the source.
+
+### Changed
+- `src/middleware.ts` matcher now includes `/prop-firm-traders`, `/features`, `/import`, `/compare`, `/how-it-works`, `/changelog` (and their subpaths).
+
+### Test data left behind
+None.
+
+### Still open
+- Check `signup_source` on the next real signup (`select signup_source from tradenotes.profiles`).
+- Competitor prices on `/compare` are dated 2026-11-16; re-check before quoting.
+
+---
+
 ## 2026-11-16 — Marketing funnel pages
 
 - **Asked:** build funnel pages (prop-firm landing, feature, import, compare, how-it-works/FAQ, changelog, learn guides) with attributable CTAs and cross-links; add docs/PAGE_BRIEF_TEMPLATE.md.
