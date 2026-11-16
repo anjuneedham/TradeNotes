@@ -13,7 +13,7 @@
 | Discovering plans | `/pricing`, landing "Plans" | Three cards, price per month, what each adds, "in development" lists, the sentence that paid plans mainly raise the trade limit today, comparison table, five billing questions |
 | Choosing a paid plan while signed out | `/pricing` → "Choose Standard" | Goes to `/app/billing?plan=starter`; signed-out visitors are sent to log in first, and the card says "You'll create a free account first" |
 | Seeing my plan | Settings (first section); Plan & billing | Plan name, price, limit, status badge, paid-through date when known |
-| Seeing my usage | Plan & billing | "47 of 50 trades" with a meter (amber from 80 %, red at 100 %) |
+| Seeing my usage | Plan & billing | "27 of 30 trades" with a meter (amber from 80 %, red at 100 %) |
 | Approaching the limit | Log a trade | Neutral notice when 5 or fewer (or 10 %) remain, with a link to plans |
 | At the limit | Log a trade | The form is replaced by an amber panel: what happened, that nothing is lost, "See plans" and "Back to journal" |
 | Limit hit between page load and save | Log a trade | Same amber panel above the form (server returned `code: "limit"`); nothing was saved |
@@ -41,7 +41,7 @@ The target designs for each of these are in `BILLING_INTERFACE_SPECIFICATION.md`
 ## Wording standards
 | Situation | Say | Don't say |
 |---|---|---|
-| Limit reached | "You've used all 50 trades on the Free plan." | "Upgrade now to unlock!" |
+| Limit reached | "You've used all 30 trades on the Free plan." | "Upgrade now to unlock!" |
 | Unbuilt feature | "In development — not available yet." | "Coming soon" |
 | Manual activation | "Activation is done by hand right now, usually within a few hours and within one business day." | "Instant access" |
 | Cancel | "No further charges. You keep your paid plan until the end of the period you've paid for." | "Are you sure you want to lose…" |

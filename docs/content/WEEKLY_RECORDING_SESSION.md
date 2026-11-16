@@ -16,7 +16,7 @@ Builds on `docs/CONTENT_ENGINE.md` §3 and `VIDEO_PRODUCTION_GUIDELINES.md` (9:1
 
 ## 2. The sample-data account
 Create (or reuse) a **separate free-plan TradeNotes account** that holds only invented sample trades, so no real trading data can appear by mistake.
-- [ ] 25–30 invented trades across 3 weeks, mixed winners and losers, with realistic R. Enter by hand: **broker import is Standard/Premium, so don't use it in free-plan footage.** The free plan holds 50 trades.
+- [ ] 25–30 invented trades across 3 weeks, mixed winners and losers, with realistic R. Enter by hand: **broker import is Standard/Premium, so don't use it in free-plan footage.** The free plan holds 30 trades.
 - [ ] Include the items the scripts show: one EURUSD long with stop (Day 4 and 11), mistake tags **Entered early, Moved stop, Revenge trade, Broke rules** on a few trades, the emotion **Bored** on a few, "Did you follow your plan?" = No on some, two strategy names for Day 5.
 - [ ] Under 30 trades is enough to trigger the small-sample warning for Day 10; if your sample has 30+ trades, record the warning from a separate account with fewer, or skip that shot and say so.
 - [ ] Keep the numbers **boring and not flattering**: the account must not look like a profitable track record. A mixed result is the honest sample.

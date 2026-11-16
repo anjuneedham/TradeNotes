@@ -1,6 +1,6 @@
 """Regenerate docs/legal/*.md review copies from the live legal pages (JSX). Run: python3 scripts/legal-to-md.py"""
 import re, pathlib
-VALUES = {"PLANS.free.name": "Free", "PLANS.starter.name": "Standard", "PLANS.pro.name": "Premium", "PLANS.free.tradeLimit": "50",
+VALUES = {"PLANS.free.name": "Free", "PLANS.starter.name": "Standard", "PLANS.pro.name": "Premium", "PLANS.free.tradeLimit": "30",
           "PLANS.starter.monthly": "12", "PLANS.pro.monthly": "24", "LEGAL.productName": "TradeNotes", "LEGAL.paymentProvider": "HandyPay",
           "LEGAL.refundDays": "14 [refundDays — confirm]", "LEGAL.deletionDays": "30 [deletionDays — confirm]", "LEGAL.governingLaw": "the laws of Jamaica [confirm with counsel]",
           "LEGAL.country": "Jamaica", "LEGAL.effectiveDate": "11 November 2026"}

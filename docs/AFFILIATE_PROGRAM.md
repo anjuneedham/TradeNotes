@@ -37,7 +37,7 @@ Check before saying yes: look at 10 recent posts; is the community active; do th
 
 ## Outreach (short, no hype)
 First message:
-> Hi <name>, I built TradeNotes, a trading journal that shows traders where their results come from (by setup, session, mistakes), free for up to 50 trades. Several members of <group> probably keep a spreadsheet for this. Would you like a free Premium account to try it, and if your members like it, a partner link that pays you 30% of what they pay for the first year? No obligation, and I'll send a one-page summary first.
+> Hi <name>, I built TradeNotes, a trading journal that shows traders where their results come from (by setup, session, mistakes), free for up to 30 trades. Several members of <group> probably keep a spreadsheet for this. Would you like a free Premium account to try it, and if your members like it, a partner link that pays you 30% of what they pay for the first year? No obligation, and I'll send a one-page summary first.
 Follow-up (day 4): "Happy to set up a 15-minute demo, or just give you the link. Any feedback on the free plan is useful either way."
 When they say yes: create the partner, give them a free Premium account, send the link and the disclosure rule ("say it's an affiliate link; don't promise profits"), plus 3 ready-to-post captions from docs/CONTENT_ENGINE.md.
 Log each outreach (name, platform, size, date, reply) in a sheet; review after 14 days.

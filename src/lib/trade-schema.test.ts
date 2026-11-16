@@ -95,8 +95,8 @@ describe("entitlements", () => {
     expect(effectivePlan(null)).toBe("free");
   });
   it("trade limits", () => {
-    expect(canAddTrade("free", 49)).toBe(true);
-    expect(canAddTrade("free", 50)).toBe(false);
+    expect(canAddTrade("free", 29)).toBe(true);
+    expect(canAddTrade("free", 30)).toBe(false);
     expect(canAddTrade("pro", 1e6)).toBe(true);
   });
 });

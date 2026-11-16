@@ -16,7 +16,7 @@ export default function LeadForm({ magnet = "journal-template", title = "Free: t
           <p className="font-medium">Thanks, it&apos;s yours:</p>
           <p><a href={state.file} download className={linkCls}>Download the journal template (CSV, opens in Excel or Google Sheets)</a></p>
           <p><Link href={state.page ?? "/free/review-checklist"} className={linkCls}>Open the 30-trade review checklist</Link></p>
-          <p className="text-muted">Prefer it done for you? <Link href="/signup?src=lead-form" className={linkCls}>TradeNotes calculates all of this automatically</Link>, free for 50 trades.</p>
+          <p className="text-muted">Prefer it done for you? <Link href="/signup?src=lead-form" className={linkCls}>TradeNotes calculates all of this automatically</Link>, free for 30 trades.</p>
         </div>
       ) : (
         <form action={action} className="mt-4 space-y-3">

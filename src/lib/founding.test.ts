@@ -7,9 +7,9 @@ describe("founding offer", () => {
     expect(foundingPriceCents("pro")).toBe(1200);
   });
   it("counts seats and never goes negative", () => {
-    expect(seatsLeft(0)).toBe(10);
-    expect(seatsLeft(9)).toBe(1);
-    expect(seatsLeft(10)).toBe(0);
-    expect(seatsLeft(14)).toBe(0);
+    expect(seatsLeft(0)).toBe(100);
+    expect(seatsLeft(99)).toBe(1);
+    expect(seatsLeft(100)).toBe(0);
+    expect(seatsLeft(140)).toBe(0);
   });
 });

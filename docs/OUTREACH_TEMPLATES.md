@@ -23,6 +23,6 @@ Don't pitch first. Answer their post, then offer something useful.
 > Do you track your R per trade? It's the quickest way to see which setups actually pay. Free template here if useful: https://tradenotes.dev/free?src=dm-{platform}
 
 **T3: interested / replied**
-> If you want it done automatically, TradeNotes is free for 50 trades and works out R, expectancy and your costliest mistake: https://tradenotes.dev/signup?src=dm-{platform}. I'm the founder, so tell me what's missing and I'll build it. First 10 people get the founding price.
+> If you want it done automatically, TradeNotes is free for 30 trades and works out R, expectancy and your costliest mistake: https://tradenotes.dev/signup?src=dm-{platform}. I'm the founder, so tell me what's missing and I'll build it. First 100 people get the founding price.
 
 Rules: max 1 follow-up. No copy-paste spam in comments. Never promise results.

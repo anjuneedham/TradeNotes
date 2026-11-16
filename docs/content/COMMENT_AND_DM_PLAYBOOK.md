@@ -3,13 +3,13 @@
 Source of facts: pricing page (`src/app/(marketing)/pricing/page.tsx`), `src/lib/plans.ts`, `src/lib/plan-features.ts`, `src/lib/legal.ts` and the legal pages. Facts change: re-read the pricing page before each month.
 
 **Fact sheet (as read from the repo on 2026-11-13)**
-- Free: up to 50 trades, 1 account, journal, R-multiples, tags, dashboard, analytics, filters, CSV export. "No card needed for Free." No time limit stated on the Free plan.
+- Free: up to 30 trades, 1 account, journal, R-multiples, tags, dashboard, analytics, filters, CSV export. "No card needed for Free." No time limit stated on the Free plan.
 - Standard $12/month or $120/year; Premium $24/month or $240/year (US dollars, taxes may apply). Annual = 2 months free.
 - Standard adds a higher trade limit (2,000), broker import, 2 accounts, calendar, daily/weekly/monthly reviews, playbook. Premium: unlimited trades, up to 10 accounts. Backtesting and strategy comparison are in development, not available, no promised date.
 - Cancel any time in Plan & billing in the app, from the Handypay receipt link or by emailing support@tradenotes.dev; you keep paid access to the end of the paid period. Refund: email support@tradenotes.dev within **14 days of your first payment** for a full refund of that first payment; later payments are not refunded except where the law requires.
 - Payments are processed by Handypay; TradeNotes never sees or stores card numbers.
 - **Free trial: owner has not confirmed length or which checkout links carry it, so do not mention it.** (The site now says a 14-day trial exists; see the claims list.) If someone asks, use reply 6.
-- The founding-member discount (50% off for 12 months, first 10 paying members) is on the pricing page; confirm seats left before mentioning it.
+- The founding-member discount (50% off for 12 months, first 100 paying members) is on the pricing page; confirm seats left before mentioning it.
 
 ## The 15 comments
 **1. "Is this financial advice?"**
@@ -19,13 +19,13 @@ Source of facts: pricing page (`src/app/(marketing)/pricing/page.tsx`), `src/lib
 > No, and nothing can promise that. TradeNotes records your trades and shows your numbers and habits, like your average R or which mistakes you tag most, so you can see what's happening. What you do with it is up to you.
 
 **3. "How much is it?"**
-> There's a free plan (up to 50 trades, no card). Paid plans are Standard $12/month and Premium $24/month, or $120 / $240 a year, in USD. Full details are on the pricing page: tradenotes.dev/pricing.
+> There's a free plan (up to 30 trades, no card). Paid plans are Standard $12/month and Premium $24/month, or $120 / $240 a year, in USD. Full details are on the pricing page: tradenotes.dev/pricing.
 
 **4. "Is it free?"**
-> The Free plan is free with no card needed: up to 50 trades with the journal, R-multiples, tags, analytics and CSV export. Paid plans add things like a higher trade limit, broker import, the calendar, reviews and the playbook.
+> The Free plan is free with no card needed: up to 30 trades with the journal, R-multiples, tags, analytics and CSV export. Paid plans add things like a higher trade limit, broker import, the calendar, reviews and the playbook.
 
 **5. "What's the catch with the free plan?"**
-> The limit is 50 trades and 1 trading account. Nothing else is hidden: the feature list per plan is on the pricing page.
+> The limit is 30 trades and 1 trading account. Nothing else is hidden: the feature list per plan is on the pricing page.
 
 **6. "Is there a free trial?" / "Can I try the paid plans?"** *(hold until the owner confirms trial wording)*
 > The Free plan is the best way to try it: no card, and it has the core journal and analytics. For how paid plans are billed, the pricing page and tradenotes.dev/legal/subscription have the current details.
