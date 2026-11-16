@@ -22,6 +22,7 @@ export default function Learn() {
           <Eyebrow>Guides</Eyebrow>
           <ul className="mt-3 space-y-2 text-sm">
             <li><Link href="/learn/r-multiple-prop-firm-challenge" className={linkCls}>R-multiple explained: the number that decides your prop firm challenge (free calculator)</Link></li>
+            <li><Link href="/learn/trading-expectancy-formula" className={linkCls}>Trading expectancy formula: is your strategy actually profitable? (free calculator)</Link></li>
             {GUIDES.map((g) => <li key={g.slug}><Link href={`/learn/${g.slug}`} className={linkCls}>{g.title}</Link></li>)}
             <li><Link href="/free" className={linkCls}>Free trading journal template + 30-trade review checklist</Link></li>
           </ul>

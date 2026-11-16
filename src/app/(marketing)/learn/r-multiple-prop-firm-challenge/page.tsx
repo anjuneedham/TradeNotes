@@ -53,7 +53,7 @@ export default function Article() {
         <li><strong>It compares trades fairly.</strong> A $600 win on a $300 risk (+2R) and a $600 win on a $1,200 risk (+0.5R) look the same in dollars. In R, one is four times better.</li>
         <li><strong>It survives account changes.</strong> Move from a $10k account to a $100k challenge and your dollar history stops making sense. Your R history doesn&apos;t change.</li>
         <li><strong>It exposes risk mistakes.</strong> A loss of −2.4R means you moved your stop, sized too big, or slipped badly. Dollars hide that. R makes it obvious.</li>
-        <li><strong>It leads to expectancy.</strong> Your average R over many trades is your <em>expectancy in R</em>, the clearest single sign of whether your process has an edge. <Link href="/learn#expectancy" className={linkCls}>More on expectancy</Link>.</li>
+        <li><strong>It leads to expectancy.</strong> Your average R over many trades is your <em>expectancy in R</em>, the clearest single sign of whether your process has an edge. <Link href="/learn/trading-expectancy-formula" className={linkCls}>Expectancy formula and calculator</Link>.</li>
       </ul>
 
       <h2 className={H2}>Your prop firm challenge, measured in R</h2>
