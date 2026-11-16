@@ -1,3 +1,15 @@
+# Rating: 2026-11-16, after Free 30 trades / founding 100 seats (my own judgement; local verification only)
+**What changed in the evidence:** two constants and their copy; nothing in the money path, import or analytics. Production on 2026-11-16: 1 real account (0 trades), 0 paid subscriptions, 0 payments, 1 webhook event. Browser e2e and the founding DB test were updated but **not run** this session.
+| Lens | Rating | Was (11-15) | Why |
+|---|---|---|---|
+| **Overall app** | **8.4** | 8.4 | Unchanged. Unit tests (349), types and lint pass; the edited e2e scripts are unrun, so no credit for them |
+| **Industry-specific** (retail trading journal) | **6.7** | 6.7 | Unchanged; no data-capture, analytics or review work |
+| **App-type-specific** (paid B2C subscription app) | **8.3** | 8.3 | Unchanged. A 30-trade Free cap should make the upgrade prompt appear sooner and 100 founding seats gives a larger early-adopter offer, but neither is measured: still 0 payments and 1 real user |
+**Why not higher:** no real payment has completed; 1 real user and no real trades; coach never run against the real Claude API; imports unverified with real broker exports; browser e2e not re-run after this change.
+**Risks from this change:** 100 seats at 50% for 12 months (Standard $6, Premium $12) lowers early revenue per customer, and the founding price has no free trial; confirm refunds and support capacity at 100 customers.
+**What moves it next:** first real payment as `applied:` (+0.2); e2e and billing e2e green (+0.1); 10 real users logging trades (+0.3).
+
+---
 # Rating: 2026-11-15, with the AI Coach, Score and insights (my own judgement; local verification only)
 **Stated assumptions (from the owner, NOT verified by me):** (1) legal review is done (`LEGAL.counselReviewed` is true and the legal check passes; I did not see the review); (2) the first payment works. **Evidence against assuming (2) fully:** the production database on 2026-11-15 has 5 accounts, 3 free subscriptions, 0 payments and one webhook event (`checkout.session.expired`, ignored: no matching user); the webhook secret and API key are set in Vercel. So the webhook endpoint is alive, but a completed payment has not been seen by the app. Real traffic: about 54 visitors and 73 page views in 4 days (Vercel Web Analytics), almost all on the homepage, one person through signup.
 | Lens | Rating | Was (11-14, in main) | If an assumption is false |

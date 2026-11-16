@@ -4,6 +4,31 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16: Free plan 30 trades, founding offer 100 seats; distribution plan; merge
+
+**Asked:** a zero-budget plan to reach 1,000 free and 100 paying users in 45 days (prop-firm focus); daily 8-hour routine; check new signups; explain the HandyPay webhook/API; change Free to 30 trades and the founding offer to 100 seats; merge to main; updated ratings.
+
+### Found
+- Production database (Supabase, read-only SQL, 2026-11-16): 5 accounts, of which 1 is real (signed up 2026-11-15, email confirmed, 0 trades, Free); the other 4 are test accounts (`delivered@resend.dev` "Resend Test", two `@e2e.test`, one other test address). 2 trades, 0 paid subscriptions, 0 payments, 1 `billing_events` row, 0 affiliates, 0 referrals.
+- HandyPay API and signed webhook are in `origin/main` (`src/app/api/webhooks/handypay/route.ts`, `src/lib/billing/webhook.ts`); partner programme, import, coach and founding-seat counter also exist. My first answers this session described an old checkout-links-only commit because the session started on a stale branch (`5a603e1`); that work was discarded and redone on `origin/main`.
+
+### Changed
+- `src/lib/plans.ts`: `PLANS.free.tradeLimit` 50 to 30; `FOUNDING_OFFER.seats` 10 to 100. Pricing page, founding counter and server-side limit read these.
+- Copy: "50 trades" to "30 trades" and "first 10" to "first 100" in the lead form, the R-multiple article, the legal subscription policy, outreach/DM/affiliate scripts, HQ, business plan and design docs. Older decision/design memos that record what was decided at the time were left as written.
+- Tests: `trade-schema.test.ts`, `founding.test.ts`, `founding.db.test.ts` (105 claims, 100 seats), `scripts/e2e.js`, `scripts/e2e-billing.js` (seed 30; quick-log seed 28), `scripts/legal-to-md.py`.
+- Verification: unit tests 349 pass, 4 skipped (DB tests); `tsc` and `eslint` clean. **Not run:** the browser e2e scripts, `founding.db.test.ts` and `e2e-billing.js` (need the app and a test database).
+
+### Test data left behind
+None created. Existing test accounts in production were NOT deleted (offered; awaiting the owner's yes): `delete from public.tn_user where email = 'delivered@resend.dev' or email like '%@e2e.test';`.
+
+### Still open
+- Owner: existing Free users with more than 30 trades keep their data but cannot add more; check no real user is affected before announcing.
+- Run `scripts/e2e.js`, `scripts/e2e-billing.js` and the founding DB test in CI or locally.
+- Real first payment seen as `applied:` in `billing_events`; `ANTHROPIC_API_KEY`; Discord bot branch (`ccr-f1bf506c-8tg7lm`) not merged.
+- Reply to the one real signup; resend nothing (the Nov 12 unconfirmed account was Resend's test address).
+
+---
+
 ## 2026-11-15 (later): Paid-plan build: AI Coach, Score, insights, pricing; coach limits; merge
 
 **Asked:** review traffic; make paid plans clearly worth paying for (inspired by, not copying, paid journals); add an AI coach to the $24 plan; remove "Plain terms"; coach allowance of US$2 (Standard) and double for Premium; frame the coach with attractive limits per tier; merge; instructions to turn Claude credits into API credits; rate the app.
