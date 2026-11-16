@@ -17,7 +17,7 @@
 | # | Slug | Main keyword / angle | Free tool or asset |
 |---|---|---|---|
 | 1 | r-multiple-prop-firm-challenge | what is r multiple / r multiple calculator / prop firm challenge risk | R + challenge calculator. **DONE 2026-11-15** |
-| 2 | trading-expectancy-formula | expectancy formula trading / is my strategy profitable | expectancy calculator (win rate, avg win R, avg loss R) |
+| 2 | trading-expectancy-formula | expectancy formula trading / is my strategy profitable | expectancy calculator (win rate, avg win R, avg loss R) **DONE 2026-11-16** |
 | 3 | prop-firm-daily-drawdown-rules | prop firm daily drawdown explained / trailing vs static drawdown | drawdown buffer calculator |
 | 4 | trading-journal-template | trading journal template excel / google sheets | links the /free template (main lead magnet page) |
 | 5 | profit-factor-explained | profit factor trading / good profit factor | profit factor calculator |

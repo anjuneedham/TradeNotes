@@ -4,6 +4,26 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16 (night): SEO article 2, trading expectancy formula
+
+**Asked:** finish and ship article 2 from the content calendar, then merge if CI is green.
+
+### Found
+- Branch `article-trading-expectancy-formula` did not exist on the remote; no saved patch was found; no open PRs. Rebuilt from `origin/main` (6884a80).
+
+### Changed
+- New page `/learn/trading-expectancy-formula` (Article + FAQPage JSON-LD, LeadForm, not-financial-advice footer) and `src/components/ExpectancyCalculator.tsx` (expectancy before and after costs, break-even win rate, trades to target).
+- Added to `PUBLIC_PATHS`, sitemap priority 0.8, the /learn Guides box and the CI smoke list. The R-multiple article now links to it. Signup link uses `?src=article-expectancy`. Calendar row 2 marked DONE.
+- Verified: tsc clean, eslint 0 errors (1 existing warning in PerformancePanel), 349 unit tests pass, `next build` passes. Page loads 200 at 1280px and 390px with no horizontal scroll; calculator recalculates (default inputs: +0.20R before, +0.15R after costs, 35.0% break-even, about 67 trades to 10R). Full `npm run build` (needs DATABASE_URL) not run locally; CI runs `next build`.
+
+### Test data left behind
+None.
+
+### Still open
+- Search Console: request indexing for the new URL once live. No analytics numbers yet.
+
+---
+
 ## 2026-11-16 (evening): AI Coach removed from Free
 
 **Asked:** remove the AI Coach from Free; it should be a paid selling point and the owner cannot afford it.
