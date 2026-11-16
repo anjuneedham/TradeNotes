@@ -5,7 +5,7 @@ The coach runs on Claude Sonnet 5.5 through your Anthropic account. Users never 
 ## What each plan gets (and what it can cost you)
 | Plan | Shown to users as | Hard cap on your cost per user per month |
 |---|---|---|
-| Free | 3 questions a month, to try it | US$0.05 |
+| Free | not included (paid feature) | US$0 |
 | Standard ($12) | about 130 questions a month | US$2 |
 | Premium ($24) | about 260 questions a month (double) | US$4 |
 
