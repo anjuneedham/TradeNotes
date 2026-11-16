@@ -10,7 +10,7 @@ export default function EquityCurve({ points, currency }: { points: number[]; cu
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label={`Equity curve of cumulative net P&L in ${currency}, ending at ${last.toFixed(2)}`}>
       <line x1={pad} x2={w - pad} y1={y(0)} y2={y(0)} stroke="var(--border)" strokeDasharray="4 4" />
-      <path d={d} fill="none" stroke={last >= 0 ? "var(--win)" : "var(--loss)"} strokeWidth="2" />
+      <path className="sm-line" d={d} fill="none" stroke={last >= 0 ? "var(--win)" : "var(--loss)"} strokeWidth="2" />
     </svg>
   );
 }

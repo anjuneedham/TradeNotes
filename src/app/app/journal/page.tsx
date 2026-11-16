@@ -4,6 +4,8 @@ import { evaluateTrade } from "@/lib/metrics";
 import { toTradeInputs, type TradeRow, type ExitRow } from "@/lib/trade-schema";
 import { deleteTrade } from "./actions";
 import { Card, Notice, inputCls, btnCls, btnGhostCls } from "@/components/ui";
+import { Stickman } from "@/components/stickman/Stickman";
+import { PencilArrow } from "@/components/stickman/PencilArrow";
 import { money, pnlClass, num } from "@/lib/format";
 
 export const metadata = { title: "Journal — TradeNotes" };
@@ -34,7 +36,7 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between"><h1 className="text-2xl font-semibold">Journal</h1><Link href="/app/journal/new" className={btnCls}>+ Log trade</Link></div>
+      <div className="flex items-center justify-between"><div className="flex items-end gap-3"><Stickman pose="think" className="sm-only h-14 w-10" /><h1 className="text-2xl font-semibold">Journal</h1></div><Link href="/app/journal/new" className={btnCls}>+ Log trade</Link></div>
       {sp.saved && <Notice kind="ok">Trade saved.</Notice>}
       {sp.deleted && <Notice kind="ok">Trade deleted.</Notice>}
       <form className="flex flex-wrap gap-2">
@@ -46,7 +48,10 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
         <Card className="text-center">
           <p className="font-medium">{sp.q || sp.side ? "No trades match those filters." : "No trades yet"}</p>
           <p className="mt-1 text-sm text-muted">Your journal is where patterns start to show. Log your most recent trade — it takes about a minute.</p>
-          <Link href="/app/journal/new" className={`${btnCls} mt-4 inline-block`}>Log your first trade</Link>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <PencilArrow dir="right" label="start here" delay={0.4} />
+            <Link href="/app/journal/new" className={`${btnCls} inline-block`}>Log your first trade</Link>
+          </div>
         </Card>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">

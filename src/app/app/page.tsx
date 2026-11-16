@@ -5,6 +5,8 @@ import { toTradeInputs, type TradeRow, type ExitRow } from "@/lib/trade-schema";
 import { money, pct, num, pnlClass } from "@/lib/format";
 import { Card, Notice, btnCls } from "@/components/ui";
 import EquityCurve from "@/components/EquityCurve";
+import { Stickman, type Pose } from "@/components/stickman/Stickman";
+import { PencilArrow, PencilUnderline } from "@/components/stickman/PencilArrow";
 
 export const metadata = { title: "Dashboard — TradeNotes" };
 interface DashRow extends TradeRow { symbol: string; session: string | null; strategy_name: string | null; exits: ExitRow[] }
@@ -60,7 +62,7 @@ export default async function Dashboard() {
   if (rows.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Welcome{profile?.experience_level === "beginner" ? " — let’s get started" : ""}</h1>
+        <div className="flex items-end gap-3"><Stickman pose="point" className="sm-only h-20 w-14" /><h1 className="text-2xl font-semibold">Welcome{profile?.experience_level === "beginner" ? " — let’s get started" : ""}</h1></div>
         <Card>
           <h2 className="font-medium">Start in 3 steps</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted">
@@ -68,7 +70,10 @@ export default async function Dashboard() {
             <li><strong className="text-fg">Tag what happened</strong> — your strategy, how you felt, any mistakes.</li>
             <li><strong className="text-fg">Come back here</strong> — your win rate, expectancy and equity curve build automatically.</li>
           </ol>
-          <Link href="/app/journal/new" className={`${btnCls} mt-4 inline-block`}>Log your first trade</Link>
+          <div className="mt-4 flex items-center gap-3">
+            <Link href="/app/journal/new" className={`${btnCls} inline-block`}>Log your first trade</Link>
+            <PencilArrow dir="left" label="step 1: this one" delay={0.5} />
+          </div>
         </Card>
         <Card className="opacity-80">
           <p className="mb-2 inline-block rounded bg-accent/20 px-2 py-0.5 text-xs text-accent">EXAMPLE — not your data</p>
@@ -85,11 +90,16 @@ export default async function Dashboard() {
   const s = summarize(inputs);
   type Ext = TradeInput & { symbol: string; session: string | null; strategy: string | null };
   const ext: Ext[] = inputs.map((t, i) => ({ ...t, symbol: rows[i].symbol, session: rows[i].session, strategy: rows[i].strategy_name }));
+  // Mood doodle only mirrors the sign of the recorded net P&L; under 30 trades it just "thinks" (too early to tell).
+  const mood: Pose = s.tradeCount === 0 || s.smallSample ? "think" : s.netPnl > 0 ? "win" : s.netPnl < 0 ? "lose" : "stand";
   const excludedN = s.excluded.open_or_partial.length + s.excluded.missing_fx.length + s.excluded.invalid.length;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <div className="flex items-end gap-3">
+        <Stickman pose={mood} className="sm-only h-16 w-11" />
+        <div><h1 className="text-2xl font-semibold">Dashboard</h1><PencilUnderline className="!mx-0 !w-32" /></div>
+      </div>
       {truncated && <Notice kind="error">You have more than 10,000 trades. Statistics below use only the oldest 10,000 and are incomplete.</Notice>}
       {excludedN > 0 && (
         <Notice>

@@ -120,3 +120,10 @@ html:not([data-theme="classic"]) .sm-sum-line { animation: none; opacity: 1; tra
 html:not([data-theme="classic"]) .sm-progress-fill { animation: none; }
   html:not([data-theme="classic"]) .sm-progress-fill { width: 33.3%; }
 }
+
+/* Dashboard + journal (stickman theme) */
+html:not([data-theme="classic"]) .sm-line { stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#sm-wobble); }
+html:not([data-theme="classic"]) table thead { font-family: var(--hand); font-size: 1.05rem; color: var(--amber); }
+html:not([data-theme="classic"]) tbody tr.border-t { border-top-style: dashed; }
+html:not([data-theme="classic"]) .border-b.bg-panel { border-bottom-style: dashed; border-color: color-mix(in srgb, var(--pencil) 45%, transparent); }
+html:not([data-theme="classic"]) .rounded-md.border-accent\/50, html:not([data-theme="classic"]) .rounded-md.border-win\/50, html:not([data-theme="classic"]) .rounded-md.border-loss\/50 { border-style: dashed; }
