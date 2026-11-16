@@ -4,6 +4,55 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16 (later still): Merge funnel pages; src capture coverage
+
+**Asked:** merge the funnel pages and memo to main; add `?src` capture at signup.
+
+### Found
+- `?src=` capture already existed: `src/middleware.ts` sets the `tn_src` cookie (first tag wins, 30 days) and `src/lib/app-context.ts` saves it to `tradenotes.profiles.signup_source` at first sign-in. The funnel agent's report that signup does not read `src` was wrong.
+- Real gap: the middleware matcher did not cover the new routes, so a first-touch tag on a direct landing (e.g. `/prop-firm-traders?src=tt-dm`) was dropped and the on-site CTA tag (`?src=prop-firm-traders`) became the source.
+
+### Changed
+- `src/middleware.ts` matcher now includes `/prop-firm-traders`, `/features`, `/import`, `/compare`, `/how-it-works`, `/changelog` (and their subpaths).
+
+### Test data left behind
+None.
+
+### Still open
+- Check `signup_source` on the next real signup (`select signup_source from tradenotes.profiles`).
+- Competitor prices on `/compare` are dated 2026-11-16; re-check before quoting.
+
+---
+
+## 2026-11-16 — Marketing funnel pages
+
+- **Asked:** build funnel pages (prop-firm landing, feature, import, compare, how-it-works/FAQ, changelog, learn guides) with attributable CTAs and cross-links; add docs/PAGE_BRIEF_TEMPLATE.md.
+- **Found:** homepage dead-ended (analytics: 62 of 73 views on `/`). Signup page does not read `?src` (auth code, not touched), so attribution relies on page-view analytics of `/signup?src=…` URLs.
+- **Changed:** `src/lib/marketing.ts` (data), `src/components/Funnel.tsx` (CTA, next steps, page frame), routes `/prop-firm-traders`, `/features`(+7), `/import`(+11), `/compare`(+5), `/how-it-works`, `/changelog`, `/learn/[slug]`(3 guides); footer hub links, nav links, homepage next-steps, learn hub categories, sitemap via `FUNNEL_PATHS`.
+- **Evidence:** competitor prices fetched 2026-11-16 from TradeZella, Edgewonk, TradesViz pricing pages. TraderSync (403) and Tradervue (404) could not be read, so no facts are stated for them. tsc, eslint, vitest (349 passed), build OK.
+- **Test data left:** none.
+- **Open:** record `src` at signup (needs auth code change, owner decision); re-check competitor prices periodically.
+
+## 2026-11-16 (later): Paid-features rework memo (Fable agent)
+
+**Asked:** why the industry score is 6.7; have Fable rework the paid features; can news, full replays and broker connections be built or run on free infrastructure.
+
+### Found
+- The 6.7 is the weighted scorecard in `docs/READINESS_REVIEW.md`; every row is below target (capture 6, review 6.5, visual evidence 3-4, accounts 7).
+- Research is in `docs/decisions/PAID_FEATURES_REWORK.md` (written by a Fable subagent; web research only, nothing prototyped, no vendor contacted). Several claims are marked unverified in its section H (Finnhub, FMP, Forex Factory and Tradovate pages could not be opened; MetaApi, Twelve Data, Massive, Trading Economics prices conflict between sources).
+
+### Changed
+- Added `docs/decisions/PAID_FEATURES_REWORK.md` and this entry. No application code changed.
+
+### Test data left behind
+None.
+
+### Still open
+- Owner decisions listed in the memo; verify its unverified claims before spending money.
+- `FEATURE_ROADMAP.md` and `UNIT_ECONOMICS.md` are stale against the memo.
+
+---
+
 ## 2026-11-16: Free plan 30 trades, founding offer 100 seats; distribution plan; merge
 
 **Asked:** a zero-budget plan to reach 1,000 free and 100 paying users in 45 days (prop-firm focus); daily 8-hour routine; check new signups; explain the HandyPay webhook/API; change Free to 30 trades and the founding offer to 100 seats; merge to main; updated ratings.

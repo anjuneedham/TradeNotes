@@ -12,9 +12,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <Logo />
           <div className="flex items-center gap-1 text-sm sm:gap-2">
             <Link href="/pricing" className="rounded px-2 py-2 text-muted hover:text-fg sm:px-3">Pricing</Link>
+            <Link href="/prop-firm-traders" className="hidden rounded px-2 py-2 text-muted hover:text-fg md:block sm:px-3">Prop traders</Link>
+            <Link href="/features" className="hidden rounded px-2 py-2 text-muted hover:text-fg sm:block sm:px-3">Features</Link>
             <Link href="/learn" className="hidden rounded px-2 py-2 text-muted hover:text-fg sm:block sm:px-3">Learn</Link>
             <Link href="/login" className="whitespace-nowrap rounded px-2 py-2 text-muted hover:text-fg sm:px-3">Log in</Link>
-            <Link href="/signup" className={`${btnCls} !min-h-9 whitespace-nowrap !px-3 !py-1.5`}>Start free</Link>
+            <Link href="/signup?src=nav" className={`${btnCls} !min-h-9 whitespace-nowrap !px-3 !py-1.5`}>Start free</Link>
           </div>
         </nav>
       </header>

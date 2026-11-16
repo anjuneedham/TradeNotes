@@ -1,4 +1,6 @@
 import { GLOSSARY } from "@/lib/glossary";
+import { GUIDES, FEATURES } from "@/lib/marketing";
+import { Cta, NextSteps } from "@/components/Funnel";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { Eyebrow, linkCls } from "@/components/ui";
@@ -20,7 +22,15 @@ export default function Learn() {
           <Eyebrow>Guides</Eyebrow>
           <ul className="mt-3 space-y-2 text-sm">
             <li><Link href="/learn/r-multiple-prop-firm-challenge" className={linkCls}>R-multiple explained: the number that decides your prop firm challenge (free calculator)</Link></li>
+            {GUIDES.map((g) => <li key={g.slug}><Link href={`/learn/${g.slug}`} className={linkCls}>{g.title}</Link></li>)}
             <li><Link href="/free" className={linkCls}>Free trading journal template + 30-trade review checklist</Link></li>
+          </ul>
+          <Eyebrow>Categories</Eyebrow>
+          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <li><a href="#win-rate" className={linkCls}>Metrics glossary</a></li>
+            <li><Link href="/prop-firm-traders" className={linkCls}>Prop firm traders</Link></li>
+            <li><Link href="/import" className={linkCls}>Broker import</Link></li>
+            {FEATURES.slice(0, 3).map((f) => <li key={f.slug}><Link href={`/features/${f.slug}`} className={linkCls}>{f.name}</Link></li>)}
           </ul>
         </div>
         <div className="mt-10 divide-y divide-border border-y border-border">
@@ -33,6 +43,8 @@ export default function Learn() {
             </section>
           ))}
         </div>
+        <Cta src="learn" />
+        <NextSteps links={[{ href: "/prop-firm-traders", label: "For prop-firm traders" }, { href: "/features/analytics", label: "Analytics in R" }, { href: "/how-it-works", label: "How it works & FAQ" }]} />
       </div>
     </div>
   );
