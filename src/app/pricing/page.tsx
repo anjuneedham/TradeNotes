@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PencilArrow, PencilUnderline } from "@/components/stickman/PencilArrow";
 import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
 
 const features: Record<string, string[]> = {
@@ -19,6 +20,7 @@ export default function Pricing() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="text-center text-4xl font-semibold">Simple pricing</h1>
+      <PencilUnderline />
       <p className="mt-3 text-center text-muted">Start free. Upgrade when you need more. Cancel any time.</p>
       <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-accent/50 bg-accent/10 p-4 text-center text-sm">
         <strong>Founding members:</strong> the first {FOUNDING_OFFER.seats} paying members can get {FOUNDING_OFFER.discountPct}% off for {FOUNDING_OFFER.months} months in exchange for honest feedback. Ask for it after signing up.
@@ -40,6 +42,7 @@ export default function Pricing() {
                   <ul className="mt-1 space-y-1">{soon[id].map((f) => <li key={f}>○ {f}</li>)}</ul>
                 </div>
               )}
+              {id === "free" && <PencilArrow dir="up-right" label="most people start here" className="mt-2" delay={0.4} />}
               <Link href={id === "free" ? "/signup" : `/app/billing?plan=${id}`} className="mt-6 block rounded-md bg-accent py-2 text-center font-medium text-white">
                 {id === "free" ? "Start free" : `Choose ${p.name}`}
               </Link>

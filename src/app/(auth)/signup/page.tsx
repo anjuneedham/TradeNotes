@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { signup } from "../actions";
 import { Field, Notice, inputCls, btnCls } from "@/components/ui";
+import { PencilArrow } from "@/components/stickman/PencilArrow";
+import { Stickman } from "@/components/stickman/Stickman";
 import { LEGAL, isFilled } from "@/lib/legal";
 
 export const metadata = { title: "Create account — TradeNotes" };
@@ -19,11 +21,14 @@ export default async function Signup({ searchParams }: { searchParams: Promise<{
   }
   return (
     <form action={signup} className="space-y-4">
-      <h1 className="text-2xl font-semibold">Create your free account</h1>
+      <div className="flex items-end gap-3"><Stickman pose="win" className="sm-only h-14 w-10" /><h1 className="text-2xl font-semibold">Create your free account</h1></div>
       {error && <Notice kind="error">{error}</Notice>}
       <Field label="Email"><input name="email" type="email" autoComplete="email" required className={inputCls} /></Field>
       <Field label="Password" hint="At least 8 characters."><input name="password" type="password" autoComplete="new-password" minLength={8} required className={inputCls} /></Field>
-      <button className={`${btnCls} w-full`}>Create account</button>
+      <div className="relative">
+        <button className={`${btnCls} w-full`}>Create account</button>
+        <PencilArrow dir="left" label="free, no card" className="absolute -right-4 -top-14 hidden md:inline-flex" delay={0.5} />
+      </div>
       <p className="text-xs text-muted">By signing up you agree to the <Link href="/legal/terms" className="underline">Terms</Link> and <Link href="/legal/privacy" className="underline">Privacy Policy</Link>.</p>
       <p className="text-sm text-muted">Already have an account? <Link href="/login" className="underline">Log in</Link></p>
     </form>

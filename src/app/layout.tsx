@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Caveat } from "next/font/google";
 import "./globals.css";
+import { ThemeToggle, themeInitScript } from "@/components/stickman/ThemeToggle";
+import { Stickman } from "@/components/stickman/Stickman";
+
+const hand = Caveat({ subsets: ["latin"], variable: "--font-hand", display: "swap" });
 
 export const metadata: Metadata = {
   title: "TradeNotes — Trading Journal & Backtesting",
@@ -9,14 +14,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={hand.variable} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body className="min-h-screen antialiased">
+        {/* Shared pencil-wobble filter used by every doodle (stickman theme). */}
+        <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+          <filter id="sm-wobble"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="3" /></filter>
+        </svg>
         <header className="border-b border-border">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link href="/" className="font-semibold tracking-tight">TradeNotes</Link>
-            <div className="flex gap-4 text-sm text-muted">
+            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight sm-wordmark"><Stickman pose="point" className="sm-only h-7 w-5" />TradeNotes</Link>
+            <div className="flex items-center gap-4 text-sm text-muted">
               <Link href="/pricing" className="hover:text-fg">Pricing</Link>
               <Link href="/learn" className="hover:text-fg">Learn</Link>
+              <ThemeToggle />
             </div>
           </nav>
         </header>
