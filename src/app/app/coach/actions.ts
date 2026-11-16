@@ -11,7 +11,7 @@ export type AskResult = { ok: true; answer: string; usedPct: number } | { ok: fa
 export async function askCoachAction(question: string): Promise<AskResult> {
   const { db, plan, scope, tz } = await getContext();
   const budget = PLANS[plan].aiBudgetCents * 10_000; // micro-dollars
-  if (budget <= 0) return { ok: false, error: "The AI Coach is not available on this plan." };
+  if (budget <= 0) return { ok: false, error: `The AI Coach is included with ${PLANS.starter.name} and ${PLANS.pro.name}.` };
   if (!coachConfigured()) return { ok: false, error: "The AI Coach is being switched on. Please try again soon." };
   const q = String(question ?? "").trim().slice(0, 2000);
   if (q.length < 2) return { ok: false, error: "Type a question first." };

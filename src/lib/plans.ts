@@ -3,7 +3,7 @@
  *  `aiBudgetCents` = monthly AI Coach allowance in US cents of Anthropic usage (calendar month, UTC); `insights` = automatic findings shown on the dashboard.
  *  Plan ids (free/starter/pro) are stored in tradenotes.subscriptions and must not change; only the display names were renamed (Standard, Premium). */
 export const PLANS = {
-  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 30,   csvImport: false, backtesting: false, accounts: 1,  screenshotQuotaMB: 0,    calendar: false, reviews: false, playbook: false, comparison: false, shareLinks: true, aiBudgetCents: 5,   score: false, insights: 1 },
+  free:    { name: "Free",    monthly: 0,  annual: 0,   tradeLimit: 30,   csvImport: false, backtesting: false, accounts: 1,  screenshotQuotaMB: 0,    calendar: false, reviews: false, playbook: false, comparison: false, shareLinks: true, aiBudgetCents: 0,   score: false, insights: 1 },
   starter: { name: "Standard", monthly: 12, annual: 120, tradeLimit: 2000, csvImport: true,  backtesting: false, accounts: 2,  screenshotQuotaMB: 500,  calendar: true,  reviews: true,  playbook: true, comparison: false, shareLinks: true, aiBudgetCents: 200, score: true,  insights: 3 },
   pro:     { name: "Premium", monthly: 24, annual: 240, tradeLimit: null, csvImport: true,  backtesting: true,  accounts: 10, screenshotQuotaMB: 2048, calendar: true,  reviews: true,  playbook: true, comparison: true, shareLinks: true, aiBudgetCents: 400, score: true,  insights: 99 },
 } as const;

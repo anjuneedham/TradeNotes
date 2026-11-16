@@ -25,7 +25,7 @@ export const FEATURES_NOW: FeatureRow[] = [
   { label: "Broker import", detail: "Recognises MetaTrader 4/5, cTrader, TradingView, Tradovate, NinjaTrader, Thinkorswim, Interactive Brokers, Webull, Binance and Bybit exports, or map any CSV yourself. Time zones, fills grouped into trades, duplicates skipped, roll back any import.", cells: { free: false, starter: true, pro: true } },
   { label: "Futures, options, forex and crypto specs", detail: "Contract point values, option multipliers, pips and lots handled for you.", cells: all(true) },
   { label: "Multiple trading accounts", detail: "Switch between accounts or view them combined.", cells: { free: "1", starter: `Up to ${PLANS.starter.accounts}`, pro: `Up to ${PLANS.pro.accounts}` } },
-  { label: "AI Coach", detail: `Ask about your own trades in plain English: "why was last week red?", "what is my most expensive habit?", "which setup should I drop?". The coach looks up your stats, tags and playbook results and answers with your numbers and things to try next. Questions per month, about: Free ${aiQuestions("free")} (a taste), ${PLANS.starter.name} ${aiQuestions("starter")}, ${PLANS.pro.name} ${aiQuestions("pro")}. Refilled on the 1st. Not financial advice.`, cells: { free: `${aiQuestions("free")} to try`, starter: `~${aiQuestions("starter")} / month`, pro: `~${aiQuestions("pro")} / month` } },
+  { label: "AI Coach", detail: `Ask about your own trades in plain English: "why was last week red?", "what is my most expensive habit?", "which setup should I drop?". The coach looks up your stats, tags and playbook results and answers with your numbers and things to try next. Questions per month, about: ${PLANS.starter.name} ${aiQuestions("starter")}, ${PLANS.pro.name} ${aiQuestions("pro")}. Refilled on the 1st. Not financial advice.`, cells: { free: false, starter: `~${aiQuestions("starter")} / month`, pro: `~${aiQuestions("pro")} / month` } },
   { label: "TradeNotes Score", detail: "One 0–100 rating across profit factor, win size vs loss size, win rate, consistency, drawdown control and discipline, with the weakest one named as the thing to fix first.", cells: { free: PLANS.free.score, starter: PLANS.starter.score, pro: PLANS.pro.score } },
   { label: "Automatic insights", detail: "Findings about your own trades, spotted for you: your costliest mistake in dollars, best and worst hour to enter, the emotion that loses you money, your weakest instrument, and red days that follow red days.", cells: { free: `${PLANS.free.insights}`, starter: `${PLANS.starter.insights}`, pro: "All" } },
   { label: "Calendar view", detail: "A month grid of daily profit or loss and trade count in your time zone, weekly totals, and a click through to that day's trades. Not colour-dependent: signs and sizes are written out.", cells: { free: PLANS.free.calendar, starter: PLANS.starter.calendar, pro: PLANS.pro.calendar } },
@@ -60,7 +60,7 @@ export const PLAN_HIGHLIGHTS: Record<PlanId, [string, string][]> = {
   free: [
     ["Full journal and dashboard", "Partial exits, fees, forex lots, futures and options specs."],
     ["Deep analytics", "R distribution, heatmap, hold time and what each mistake cost."],
-    ["Try the AI Coach", `${aiQuestions("free")} questions a month, free, to see what it finds in your trades.`],
+    ["Charts and numbers you can act on", "Win rate, expectancy and profit factor with plain-English explanations."],
     ["Your first insight", "One automatic finding from your own trades."],
   ],
   starter: [

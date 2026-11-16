@@ -4,6 +4,26 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-16 (evening): AI Coach removed from Free
+
+**Asked:** remove the AI Coach from Free; it should be a paid selling point and the owner cannot afford it.
+
+### Found
+- Free had a 5-cent monthly allowance (about 3 questions) in `PLANS.free.aiBudgetCents`. Earlier notes say `ANTHROPIC_API_KEY` was not set in production, so no coach cost had been incurred (not re-checked this session).
+
+### Changed
+- `PLANS.free.aiBudgetCents` 5 to 0 (server-side: `askCoachAction` already refuses a zero budget). `/app/coach` shows an upgrade card for Free instead of the chat. Pricing cards, feature table, FAQ, `/features/ai-coach`, dashboard panel and `docs/AI_COACH_SETUP.md` no longer offer Free questions. Test updated: Free budget must be 0.
+- Verified: tsc, eslint, 349 unit tests. Browser e2e not run.
+
+### Test data left behind
+None.
+
+### Still open
+- Free users' old coach history rows (if any) stay in the database; the page no longer shows them.
+- `docs/decisions/PAID_FEATURES_REWORK.md` still lists "3 coach questions" under Free (dated research memo, left as written).
+
+---
+
 ## 2026-11-16 (later still): Merge funnel pages; src capture coverage
 
 **Asked:** merge the funnel pages and memo to main; add `?src` capture at signup.

@@ -97,8 +97,8 @@ export function PerformancePanel({ plan, score, found, tradeCount, demo = false 
           </ul>
         )}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-          <p className="text-sm"><span className="font-medium">AI Coach</span> <span className="text-muted">{plan === "free" ? `— try ${aiQuestions("free")} free questions: why did a week go red, what should I stop doing?` : "— ask why a week went red, or what to stop doing."}</span></p>
-          {!demo && <Link href="/app/coach" className={plan === "free" ? btnGhostCls : btnCls}>{plan === "free" ? "Try the coach" : "Ask the coach"}</Link>}
+          <p className="text-sm"><span className="font-medium">AI Coach</span> <span className="text-muted">{plan === "free" ? "— ask why a week went red, or what to stop doing. Included with Standard and Premium." : "— ask why a week went red, or what to stop doing."}</span></p>
+          {!demo && <Link href="/app/coach" className={plan === "free" ? btnGhostCls : btnCls}>{plan === "free" ? "See what it does" : "Ask the coach"}</Link>}
         </div>
       </Card>
     </div>
