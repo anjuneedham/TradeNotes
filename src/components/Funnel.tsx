@@ -1,3 +1,4 @@
+import { JamesNote } from "./JamesNote";
 import Link from "next/link";
 import { Eyebrow, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 import { OFFER, NOT_AFFILIATED, type NextLink } from "@/lib/marketing";
@@ -52,6 +53,7 @@ export function FunnelPage({ eyebrow, title, intro, src, next, children, free = 
       </div>
       <div className="mt-10 leading-relaxed">{children}</div>
       <Cta src={src} free={free} />
+      <JamesNote />
       <NextSteps links={next} />
       <p className="mt-8 text-xs text-muted">TradeNotes does not provide financial advice and does not promise trading results.{affiliated ? ` ${NOT_AFFILIATED}` : ""}</p>
     </article>

@@ -18,7 +18,7 @@ export default function Notes() {
           <p className="mt-2 text-muted">{JAMES.bio}</p>
         </div>
       </div>
-      <section className="mt-8 rounded-lg border border-border bg-panel p-6">
+      <section id="subscribe" className="mt-8 rounded-lg border border-border bg-panel p-6">
         <h2 className="font-semibold">Get each page in your inbox</h2>
         <p className="mb-4 mt-1 text-sm text-muted">A new note every day: articles on how trading numbers work, and made-up story times about the habits behind them.</p>
         <SubscribeForm source="notes" />

@@ -1,13 +1,13 @@
 "use client";
+import { James } from "@/components/James";
 import Link from "next/link";
 import { btnCls, btnGhostCls } from "@/components/ui";
-import { Stickman } from "@/components/stickman/Stickman";
 
 /** Shown inside the app shell when a page fails to load. Never shows technical details. */
 export default function AppError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="mx-auto max-w-md py-10" role="alert">
-      <Stickman pose="lose" className="sm-only mb-3 h-20 w-14" />
+      <James pose="think" size={90} className="mb-3 text-fg" />
       <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
       <p className="mt-2 text-sm text-muted">We couldn&apos;t load this page. Your data is safe — nothing was changed. Try again, and if it keeps happening, come back in a few minutes.</p>
       <div className="mt-6 flex flex-wrap gap-2">
