@@ -1,3 +1,4 @@
+import { JamesNote } from "@/components/JamesNote";
 import Link from "next/link";
 import { pageMeta } from "@/lib/seo";
 import { Eyebrow, linkCls } from "@/components/ui";
@@ -51,6 +52,7 @@ export default function Checklist() {
       </div>
       <p className="mt-10 text-sm text-muted">Not sure what R-multiple or expectancy mean? Read <Link href="/learn/r-multiple-prop-firm-challenge" className={linkCls}>R-multiple explained (with a free calculator)</Link>. TradeNotes works out every number on this checklist from your journal automatically: <Link href="/demo" className={linkCls}>see the demo</Link>.</p>
       <p className="mt-4 text-xs text-muted">Educational content, not financial advice. Trading involves substantial risk of loss.</p>
+      <JamesNote />
     </div>
   );
 }

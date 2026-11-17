@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { PUBLIC_PATHS, DISALLOWED_PATHS, pageMeta, jsonLd, SITE_URL } from "./seo";
+import { publishedNotes } from "./newsletter";
 import sitemap from "../app/sitemap";
 import robots from "../app/robots";
 
 describe("seo", () => {
   it("sitemap lists exactly the public pages with absolute URLs and never private ones", () => {
     const urls = sitemap().map((e) => e.url);
-    expect(urls).toHaveLength(PUBLIC_PATHS.length);
+    expect(urls).toHaveLength(PUBLIC_PATHS.length + publishedNotes().length); // public pages + one URL per published daily note
     expect(urls).toContain(SITE_URL);
     expect(urls).toContain(`${SITE_URL}/pricing`);
     for (const u of urls) { expect(u.startsWith("https://") || u.startsWith("http://")).toBe(true); for (const d of DISALLOWED_PATHS) expect(u.includes(d)).toBe(false); }

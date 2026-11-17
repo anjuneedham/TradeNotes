@@ -1,3 +1,4 @@
+import { James } from "@/components/James";
 import { GLOSSARY } from "@/lib/glossary";
 import { GUIDES, FEATURES } from "@/lib/marketing";
 import { Cta, NextSteps } from "@/components/Funnel";
@@ -16,6 +17,7 @@ export default function Learn() {
         </div>
       </nav>
       <div className="max-w-3xl">
+        <James pose="read" size={80} className="mb-2 text-fg" label="James reading his notes" />
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Trading metrics, explained</h1>
         <p className="mt-3 text-muted">The numbers TradeNotes calculates, how we calculate them, and how to read them honestly.</p>
         <div className="mt-8 rounded-xl border border-border bg-panel p-5">

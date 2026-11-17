@@ -1,3 +1,4 @@
+import { James } from "@/components/James";
 import Link from "next/link";
 import { PLANS, FOUNDING_OFFER, ANNUAL_MONTHS_FREE, aiQuestions } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/plans";
@@ -27,6 +28,7 @@ export default async function Pricing() {
     <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq().map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }) }} />
       <div className="max-w-2xl">
+        <James pose="wave" size={80} className="mb-2 text-fg" />
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Start free. Pay when your journal outgrows it.</h1>
         <PencilUnderline className="!mx-0" />
         <p className="mt-3 text-muted">Three plans, billed monthly or yearly in US dollars. Pay yearly and get 2 months free. No card needed for Free. Cancel any time.</p>

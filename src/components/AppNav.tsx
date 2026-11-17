@@ -63,6 +63,7 @@ export function AppNav({ logout, switcher, children }: { logout: ReactNode; swit
         <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-3 text-sm">
           <Link href="/app/accounts" aria-current={active("/app/accounts") ? "page" : undefined} className="rounded-md px-2.5 py-2 text-muted hover:bg-raised/60 hover:text-fg">Accounts</Link>
           <Link href="/learn" className="rounded-md px-2.5 py-2 text-muted hover:bg-raised/60 hover:text-fg">Metric guide</Link>
+          <Link href="/notes" className="rounded-md px-2.5 py-2 text-muted hover:bg-raised/60 hover:text-fg">James&apos;s Notes</Link>
           {logout}
           <div className="px-2.5 pt-2"><ThemeToggle /></div>
         </div>

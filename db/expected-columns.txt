@@ -269,3 +269,13 @@ tradenotes.ai_messages.model|text|YES|||
 tradenotes.ai_messages.output_tokens|integer|NO|32|0|
 tradenotes.ai_messages.role|text|NO|||
 tradenotes.ai_messages.user_id|uuid|NO|||
+tradenotes.note_subscribers.confirm_sent_at|timestamp with time zone|YES|||
+tradenotes.note_subscribers.confirmed_at|timestamp with time zone|YES|||
+tradenotes.note_subscribers.created_at|timestamp with time zone|NO|||
+tradenotes.note_subscribers.email|text|NO|||
+tradenotes.note_subscribers.id|uuid|NO|||
+tradenotes.note_subscribers.last_sent_on|date|YES|||
+tradenotes.note_subscribers.source|text|YES|||
+tradenotes.note_subscribers.status|text|NO|||
+tradenotes.note_subscribers.token|uuid|NO|||
+tradenotes.note_subscribers.unsubscribed_at|timestamp with time zone|YES|||

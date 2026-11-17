@@ -1,3 +1,4 @@
+import { James } from "./James";
 import type { ReactNode } from "react";
 import { LEGAL, legalComplete, missingLegalFields } from "@/lib/legal";
 
@@ -5,7 +6,7 @@ export function LegalShell({ title, children }: { title: string; children: React
   const missing = missingLegalFields();
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 text-sm leading-relaxed">
-      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+      <div className="flex items-center gap-3"><James pose="read" size={56} className="shrink-0 text-fg" label="James reading the small print" /><h1 className="text-3xl font-semibold tracking-tight">{title}</h1></div>
       <p className="mt-1 text-xs text-muted">Effective {LEGAL.effectiveDate}</p>
       {!legalComplete() && (
         <p role="alert" className="mt-4 rounded border border-loss/50 bg-loss/10 p-3">

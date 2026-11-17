@@ -16,6 +16,7 @@ const LINKS = [
   { href: "/app/settings", title: "Settings", sub: "Time zone, appearance, export, delete account." },
   { href: "/app/billing", title: "Plan and billing", sub: "Your plan, usage and invoices." },
   { href: "/learn", title: "Metric guide", sub: "What each number means." },
+  { href: "/notes", title: "James's Notes", sub: "A short article or story every day." },
 ];
 
 /** The phone's "More" tab: everything that does not fit in the bottom bar. */

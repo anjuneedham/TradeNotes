@@ -1,3 +1,4 @@
+import { JamesNote } from "@/components/JamesNote";
 import { PencilUnderline } from "@/components/stickman/PencilArrow";
 import Link from "next/link";
 import { pageMeta } from "@/lib/seo";
@@ -30,6 +31,7 @@ export default function Free() {
         <li><Link href="/demo" className={linkCls}>TradeNotes demo</Link>: a full sample journal, no account needed.</li>
       </ul>
       <p className="mt-10 text-xs text-muted">Educational content, not financial advice. Trading involves substantial risk of loss.</p>
+      <JamesNote />
     </div>
   );
 }
