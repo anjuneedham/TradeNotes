@@ -1,3 +1,4 @@
+import { James } from "@/components/James";
 import Link from "next/link";
 import { PLANS, FOUNDING_OFFER } from "@/lib/plans";
 
@@ -18,6 +19,7 @@ export const metadata = { title: "Pricing — TradeNotes" };
 export default function Pricing() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-16">
+      <James pose="wave" size={90} className="mx-auto mb-2 text-fg" />
       <h1 className="text-center text-4xl font-semibold">Simple pricing</h1>
       <p className="mt-3 text-center text-muted">Start free. Upgrade when you need more. Cancel any time.</p>
       <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-accent/50 bg-accent/10 p-4 text-center text-sm">

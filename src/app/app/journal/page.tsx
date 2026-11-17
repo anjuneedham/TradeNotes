@@ -1,3 +1,4 @@
+import { James } from "@/components/James";
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
 import { evaluateTrade } from "@/lib/metrics";
@@ -44,6 +45,7 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
       </form>
       {rows.length === 0 ? (
         <Card className="text-center">
+          <James pose="write" size={80} className="mx-auto mb-2 text-fg" />
           <p className="font-medium">{sp.q || sp.side ? "No trades match those filters." : "No trades yet"}</p>
           <p className="mt-1 text-sm text-muted">Your journal is where patterns start to show. Log your most recent trade — it takes about a minute.</p>
           <Link href="/app/journal/new" className={`${btnCls} mt-4 inline-block`}>Log your first trade</Link>

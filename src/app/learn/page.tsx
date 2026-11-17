@@ -1,8 +1,10 @@
+import { James } from "@/components/James";
 import { GLOSSARY } from "@/lib/glossary";
 export const metadata = { title: "Learn — TradeNotes" };
 export default function Learn() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
+      <James pose="read" size={90} className="mb-3 text-fg" label="James reading his notes" />
       <h1 className="text-4xl font-semibold">Trading metrics, explained</h1>
       <p className="mt-3 text-muted">The numbers TradeNotes calculates, how we calculate them, and how to read them honestly.</p>
       <div className="mt-10 space-y-6">
