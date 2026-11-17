@@ -1,0 +1,16 @@
+Account Statement for 00000000 (individual) since 11/1/25 through 11/5/25
+
+Cash Balance
+DATE,TIME,TYPE,REF #,DESCRIPTION,Misc Fees,Commissions & Fees,AMOUNT,BALANCE
+11/3/25,09:31:05,TRD,="1",BOT +100 AAPL @200.00,,,"-20,000.00","5,000.00"
+
+Account Trade History
+,Exec Time,Spread,Side,Qty,Pos Effect,Symbol,Exp,Strike,Type,Price,Net Price,Order Type
+,11/3/25 09:31:05,STOCK,BUY,+100,TO OPEN,AAPL,,,STOCK,200.00,200.00,LMT
+,11/3/25 10:15:00,STOCK,SELL,-60,TO CLOSE,AAPL,,,STOCK,202.00,202.00,LMT
+,11/3/25 11:00:00,STOCK,SELL,-40,TO CLOSE,AAPL,,,STOCK,199.50,199.50,LMT
+,11/4/25 09:45:00,SINGLE,BUY,+2,TO OPEN,SPY,21 NOV 25,600,CALL,3.20,3.20,LMT
+,11/4/25 14:00:00,SINGLE,SELL,-2,TO CLOSE,SPY,21 NOV 25,600,CALL,4.70,4.70,LMT
+
+Profits and Losses
+Symbol,Description,P/L Open,P/L %,P/L Day,P/L YTD

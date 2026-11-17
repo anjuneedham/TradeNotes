@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getContext } from "@/lib/app-context";
-import { Card, Field, inputCls, btnCls } from "@/components/ui";
+import { Card, Field, Notice, Eyebrow, inputCls, btnCls } from "@/components/ui";
 
 async function complete(formData: FormData) {
   "use server";
@@ -40,11 +40,13 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
   const acct = accounts[0];
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="text-2xl font-semibold">Welcome to TradeNotes</h1>
-      <p className="mt-2 text-sm text-muted">Six quick questions so we can set things up for you. It takes about a minute.</p>
-      {error && <p role="alert" className="mt-3 text-sm text-loss">Something was missing — please check your answers.</p>}
+      <Eyebrow>Set up · about a minute</Eyebrow>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Welcome to TradeNotes</h1>
+      <p className="mt-2 text-sm text-muted">A few questions so your defaults and explanations fit how you trade. You can&apos;t break anything here — the answers only tailor the app.</p>
+      {error && <div className="mt-4"><Notice kind="error">Something was missing — please check your answers.</Notice></div>}
       <form action={complete} className="mt-6 space-y-4">
         <Card className="space-y-4">
+          <h2 className="font-medium"><span className="fig mr-2 text-xs text-muted">1</span>About your trading</h2>
           <Field label="How would you describe your experience?">{sel("experience_level", [["beginner", "Beginner (under 1 year)"], ["intermediate", "Intermediate (1–3 years)"], ["experienced", "Experienced (3+ years)"]], profile?.experience_level ?? "beginner")}</Field>
           <Field label="What do you trade most?">{sel("primary_market", [["forex", "Forex"], ["futures", "Futures"], ["stocks", "Stocks"], ["options", "Options"], ["crypto", "Crypto"]], "forex")}</Field>
           <Field label="Trading style">{sel("trading_style", [["scalping", "Scalping (seconds–minutes)"], ["day", "Day trading"], ["swing", "Swing trading (days)"], ["position", "Position trading (weeks+)"]], "day")}</Field>
@@ -52,15 +54,16 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
           <Field label="What do you most want to improve?">{sel("main_goal", [["consistency", "Consistency"], ["risk", "Risk management"], ["strategy", "Finding a strategy that works"], ["psychology", "Discipline & emotions"], ["track", "Just track my results"]], "consistency")}</Field>
         </Card>
         <Card className="space-y-4">
-          <p className="text-sm font-medium">Your first trading account</p>
+          <div><h2 className="font-medium"><span className="fig mr-2 text-xs text-muted">2</span>Your trading account</h2><p className="mt-1 text-xs text-muted">Your statistics are reported in this account&apos;s currency.</p></div>
           <Field label="Account name"><input name="account_name" defaultValue={acct?.name ?? "My Account"} required maxLength={60} className={inputCls} /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Account currency"><input name="currency" defaultValue={acct?.currency ?? "USD"} maxLength={3} minLength={3} required className={inputCls} /></Field>
-            <Field label="Starting balance"><input name="starting_balance" type="number" step="0.01" min="0" defaultValue={acct?.starting_balance ?? 0} className={inputCls} /></Field>
+            <Field label="Account currency" hint="3-letter code, e.g. USD"><input name="currency" autoCapitalize="characters" defaultValue={acct?.currency ?? "USD"} maxLength={3} minLength={3} required className={inputCls} /></Field>
+            <Field label="Starting balance"><input name="starting_balance" type="number" inputMode="decimal" step="0.01" min="0" defaultValue={acct?.starting_balance ?? 0} className={inputCls} /></Field>
           </div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="show_explanations" defaultChecked /> Show plain-English explanations next to my stats</label>
+          <label className="flex cursor-pointer items-start gap-3 text-sm"><input type="checkbox" name="show_explanations" defaultChecked className="mt-0.5 h-4 w-4 accent-[var(--accent)]" /><span>Show plain-English explanations next to my stats<span className="mt-0.5 block text-xs text-muted">You can change this later in Settings.</span></span></label>
         </Card>
-        <button className={`${btnCls} w-full py-3`}>Continue</button>
+        <button className={`${btnCls} w-full`}>Continue</button>
+        <p className="text-center text-xs text-muted">Next: your dashboard, with a guide to logging your first trade.</p>
       </form>
     </div>
   );

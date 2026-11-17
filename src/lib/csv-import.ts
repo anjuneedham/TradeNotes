@@ -5,6 +5,9 @@ import Papa from "papaparse";
  * One CSV row = one round-trip trade (entry + full exit). Broker-specific
  * fill-level presets are P1 (see docs/FEATURE_ROADMAP.md).
  */
+/** Upload cap (also enforced server-side). */
+export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+
 export const IMPORT_FIELDS = [
   "symbol", "side", "quantity", "entryPrice", "exitPrice", "openedAt", "closedAt", "fees",
 ] as const;
@@ -81,7 +84,7 @@ export function fingerprint(t: Omit<ParsedTrade, "fingerprint">): string {
   return [t.symbol.toUpperCase(), t.side, t.quantity, t.entryPrice, t.exitPrice, t.openedAt, t.closedAt ?? ""].join("|");
 }
 
-export function previewImport(csv: string, mapping: ColumnMapping): ImportPreview {
+export function previewImport(csv: string, mapping: ColumnMapping, parseTime: (v: unknown) => string | null = parseDate): ImportPreview {
   const parsed = Papa.parse<Record<string, string>>(csv, { header: true, skipEmptyLines: true });
   const headers = parsed.meta.fields ?? [];
   const errors: RowError[] = [];
@@ -100,8 +103,8 @@ export function previewImport(csv: string, mapping: ColumnMapping): ImportPrevie
     const quantity = Math.abs(parseNumber(get("quantity")));
     const entryPrice = parseNumber(get("entryPrice"));
     const exitPrice = parseNumber(get("exitPrice"));
-    const openedAt = parseDate(get("openedAt"));
-    const closedAt = mapping.closedAt ? parseDate(get("closedAt")) : null;
+    const openedAt = parseTime(get("openedAt"));
+    const closedAt = mapping.closedAt ? parseTime(get("closedAt")) : null;
     const feesRaw = mapping.fees ? get("fees") : undefined;
     const fees = feesRaw === undefined || String(feesRaw).trim() === "" ? 0 : Math.abs(parseNumber(feesRaw));
 

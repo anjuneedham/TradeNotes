@@ -1,0 +1,26 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.30,Cap,,0,0,0,,The most expensive trade\Nusually isn't the loss.
+Dialogue: 0,0:00:03.30,0:00:06.50,Cap,,0,0,0,,It's the one you take\Nright {\c&H1EB0F2&}after{\c&HFAF7F5&} it.
+Dialogue: 0,0:00:06.80,0:00:10.00,Cap,,0,0,0,,You lose. You feel it.\NTen minutes later,
+Dialogue: 0,0:00:10.00,0:00:13.20,Cap,,0,0,0,,you're back in. {\c&H1EB0F2&}Bigger{\c&HFAF7F5&}\Nsize. Worse setup. No
+Dialogue: 0,0:00:13.20,0:00:13.60,Cap,,0,0,0,,plan.
+Dialogue: 0,0:00:13.90,0:00:16.70,Cap,,0,0,0,,That's {\c&H1EB0F2&}revenge{\c&HFAF7F5&} trading.\NThe fix isn't willpower.
+Dialogue: 0,0:00:17.00,0:00:20.60,Cap,,0,0,0,,It's a rule you set\N{\c&H1EB0F2&}before{\c&HFAF7F5&} the loss happens.
+Dialogue: 0,0:00:20.60,0:00:23.80,Cap,,0,0,0,,Here's mine. After a\Nfull stop-out, I close
+Dialogue: 0,0:00:23.80,0:00:27.00,Cap,,0,0,0,,the chart for fifteen\Nminutes and write down
+Dialogue: 0,0:00:27.00,0:00:28.20,Cap,,0,0,0,,what happened first.
+Dialogue: 0,0:00:28.50,0:00:32.10,Cap,,0,0,0,,And any trade I take out\Nof frustration gets
+Dialogue: 0,0:00:32.10,0:00:35.70,Cap,,0,0,0,,tagged {\c&H1EB0F2&}revenge{\c&HFAF7F5&} trade.\NTag it, and you can see
+Dialogue: 0,0:00:35.70,0:00:37.70,Cap,,0,0,0,,what that feeling costs\Nyou.
+Dialogue: 0,0:00:38.00,0:00:40.40,Cap,,0,0,0,,Follow for more {\c&H1EB0F2&}honest{\c&HFAF7F5&}\Ntrading habits.

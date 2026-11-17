@@ -1,0 +1,25 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.30,Cap,,0,0,0,,Typed the {\c&H1EB0F2&}wrong{\c&HFAF7F5&} exit\Nprice? Here's the fix.
+Dialogue: 0,0:00:03.60,0:00:06.80,Cap,,0,0,0,,Open the trade. Tap {\c&H1EB0F2&}Edit{\c&HFAF7F5&}\Ntrade. Change the
+Dialogue: 0,0:00:06.80,0:00:07.60,Cap,,0,0,0,,number. Save.
+Dialogue: 0,0:00:07.90,0:00:11.50,Cap,,0,0,0,,Sample data here. The\N{\c&H1EB0F2&}exit{\c&HFAF7F5&} goes from one point
+Dialogue: 0,0:00:11.50,0:00:15.50,Cap,,0,0,0,,zero nine five zero to\None point zero nine one
+Dialogue: 0,0:00:15.50,0:00:15.90,Cap,,0,0,0,,zero.
+Dialogue: 0,0:00:16.20,0:00:18.60,Cap,,0,0,0,,The result {\c&H1EB0F2&}drops{\c&HFAF7F5&} from\Nnine hundred
+Dialogue: 0,0:00:18.60,0:00:20.60,Cap,,0,0,0,,ninety-three dollars to\Nfive hundred
+Dialogue: 0,0:00:20.60,0:00:21.00,Cap,,0,0,0,,ninety-three.
+Dialogue: 0,0:00:21.30,0:00:25.30,Cap,,0,0,0,,P and L, R and the\Ndashboard all {\c&H1EB0F2&}update.{\c&HFAF7F5&} No
+Dialogue: 0,0:00:25.30,0:00:25.70,Cap,,0,0,0,,re-entering.
+Dialogue: 0,0:00:26.00,0:00:29.60,Cap,,0,0,0,,An {\c&H1EB0F2&}accurate{\c&HFAF7F5&} journal is a\Nuseful journal. Try it
+Dialogue: 0,0:00:29.60,0:00:31.20,Cap,,0,0,0,,free. Link in bio.

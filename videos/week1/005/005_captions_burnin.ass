@@ -1,0 +1,25 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.70,Cap,,0,0,0,,Traders keep saying {\c&H1EB0F2&}one{\c&HFAF7F5&}\NR. Here's what it means.
+Dialogue: 0,0:00:04.00,0:00:08.40,Cap,,0,0,0,,R is what you {\c&H1EB0F2&}planned{\c&HFAF7F5&} to\Nlose if your stop hits.
+Dialogue: 0,0:00:08.40,0:00:10.00,Cap,,0,0,0,,Entry here. Stop here.
+Dialogue: 0,0:00:10.30,0:00:13.90,Cap,,0,0,0,,On your size, that gap\Nis fifty dollars. That's
+Dialogue: 0,0:00:13.90,0:00:14.70,Cap,,0,0,0,,{\c&H1EB0F2&}one{\c&HFAF7F5&} R.
+Dialogue: 0,0:00:15.00,0:00:19.00,Cap,,0,0,0,,Make a hundred, {\c&H1EB0F2&}plus{\c&HFAF7F5&} two\NR. Lose fifty, {\c&H1EB0F2&}minus{\c&HFAF7F5&} one
+Dialogue: 0,0:00:19.00,0:00:19.40,Cap,,0,0,0,,R.
+Dialogue: 0,0:00:19.70,0:00:22.50,Cap,,0,0,0,,R lets you {\c&H1EB0F2&}compare{\c&HFAF7F5&}\Ntrades of different
+Dialogue: 0,0:00:22.50,0:00:25.70,Cap,,0,0,0,,sizes. A hundred dollar\Nwin that risked two
+Dialogue: 0,0:00:25.70,0:00:29.30,Cap,,0,0,0,,hundred is plus zero\Npoint five R. A forty
+Dialogue: 0,0:00:29.30,0:00:32.90,Cap,,0,0,0,,dollar win that risked\Ntwenty is plus two R.
+Dialogue: 0,0:00:33.20,0:00:36.40,Cap,,0,0,0,,Enter a {\c&H1EB0F2&}stop,{\c&HFAF7F5&} and\NTradeNotes works out R.
+Dialogue: 0,0:00:36.70,0:00:39.90,Cap,,0,0,0,,{\c&H1EB0F2&}Save{\c&HFAF7F5&} this for when\Nsomeone says two R.

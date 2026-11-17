@@ -93,6 +93,9 @@ export interface Summary {
   avgLoss: number | null; // negative number
   /** gross profit of winners / |gross loss of losers| (net of fees). null if no losers. */
   profitFactor: number | null;
+  /** the two sums behind profitFactor (net of fees): winners' total, and losers' total as a negative number */
+  grossProfit: number;
+  grossLoss: number;
   /** netPnl / tradeCount */
   expectancy: number | null;
   avgR: number | null;
@@ -117,13 +120,27 @@ export function summarize(trades: TradeInput[]): Summary {
     if (typeof r === "string") excluded[r].push(t.id);
     else results.push(r);
   }
-  // Order by close time (nulls last, stable).
-  results.sort((a, b) => {
+  return summarizeResults(results, excluded);
+}
+
+/** Order by close time (nulls last, stable). The order every running total (equity curve, drawdown, streaks) is computed in. */
+export function orderByClose<T extends { closedAt: string | null }>(input: readonly T[]): T[] {
+  return [...input].sort((a, b) => {
     if (a.closedAt === b.closedAt) return 0;
     if (a.closedAt === null) return 1;
     if (b.closedAt === null) return -1;
     return a.closedAt < b.closedAt ? -1 : 1;
   });
+}
+
+/**
+ * Every aggregate (counts, win rate, profit factor, expectancy, R, drawdown, streaks, equity curve) is computed here, from per-trade
+ * results. `summarize` feeds it results computed by `evaluateTrade`; the database loader (trades-data.ts) feeds it results computed in
+ * SQL with the same per-trade formula (asserted equal on a seeded 10,000-trade set in aggregate.db.test.ts). So there is exactly one
+ * place where an aggregate formula lives.
+ */
+export function summarizeResults(input: readonly TradeResult[], excluded: Record<ExclusionReason, string[]> = { open_or_partial: [], missing_fx: [], invalid: [] }): Summary {
+  const results = orderByClose(input);
 
   const winners = results.filter((r) => r.netPnl > 0);
   const losers = results.filter((r) => r.netPnl < 0);
@@ -158,6 +175,8 @@ export function summarize(trades: TradeInput[]): Summary {
     avgWin: winners.length ? round(grossWin / winners.length) : null,
     avgLoss: losers.length ? round(grossLoss / losers.length) : null,
     profitFactor: losers.length ? grossWin / Math.abs(grossLoss) : null,
+    grossProfit: round(grossWin),
+    grossLoss: round(grossLoss),
     expectancy: n ? round(netPnl / n) : null,
     avgR: withR.length ? sum(withR.map((r) => r.r as number)) / withR.length : null,
     rCoverage: { withR: withR.length, total: n },
@@ -168,6 +187,20 @@ export function summarize(trades: TradeInput[]): Summary {
     excluded,
     smallSample: n < SMALL_SAMPLE_THRESHOLD,
   };
+}
+
+/** Group per-trade results by a key and summarize each (same as groupSummary, for results that are already computed). */
+export function groupResults<T extends TradeResult>(rows: readonly T[], key: (t: T) => string | null | undefined): Record<string, Summary> {
+  const groups: Record<string, T[]> = {};
+  for (const t of rows) (groups[key(t) || "Untagged"] ||= []).push(t);
+  return Object.fromEntries(Object.entries(groups).map(([k, ts]) => [k, summarizeResults(ts)]));
+}
+
+/** Summaries per tag. A trade carrying several tags counts under each of them (so the rows do not add up to the total). */
+export function tagResults<T extends TradeResult>(rows: readonly T[], tags: (t: T) => readonly string[]): Record<string, Summary> {
+  const groups: Record<string, T[]> = {};
+  for (const t of rows) for (const tag of tags(t)) (groups[tag] ||= []).push(t);
+  return Object.fromEntries(Object.entries(groups).map(([k, ts]) => [k, summarizeResults(ts)]));
 }
 
 /** Group closed trades by a key (strategy, session, weekday, symbol, side, timeframe) and summarize each. */

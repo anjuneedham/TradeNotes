@@ -1,0 +1,27 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.70,Cap,,0,0,0,,Five minutes on {\c&H1EB0F2&}Sunday{\c&HFAF7F5&}\Ncan teach you more than
+Dialogue: 0,0:00:03.70,0:00:05.70,Cap,,0,0,0,,five hours of trading\Nvideos.
+Dialogue: 0,0:00:06.00,0:00:08.80,Cap,,0,0,0,,Here's the review.\NMinute one. Your total
+Dialogue: 0,0:00:08.80,0:00:11.60,Cap,,0,0,0,,result and {\c&H1EB0F2&}average{\c&HFAF7F5&} R for\Nthe week.
+Dialogue: 0,0:00:11.90,0:00:15.10,Cap,,0,0,0,,Minute two. Your biggest\Nloss. Did you follow
+Dialogue: 0,0:00:15.10,0:00:15.90,Cap,,0,0,0,,your {\c&H1EB0F2&}plan?{\c&HFAF7F5&}
+Dialogue: 0,0:00:16.20,0:00:19.00,Cap,,0,0,0,,Minute three. Which\N{\c&H1EB0F2&}mistake{\c&HFAF7F5&} tag showed up
+Dialogue: 0,0:00:19.00,0:00:19.40,Cap,,0,0,0,,most?
+Dialogue: 0,0:00:19.70,0:00:22.50,Cap,,0,0,0,,Minute four. One thing\Nthat went {\c&H1EB0F2&}well.{\c&HFAF7F5&}
+Dialogue: 0,0:00:22.80,0:00:26.00,Cap,,0,0,0,,Minute five. One {\c&H1EB0F2&}rule{\c&HFAF7F5&}\Nfor next week. Write
+Dialogue: 0,0:00:26.00,0:00:29.20,Cap,,0,0,0,,that {\c&H1EB0F2&}rule{\c&HFAF7F5&} where you'll\Nsee it on Monday
+Dialogue: 0,0:00:29.20,0:00:29.60,Cap,,0,0,0,,morning.
+Dialogue: 0,0:00:29.90,0:00:33.10,Cap,,0,0,0,,More videos can't show\Nyou your own habits.
+Dialogue: 0,0:00:33.10,0:00:34.30,Cap,,0,0,0,,Your {\c&H1EB0F2&}data{\c&HFAF7F5&} can.
+Dialogue: 0,0:00:34.60,0:00:37.40,Cap,,0,0,0,,Save this, and do it\Nthis {\c&H1EB0F2&}Sunday.{\c&HFAF7F5&}

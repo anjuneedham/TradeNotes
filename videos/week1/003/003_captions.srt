@@ -1,0 +1,65 @@
+1
+00:00:00,100 --> 00:00:03,300
+Let's journal a losing
+trade. Properly. This is
+
+2
+00:00:03,300 --> 00:00:06,900
+sample data, but it's
+the same steps I use.
+
+3
+00:00:07,200 --> 00:00:10,400
+EURUSD, long, one lot.
+Entry, one point zero
+
+4
+00:00:10,400 --> 00:00:14,000
+eight five zero. Stop,
+one point zero eight two
+
+5
+00:00:14,000 --> 00:00:15,600
+zero. That's thirty
+pips,
+
+6
+00:00:15,900 --> 00:00:18,700
+so I'm risking three
+hundred dollars. Price
+
+7
+00:00:18,700 --> 00:00:19,900
+hit my stop.
+
+8
+00:00:20,200 --> 00:00:24,200
+Did I follow my plan?
+No. I entered before my
+
+9
+00:00:24,200 --> 00:00:27,400
+setup confirmed. So I
+tag it, entered early.
+
+10
+00:00:27,700 --> 00:00:31,700
+One line for the lesson.
+Wait for the candle to
+
+11
+00:00:31,700 --> 00:00:32,100
+close.
+
+12
+00:00:32,400 --> 00:00:35,600
+That's minus one R.
+Analytics will show what
+
+13
+00:00:35,600 --> 00:00:37,200
+that tag costs me.
+
+14
+00:00:37,500 --> 00:00:38,700
+Losses are data.

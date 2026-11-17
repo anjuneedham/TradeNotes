@@ -1,72 +1,131 @@
 @import "tailwindcss";
 
-:root {
-  --bg: #0b0f14; --panel: #121821; --border: #1f2a37; --fg: #e6edf3; --muted: #8b98a5;
-  --accent: #3b82f6; --win: #22c55e; --loss: #ef4444;
+/* Design tokens — see docs/design/TRADENOTES_DESIGN_SYSTEM.md. Dark is the default; light follows the OS
+   unless a theme is forced with data-theme (set from the tn_theme cookie inside the app). */
+:root, [data-theme="dark"] {
+  --bg: #0d0f11; --panel: #14171a; --raised: #1c2024; --border: #272c32; --border-strong: #3a414a; --field: #5f6975;
+  --fg: #e8eaed; --muted: #98a1ac; --accent: #86a4f7; --accent-fg: #0d0f11;
+  --win: #45d083; --loss: #f47070; --warn: #e2b34f;
+  /* Colour-blind-safe pair for heatmap and calendar tints (blue = profit, orange = loss); the sign is always written too. */
+  --cb-gain: #7ea6ff; --cb-loss: #f59a4a;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f5f1; --panel: #ffffff; --raised: #efede7; --border: #dfdcd3; --border-strong: #c4c0b5; --field: #8a857a;
+    --fg: #17191c; --muted: #5a626d; --accent: #2c50c4; --accent-fg: #ffffff;
+    --win: #14753a; --loss: #bf2b2b; --warn: #8f5a06;
+    --cb-gain: #2f5fd0; --cb-loss: #d4601a;
+    color-scheme: light;
+  }
+}
+[data-theme="light"] {
+  --bg: #f6f5f1; --panel: #ffffff; --raised: #efede7; --border: #dfdcd3; --border-strong: #c4c0b5; --field: #8a857a;
+  --fg: #17191c; --muted: #5a626d; --accent: #2c50c4; --accent-fg: #ffffff;
+  --win: #14753a; --loss: #bf2b2b; --warn: #8f5a06;
+  --cb-gain: #2f5fd0; --cb-loss: #d4601a;
+  color-scheme: light;
 }
 @theme inline {
-  --color-bg: var(--bg); --color-panel: var(--panel); --color-border: var(--border);
-  --color-fg: var(--fg); --color-muted: var(--muted); --color-accent: var(--accent);
-  --color-win: var(--win); --color-loss: var(--loss);
+  --color-bg: var(--bg); --color-panel: var(--panel); --color-raised: var(--raised);
+  --color-border: var(--border); --color-border-strong: var(--border-strong); --color-field: var(--field);
+  --color-fg: var(--fg); --color-muted: var(--muted); --color-accent: var(--accent); --color-accent-fg: var(--accent-fg);
+  --color-win: var(--win); --color-loss: var(--loss); --color-warn: var(--warn);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
-body { background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); }
+/* Figures: monospaced, tabular, so columns of money line up. */
+.fig { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* Motion — subtle, purposeful, off under prefers-reduced-motion (rule above). */
+@keyframes tn-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes tn-draw { from { stroke-dashoffset: var(--len, 1200); } to { stroke-dashoffset: 0; } }
+@keyframes tn-dot { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.tn-rise { animation: tn-rise .45s cubic-bezier(.2,.7,.2,1) both; }
+.tn-stagger > * { animation: tn-rise .45s cubic-bezier(.2,.7,.2,1) both; }
+.tn-stagger > *:nth-child(2) { animation-delay: .05s } .tn-stagger > *:nth-child(3) { animation-delay: .1s } .tn-stagger > *:nth-child(4) { animation-delay: .15s }
+.tn-stagger > *:nth-child(5) { animation-delay: .2s } .tn-stagger > *:nth-child(6) { animation-delay: .25s } .tn-stagger > *:nth-child(n+7) { animation-delay: .3s }
+.tn-draw { stroke-dasharray: var(--len, 1200); animation: tn-draw 1.1s cubic-bezier(.6,.1,.2,1) both; }
+.tn-dots { display: inline-flex; gap: 3px; vertical-align: middle; }
+.tn-dots i { width: 5px; height: 5px; border-radius: 9999px; background: currentColor; animation: tn-dot 1.2s infinite; }
+.tn-dots i:nth-child(2) { animation-delay: .15s } .tn-dots i:nth-child(3) { animation-delay: .3s }
+.tn-lift { transition: transform .18s ease, border-color .18s ease; }
+.tn-lift:hover { transform: translateY(-1px); border-color: var(--border-strong); }
 
 /* ───────────── Stickman theme (reversible) ─────────────
-   Applies unless <html data-theme="classic">. Switching back to classic restores the original look
-   exactly: every rule below is scoped to the stickman state, and .sm-only elements are hidden in classic. */
+   Applies unless <html data-theme="classic"> (set by the tn-theme localStorage key; see ThemeToggle).
+   Switching to classic restores main's look exactly: every rule below is scoped to the stickman state,
+   .sm-only elements are hidden in classic, .sm-classic-only elements are hidden in stickman.
+   The stickman look is a dark "notebook" page, so it overrides the light/dark tokens (including the
+   in-app tn_theme override on nested [data-theme] elements) while it is on. Keep rules flat (no nesting). */
 html[data-theme="classic"] .sm-only { display: none !important; }
-.sm-toggle { font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; color: var(--muted); background: transparent; cursor: pointer; }
+html:not([data-theme="classic"]) .sm-classic-only { display: none !important; }
+.sm-toggle { white-space: nowrap; font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; color: var(--muted); background: transparent; cursor: pointer; }
 .sm-toggle:hover { color: var(--fg); }
 
-html:not([data-theme="classic"]) {
-  --bg: #0a0f1a;
-  --panel: #101828;
-  --border: #4a5670;
-  --fg: #f5f7fa;
-  --muted: #9aa7bd;
-  --accent: #f2b01e;
-  --pencil: #f5f7fa;
-  --amber: #f2b01e;
+html:root:not([data-theme="classic"]),
+html:not([data-theme="classic"]) [data-theme="light"],
+html:not([data-theme="classic"]) [data-theme="dark"] {
+  --bg: #0a0f1a; --panel: #101828; --raised: #18233a; --border: #4a5670; --border-strong: #7a869e; --field: #7a869e;
+  --fg: #f5f7fa; --muted: #a3afc3; --accent: #f2b01e; --accent-fg: #0a0f1a;
+  --win: #4ade80; --loss: #f87171; --warn: #f2b01e;
+  --cb-gain: #7ea6ff; --cb-loss: #f59a4a;
+  --pencil: #f5f7fa; --amber: #f2b01e;
   --hand: var(--font-hand), "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  color-scheme: dark;
 }
 html:not([data-theme="classic"]) body {
-    background-color: var(--bg);
-    /* faint graph-paper grid + paper grain, like a notebook page */
-    background-image:
-      linear-gradient(rgba(245,247,250,.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(245,247,250,.035) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
+  background-color: var(--bg);
+  /* faint graph-paper grid, like a notebook page */
+  background-image: linear-gradient(rgba(245,247,250,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(245,247,250,.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+/* Let the notebook grid show through full-page wrappers (the app shell paints bg-bg). */
+html:not([data-theme="classic"]) div.bg-bg { background-color: transparent; }
 html:not([data-theme="classic"]) h1,
 html:not([data-theme="classic"]) h2,
 html:not([data-theme="classic"]) h3 { font-family: var(--hand); letter-spacing: .01em; }
 html:not([data-theme="classic"]) h1 { font-weight: 700; }
 html:not([data-theme="classic"]) h2 { font-size: 1.6rem; line-height: 1.15; }
 html:not([data-theme="classic"]) h3 { font-size: 1.3rem; }
-/* Hand-drawn wobbly boxes (cards, buttons, inputs) */
-  html:not([data-theme="classic"]) .rounded-lg,
-html:not([data-theme="classic"]) .rounded-md {
-    border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px;
-    border-width: 2px;
-    border-color: var(--pencil);
-  }
-html:not([data-theme="classic"]) .border-border { border-color: color-mix(in srgb, var(--pencil) 55%, transparent); }
-html:not([data-theme="classic"]) .rounded-lg.bg-panel { box-shadow: 4px 5px 0 rgba(0,0,0,.35); }
-/* Primary buttons: amber with dark text so contrast stays AA */
-  html:not([data-theme="classic"]) a.bg-accent,
-html:not([data-theme="classic"]) button.bg-accent { color: #0a0f1a !important; font-weight: 700; box-shadow: 3px 4px 0 rgba(245,247,250,.9); transition: transform .12s; }
-html:not([data-theme="classic"]) a.bg-accent:hover,
-html:not([data-theme="classic"]) button.bg-accent:hover { transform: translate(-1px, -1px) rotate(-.6deg); }
+/* Hand-drawn wobbly boxes. Only elements that already draw a border get a heavier pencil line. */
+html:not([data-theme="classic"]) .rounded-lg,
+html:not([data-theme="classic"]) .rounded-xl,
+html:not([data-theme="classic"]) .rounded-md { border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px; }
+html:not([data-theme="classic"]) .rounded-lg.border,
+html:not([data-theme="classic"]) .rounded-xl.border { border-width: 2px; }
+html:not([data-theme="classic"]) .border-border { border-color: color-mix(in srgb, var(--pencil) 45%, transparent); }
+html:not([data-theme="classic"]) .rounded-lg.border-border,
+html:not([data-theme="classic"]) .rounded-xl.border-border { border-color: color-mix(in srgb, var(--pencil) 70%, transparent); }
+html:not([data-theme="classic"]) .rounded-lg.bg-panel,
+html:not([data-theme="classic"]) .rounded-xl.bg-panel { box-shadow: 4px 5px 0 rgba(0,0,0,.35); }
+html:not([data-theme="classic"]) .border-dashed { border-color: color-mix(in srgb, var(--pencil) 55%, transparent); }
+/* Primary buttons (bg-fg text-bg): amber with dark text, pencil offset shadow; contrast stays AA. */
+html:not([data-theme="classic"]) a.bg-fg,
+html:not([data-theme="classic"]) button.bg-fg,
+html:not([data-theme="classic"]) span.bg-fg { background-color: var(--amber); color: #0a0f1a !important; font-weight: 700; box-shadow: 3px 4px 0 rgba(245,247,250,.85); transition: transform .12s; }
+html:not([data-theme="classic"]) a.bg-fg:hover,
+html:not([data-theme="classic"]) button.bg-fg:hover { opacity: 1; transform: translate(-1px, -1px) rotate(-.6deg); }
+html:not([data-theme="classic"]) .bg-accent { color: #0a0f1a; }
 html:not([data-theme="classic"]) .text-accent { color: var(--amber); }
 html:not([data-theme="classic"]) header.border-b,
-html:not([data-theme="classic"]) footer.border-t { border-style: dashed; border-color: color-mix(in srgb, var(--pencil) 45%, transparent); }
+html:not([data-theme="classic"]) footer.border-t,
+html:not([data-theme="classic"]) section.border-y,
+html:not([data-theme="classic"]) aside.border-r,
+html:not([data-theme="classic"]) nav.border-t { border-style: dashed; border-color: color-mix(in srgb, var(--pencil) 40%, transparent); }
 html:not([data-theme="classic"]) .sm-wordmark { font-family: var(--hand); font-size: 1.5rem; line-height: 1; }
 /* ── pencil strokes + wobble ── */
   html:not([data-theme="classic"]) .sm-pencil { color: var(--pencil); overflow: visible; filter: url(#sm-wobble); }
 html:not([data-theme="classic"]) .sm-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: sm-draw .9s ease-out var(--d, .2s) forwards; }
 html:not([data-theme="classic"]) .sm-draw-head { animation-delay: calc(var(--d, .2s) + .75s); animation-duration: .35s; }
 @keyframes sm-draw { to { stroke-dashoffset: 0; } }
-html:not([data-theme="classic"]) .sm-arrow { display: inline-flex; flex-direction: column; align-items: center; color: var(--amber); pointer-events: none; }
+/* display lives in a layer so Tailwind visibility utilities (hidden, md:inline-flex) on an arrow still win. */
+@layer base { html:not([data-theme="classic"]) .sm-arrow { display: inline-flex; } }
+html:not([data-theme="classic"]) .sm-arrow { flex-direction: column; align-items: center; color: var(--amber); pointer-events: none; }
 html:not([data-theme="classic"]) .sm-arrow .sm-pencil { color: var(--amber); width: 5.5rem; height: auto; }
 html:not([data-theme="classic"]) .sm-note { font-family: var(--hand); font-size: 1.15rem; color: var(--amber); transform: rotate(-3deg); white-space: nowrap; }
 html:not([data-theme="classic"]) .sm-underline { display: block; width: min(18rem, 70%); height: .6rem; margin: .1rem auto 0; color: var(--amber); }
@@ -102,6 +161,13 @@ html:not([data-theme="classic"]) .sm-scene-arrow { position: absolute; right: -8
   html:not([data-theme="classic"]) .sm-actor { width: 3rem; }
   html:not([data-theme="classic"]) .sm-chip { font-size: 1.05rem; }
 }
+@media (max-width: 480px) {
+  html:not([data-theme="classic"]) .sm-scene { padding-left: .5rem; padding-right: .5rem; }
+  html:not([data-theme="classic"]) .sm-scene-row { gap: .35rem; }
+  html:not([data-theme="classic"]) .sm-actor { width: 2.2rem; }
+  html:not([data-theme="classic"]) .sm-chips { gap: .35rem .3rem; }
+  html:not([data-theme="classic"]) .sm-chip { font-size: .95rem; padding: 0 .35rem; }
+}
 /* ── 10 of 30 progress doodle (video 2) ── */
   html:not([data-theme="classic"]) .sm-progress { margin-top: 1rem; }
 html:not([data-theme="classic"]) .sm-progress-track { height: 1.1rem; border: 2.5px solid var(--pencil); border-radius: 255px 8px 225px 8px / 8px 225px 8px 255px; overflow: hidden; }
@@ -121,9 +187,13 @@ html:not([data-theme="classic"]) .sm-progress-fill { animation: none; }
   html:not([data-theme="classic"]) .sm-progress-fill { width: 33.3%; }
 }
 
-/* Dashboard + journal (stickman theme) */
-html:not([data-theme="classic"]) .sm-line { stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#sm-wobble); }
+
+/* Data screens (dashboard, journal, analytics): pencil equity line, hand-lettered table heads. */
+html:not([data-theme="classic"]) .sm-line { stroke: var(--amber); stroke-width: 3; filter: url(#sm-wobble); }
 html:not([data-theme="classic"]) table thead { font-family: var(--hand); font-size: 1.05rem; color: var(--amber); }
 html:not([data-theme="classic"]) tbody tr.border-t { border-top-style: dashed; }
-html:not([data-theme="classic"]) .border-b.bg-panel { border-bottom-style: dashed; border-color: color-mix(in srgb, var(--pencil) 45%, transparent); }
-html:not([data-theme="classic"]) .rounded-md.border-accent\/50, html:not([data-theme="classic"]) .rounded-md.border-win\/50, html:not([data-theme="classic"]) .rounded-md.border-loss\/50 { border-style: dashed; }
+html:not([data-theme="classic"]) .rounded-md.border-warn\/50,
+html:not([data-theme="classic"]) .rounded-md.border-win\/50,
+html:not([data-theme="classic"]) .rounded-md.border-loss\/50 { border-style: dashed; }
+/* Small stickman beside a page title or an empty state. */
+html:not([data-theme="classic"]) .sm-aside { display: flex; align-items: flex-end; gap: .75rem; }

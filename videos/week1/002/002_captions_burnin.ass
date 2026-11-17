@@ -1,0 +1,25 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.70,Cap,,0,0,0,,If you only write {\c&H1EB0F2&}three{\c&HFAF7F5&}\Nthings after a trade,
+Dialogue: 0,0:00:03.70,0:00:04.50,Cap,,0,0,0,,write these.
+Dialogue: 0,0:00:04.80,0:00:08.40,Cap,,0,0,0,,One. Why you took it,\N{\c&H1EB0F2&}before{\c&HFAF7F5&} you knew the
+Dialogue: 0,0:00:08.40,0:00:08.80,Cap,,0,0,0,,result.
+Dialogue: 0,0:00:09.10,0:00:12.70,Cap,,0,0,0,,Two. Where your stop\Nwas, and if you {\c&H1EB0F2&}moved{\c&HFAF7F5&}
+Dialogue: 0,0:00:12.70,0:00:13.10,Cap,,0,0,0,,it.
+Dialogue: 0,0:00:13.40,0:00:16.20,Cap,,0,0,0,,Three. One sentence on\Nwhat you'd {\c&H1EB0F2&}change.{\c&HFAF7F5&}
+Dialogue: 0,0:00:16.50,0:00:18.10,Cap,,0,0,0,,That's it. {\c&H1EB0F2&}Thirty{\c&HFAF7F5&}\Nseconds.
+Dialogue: 0,0:00:18.40,0:00:22.00,Cap,,0,0,0,,Most traders skip this\Nafter a loss. They just
+Dialogue: 0,0:00:22.00,0:00:26.40,Cap,,0,0,0,,want to forget it. But a\Nmonth of these notes can
+Dialogue: 0,0:00:26.40,0:00:29.20,Cap,,0,0,0,,show you the mistake you\Nkeep {\c&H1EB0F2&}repeating.{\c&HFAF7F5&}
+Dialogue: 0,0:00:29.50,0:00:33.10,Cap,,0,0,0,,You can't {\c&H1EB0F2&}fix{\c&HFAF7F5&} what you\Nnever wrote down. Save
+Dialogue: 0,0:00:33.10,0:00:35.10,Cap,,0,0,0,,this for your next\Ntrade.

@@ -1,18 +1,18 @@
 /**
  * Single source of truth for the facts the legal pages need. Fill these in; the pages render from here.
  * Values starting with "TODO" are treated as NOT filled (the pages show a visible warning and `npm run check:legal` fails).
- * NOTE: this is not legal advice. `counselReviewed` stays false until a qualified lawyer has reviewed the wording.
+ * NOTE: this is not legal advice. `counselReviewed` is true only when a qualified lawyer has reviewed the wording.
  */
 export const LEGAL = {
   productName: "TradeNotes",
   /** Legal or trading name of the person/company operating TradeNotes (the "data controller"). */
-  businessName: "TODO: legal or trading name",
+  businessName: "Yardscale Digital (App Studio)",
   /** Where users contact you for support, privacy requests, cancellations and refunds. */
-  supportEmail: "TODO: support email",
+  supportEmail: "support@tradenotes.dev",
   /** Country the business operates from. */
   country: "Jamaica",
   /** Optional postal address (leave empty to omit). */
-  address: "",
+  address: "Independence City, St Catherine, Jamaica",
   /** Optional Jamaica Data Protection Act registration number, once you have one (leave empty to omit). */
   dpaRegistrationNumber: "",
   /** Law that governs the Terms. CONFIRM WITH COUNSEL. */
@@ -23,9 +23,11 @@ export const LEGAL = {
   deletionDays: 30,
   /** Payment provider shown to customers. */
   paymentProvider: "Handypay",
-  effectiveDate: "10 November 2026",
-  /** Set to true only after a qualified lawyer has reviewed these pages. */
-  counselReviewed: false,
+  effectiveDate: "11 November 2026",
+  /** Owner's record that a lawyer has reviewed the pages (set 2026-11-13). Deliberately NOT shown on the site: the owner asked for the pages to be live without any review claim. */
+  counselReviewed: true,
+  /** The operator states, in the pages themselves, that it accepts responsibility and nothing about outside review (the owner chose not to state it on the site). */
+  responsibilityStatement: "Yardscale Digital (App Studio) accepts full responsibility for these documents and for how it handles your data. If anything here is unclear or you think it is wrong, tell us and we will fix it.",
 } as const;
 
 export const isFilled = (v: string) => v.trim() !== "" && !v.trim().toUpperCase().startsWith("TODO");

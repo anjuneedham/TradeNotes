@@ -1,0 +1,26 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Medium,58,&H00FAF7F5,&H00FAF7F5,&H611A0F0A,&H611A0F0A,0,0,0,0,100,100,0,0,3,16,0,2,60,60,600,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:04.10,Cap,,0,0,0,,“I don't need a stop\Nloss. I just {\c&H1EB0F2&}watch{\c&HFAF7F5&} the
+Dialogue: 0,0:00:04.10,0:00:04.50,Cap,,0,0,0,,chart.”
+Dialogue: 0,0:00:04.80,0:00:07.60,Cap,,0,0,0,,Here's the problem.\NWatching the chart means
+Dialogue: 0,0:00:07.60,0:00:10.80,Cap,,0,0,0,,you decide to exit while\Nyou're {\c&H1EB0F2&}scared{\c&HFAF7F5&} and
+Dialogue: 0,0:00:10.80,0:00:13.60,Cap,,0,0,0,,losing. That's the worst\Nmoment to decide
+Dialogue: 0,0:00:13.60,0:00:14.00,Cap,,0,0,0,,anything.
+Dialogue: 0,0:00:14.30,0:00:17.50,Cap,,0,0,0,,A stop moves that\Ndecision to before the
+Dialogue: 0,0:00:17.50,0:00:19.10,Cap,,0,0,0,,trade, while you're\N{\c&H1EB0F2&}calm.{\c&HFAF7F5&}
+Dialogue: 0,0:00:19.40,0:00:22.60,Cap,,0,0,0,,Without a stop, you\Ncan't know your {\c&H1EB0F2&}risk,{\c&HFAF7F5&}
+Dialogue: 0,0:00:22.60,0:00:24.60,Cap,,0,0,0,,size properly, or\Nmeasure R.
+Dialogue: 0,0:00:24.90,0:00:28.90,Cap,,0,0,0,,If you won't use a hard\Nstop yet, write down
+Dialogue: 0,0:00:28.90,0:00:31.70,Cap,,0,0,0,,where you're {\c&H1EB0F2&}wrong{\c&HFAF7F5&}\Nbefore you enter. That's
+Dialogue: 0,0:00:31.70,0:00:32.90,Cap,,0,0,0,,still a plan.
+Dialogue: 0,0:00:33.20,0:00:35.60,Cap,,0,0,0,,Follow for more beginner\N{\c&H1EB0F2&}mistakes,{\c&HFAF7F5&} explained.

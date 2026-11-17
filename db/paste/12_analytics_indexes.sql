@@ -1,0 +1,11 @@
+-- 12: Phase 2 indexes for filtered analytics. Idempotent; no new tables, no data change.
+--
+-- trades_user_closed: the date filter is written on plain columns (see src/lib/trade-filter-sql.ts), so under row-level security the planner can
+-- use (user_id, closed_at) for a date window (BitmapOr with trades_user_opened for trades that are still open). Measured on local Postgres 16:
+-- one month of a 100,000-trade user went from a bitmap AND over the whole user (about 84 ms) to the index range (about 70 ms); a 10,000-trade
+-- user is 8-10 ms either way. It is cheap insurance for the calendar and date presets on very large journals, nothing more.
+--
+-- Evaluated and deliberately NOT added (measured, no gain): an expression index on coalesce(closed_at, opened_at) (never usable under RLS:
+-- COALESCE is treated as leaky), (user_id, symbol) (the planner already narrows by user and account), and a covering index on trade_exits
+-- (an index-only scan worked but was no faster: 122 ms vs 115 ms for 10,000 trades).
+create index if not exists trades_user_closed on tradenotes.trades (user_id, closed_at);

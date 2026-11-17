@@ -1,0 +1,254 @@
+{
+ "id": "001",
+ "title": "Your win rate is lying to you",
+ "total": 51.1,
+ "scenes": [
+  {
+   "i": 1,
+   "start": 0,
+   "end": 7.83,
+   "kind": "Motion graphic",
+   "text": "WIN RATE: 70% 70%",
+   "narr": "You win seven out of ten trades. A seventy percent win rate. Your account is still going down."
+  },
+  {
+   "i": 2,
+   "start": 7.83,
+   "end": 14.46,
+   "kind": "Motion graphic",
+   "text": "7 wins × $30 = $210",
+   "narr": "Here's why. Each win made thirty dollars. Seven wins, two hundred and ten."
+  },
+  {
+   "i": 3,
+   "start": 14.46,
+   "end": 20.330000000000002,
+   "kind": "Motion graphic",
+   "text": "3 losses × $100 = −$300",
+   "narr": "Each loss cost a hundred. Three losses, minus three hundred."
+  },
+  {
+   "i": 4,
+   "start": 20.330000000000002,
+   "end": 28.12,
+   "kind": "Motion graphic",
+   "text": "NET: −$90",
+   "narr": "Net, minus ninety dollars. Win rate doesn't pay you. The size of your wins and losses does."
+  },
+  {
+   "i": 5,
+   "start": 28.12,
+   "end": 35.14,
+   "kind": "App footage (SAMPLE DATA)",
+   "text": "R = result ÷ risk",
+   "narr": "That's why every trade in my journal gets an R number. Your result divided by what you risk.",
+   "speed": ""
+  },
+  {
+   "i": 6,
+   "start": 35.14,
+   "end": 47.72,
+   "kind": "Motion graphic",
+   "text": "Average R: −0.09R",
+   "narr": "Each win was plus zero point three R. Each loss, minus one R. Average R, minus zero point zero nine R."
+  },
+  {
+   "i": 7,
+   "start": 47.72,
+   "end": 51.1,
+   "kind": "End card",
+   "text": "Check your average R. Not your win rate.",
+   "narr": "Check your average R. Not your win rate."
+  }
+ ],
+ "captions": [
+  {
+   "s": 0.22599999999999998,
+   "e": 3.5451521739130443,
+   "lines": [
+    "You win seven out of ten",
+    "trades. A seventy"
+   ],
+   "hl": [
+    "seventy",
+    "down"
+   ]
+  },
+  {
+   "s": 3.5651521739130443,
+   "e": 7.035315217391306,
+   "lines": [
+    "percent win rate. Your",
+    "account is still going"
+   ],
+   "hl": [
+    "seventy",
+    "down"
+   ]
+  },
+  {
+   "s": 7.055315217391305,
+   "e": 7.680000000000001,
+   "lines": [
+    "down."
+   ],
+   "hl": [
+    "seventy",
+    "down"
+   ]
+  },
+  {
+   "s": 7.95,
+   "e": 11.678808219178084,
+   "lines": [
+    "Here's why. Each win",
+    "made thirty dollars."
+   ],
+   "hl": [
+    "thirty"
+   ]
+  },
+  {
+   "s": 11.698808219178083,
+   "e": 14.31,
+   "lines": [
+    "Seven wins, two hundred",
+    "and ten."
+   ],
+   "hl": [
+    "thirty"
+   ]
+  },
+  {
+   "s": 14.58,
+   "e": 18.104525423728813,
+   "lines": [
+    "Each loss cost a",
+    "hundred. Three losses,"
+   ],
+   "hl": [
+    "hundred."
+   ]
+  },
+  {
+   "s": 18.124525423728812,
+   "e": 20.18,
+   "lines": [
+    "minus three hundred."
+   ],
+   "hl": [
+    "hundred."
+   ]
+  },
+  {
+   "s": 20.450000000000003,
+   "e": 23.50715730337079,
+   "lines": [
+    "Net, minus ninety",
+    "dollars. Win rate"
+   ],
+   "hl": [
+    "ninety",
+    "size"
+   ]
+  },
+  {
+   "s": 23.52715730337079,
+   "e": 26.93114606741573,
+   "lines": [
+    "doesn't pay you. The",
+    "size of your wins and"
+   ],
+   "hl": [
+    "ninety",
+    "size"
+   ]
+  },
+  {
+   "s": 26.95114606741573,
+   "e": 27.97,
+   "lines": [
+    "losses does."
+   ],
+   "hl": [
+    "ninety",
+    "size"
+   ]
+  },
+  {
+   "s": 28.240000000000002,
+   "e": 31.078133333333337,
+   "lines": [
+    "That's why every trade",
+    "in my journal gets an R"
+   ],
+   "hl": [
+    "R"
+   ]
+  },
+  {
+   "s": 31.098133333333337,
+   "e": 34.50633333333333,
+   "lines": [
+    "number. Your result",
+    "divided by what you"
+   ],
+   "hl": [
+    "R"
+   ]
+  },
+  {
+   "s": 34.52633333333333,
+   "e": 35.09,
+   "lines": [
+    "risk."
+   ],
+   "hl": [
+    "R"
+   ]
+  },
+  {
+   "s": 35.26,
+   "e": 41.06561999999999,
+   "lines": [
+    "Each win was plus zero",
+    "point three R. Each"
+   ],
+   "hl": [
+    "Average"
+   ]
+  },
+  {
+   "s": 41.08561999999999,
+   "e": 45.71101999999999,
+   "lines": [
+    "loss, minus one R.",
+    "Average R, minus zero"
+   ],
+   "hl": [
+    "Average"
+   ]
+  },
+  {
+   "s": 45.731019999999994,
+   "e": 47.574999999999996,
+   "lines": [
+    "point zero nine R."
+   ],
+   "hl": [
+    "Average"
+   ]
+  },
+  {
+   "s": 47.839999999999996,
+   "e": 50.349999999999994,
+   "lines": [
+    "Check your average R.",
+    "Not your win rate."
+   ],
+   "hl": [
+    "average"
+   ]
+  }
+ ]
+}

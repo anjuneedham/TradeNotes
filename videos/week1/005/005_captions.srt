@@ -1,0 +1,61 @@
+1
+00:00:00,100 --> 00:00:03,700
+Traders keep saying one
+R. Here's what it means.
+
+2
+00:00:04,000 --> 00:00:08,400
+R is what you planned to
+lose if your stop hits.
+
+3
+00:00:08,400 --> 00:00:10,000
+Entry here. Stop here.
+
+4
+00:00:10,300 --> 00:00:13,900
+On your size, that gap
+is fifty dollars. That's
+
+5
+00:00:13,900 --> 00:00:14,700
+one R.
+
+6
+00:00:15,000 --> 00:00:19,000
+Make a hundred, plus two
+R. Lose fifty, minus one
+
+7
+00:00:19,000 --> 00:00:19,400
+R.
+
+8
+00:00:19,700 --> 00:00:22,500
+R lets you compare
+trades of different
+
+9
+00:00:22,500 --> 00:00:25,700
+sizes. A hundred dollar
+win that risked two
+
+10
+00:00:25,700 --> 00:00:29,300
+hundred is plus zero
+point five R. A forty
+
+11
+00:00:29,300 --> 00:00:32,900
+dollar win that risked
+twenty is plus two R.
+
+12
+00:00:33,200 --> 00:00:36,400
+Enter a stop, and
+TradeNotes works out R.
+
+13
+00:00:36,700 --> 00:00:39,900
+Save this for when
+someone says two R.

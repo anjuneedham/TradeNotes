@@ -1,0 +1,22 @@
+# Video production: week 1 (videos 001 to 015)
+For a session that produces the videos. Model and effort as in README.md. Nothing here posts anything; the founder posts.
+
+## Inputs (all in this repo)
+- Plan and order: `docs/content/SEVEN_DAY_PUBLISHING_PLAN.md`. Packages: `docs/content/videos/VIDEO_0NN.md`. **Narration to use:** `docs/content/voiceover/week1/VO_0NN.md` (Opus wrote 001 to 014, Fable 015; each file has delivery notes, a scene-sync table and a compliance list). Visual rules: `docs/CONTENT_ENGINE.md` section 1 (9:16, 1080x1920, 30 fps; navy `#0A0F1A`, amber `#F2B01E`; captions 58 px, max 24 characters per line, 2 lines; no intro or outro; 2 s end card). Checklist: `docs/content/VIDEO_PRODUCTION_GUIDELINES.md`. Read `docs/content/voiceover/README.md` for the package fixes.
+- Tools allowed: Playwright (installed), FFmpeg if present, the Descript connector, and the channel repo `anjuneedham/Andrew-Builds-` (`production/tools/produce.py`, `qa.py`, `capture_demo.js`) **only if it is attached to the session** (ask the owner to add it; do not guess its contents). Free tools only. Ask before anything that uses paid credits, minutes or a new account.
+
+## Tasks (one video at a time, in plan order: 001, 005, 002, 004, 008, 003, 006, 009, 012, 007, 014, 010, 011, 013, 015)
+1. **Approval gate.** The founder must approve the script first. Ask once for the list of approved videos and produce only those. Items marked "founder to verify" in a VO file stay as written until the founder answers.
+2. **Apply the package fixes** from the voiceover README to the on-screen text and numbers: 001 chips, 003 30 pips, 005 risk amounts, 007 opening card, 008 end card, 014 "The fix: trades you skip", 015 "Most start. Few keep going." Every number on screen must match the spoken number exactly.
+3. **App footage.** Record the real app with sample data only. Run the app locally against a seeded local database (never production, never a real user), record with Playwright at 1080x1920 (use a wider viewport where the VO file says a field is hidden on small screens, then crop), and burn in **SAMPLE DATA · NOT REAL TRADES**. Build the exact sample trades the scripts name (for example 013: 1 lot EURUSD long, entry 1.0850, exit 1.0950 changed to 1.0910, $7 fees, showing $993 then $593). Hide emails and names. When the public `/demo` exists, prefer it.
+4. **Voice.** Ask the owner which: (a) they record it, (b) a text-to-speech tool they already pay for, (c) none yet (then deliver silent cuts with captions and a timing sheet). Never imitate a real person's voice; if synthetic, add the platform disclosure. Do not claim a voice exists until a file exists.
+5. **Assemble** to the guidelines: motion graphics for the numbers (flat cards and bars, amber accent), 0.22 s dip transitions, no zoom, captions re-timed to the real voice track, loudness -16 LUFS, music only if licensed for the platform (otherwise none), small "Not financial advice." text on screen throughout, 2 s end card.
+6. **QA each export.** Run the compliance checklist in the guidelines and `qa.py` if available; check length (25 to 45 s), caption line length, sync of numbers, label present, no profit or income claim, only features that exist today. Write results next to the file.
+7. **Deliver** to `videos/week1/NNN/` (outside git if files are large; do not commit big binaries) with: the MP4, a caption file, the thumbnail (at most 4 words, amber second line), the TikTok caption, Reels caption, Shorts title and description, hashtags (all from the package), and a QA note.
+8. **Tracker.** Append a row per video to the content tracker (format, hook, status). Status words: idea, scripted, approved, recorded, edited, **produced only when an exported MP4 exists and has been reviewed**, posted (founder only), measured.
+
+## Hard rules
+No profit promise, no income claims, no fake results, testimonials or user counts, no unbuilt features shown as working, no copying other creators, no posting, no real customer data on screen. CTAs that say "free journal / try it free" (010, 013) need the sign-up to work: test `https://tradenotes.dev/signup` loads before using them. If a rule and a script conflict, the rule wins; say so and propose a rewrite.
+
+## Done means
+Each approved video has a reviewed MP4 plus captions, thumbnail and platform text, or an honest status ("scripted", "edited, not reviewed"). Report what was produced, what is blocked on the founder, and anything that did not pass QA.

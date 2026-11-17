@@ -1,0 +1,6 @@
+Symbol,Side,Type,Qty,Limit Price,Stop Price,Fill Price,Status,Commission,Leverage,Margin,Placing Time,Closing Time,Order ID
+NASDAQ:AAPL,Buy,Market,10,,,190.00,Filled,0,,,2025-11-03 14:30:00,2025-11-03 14:30:01,1
+NASDAQ:AAPL,Sell,Limit,10,195.00,,195.00,Filled,0,,,2025-11-03 15:00:00,2025-11-03 19:00:00,2
+NASDAQ:AAPL,Sell,Limit,10,200.00,,,Cancelled,0,,,2025-11-03 15:00:00,2025-11-03 20:00:00,3
+BINANCE:BTCUSDT,Sell,Market,0.5,,,60000,Filled,3,,,2025-11-04 10:00:00,2025-11-04 10:00:00,4
+BINANCE:BTCUSDT,Buy,Market,0.5,,,59000,Filled,3,,,2025-11-04 12:00:00,2025-11-04 12:00:00,5

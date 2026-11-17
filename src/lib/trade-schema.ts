@@ -1,13 +1,14 @@
 import { z } from "zod";
 import type { TradeInput } from "./metrics";
+import { defaultMultiplierFor } from "./instruments";
 
-export const ASSET_CLASSES = ["forex", "futures", "stock", "option", "crypto", "other"] as const;
+export const ASSET_CLASSES = ["forex", "future", "stock", "option", "crypto", "other"] as const;
 export const SESSIONS = ["Asia", "London", "London/NY overlap", "New York", "Other"] as const;
 export const EMOTIONS = ["Calm", "Confident", "Anxious", "FOMO", "Greedy", "Frustrated", "Revenge", "Bored", "Hesitant"] as const;
 export const MISTAKES = ["Entered early", "Entered late", "Moved stop", "No stop loss", "Oversized", "Revenge trade", "Broke rules", "Closed too early", "Held too long", "Chased price"] as const;
 
-/** Default multiplier: forex quantity is in standard lots (1 lot = 100,000 units). */
-export const defaultMultiplier = (a: string) => (a === "forex" ? 100000 : 1);
+/** Default multiplier from instrument specs (forex lot 100,000; options 100; known futures point value). Unknown futures fall back to 1. */
+export const defaultMultiplier = (a: string, symbol = "") => defaultMultiplierFor(a, symbol) ?? 1;
 
 const blank = (v: unknown) => (v === "" || v === null || v === undefined ? undefined : v);
 const optNum = (min = 0, strict = true) =>
@@ -15,9 +16,8 @@ const optNum = (min = 0, strict = true) =>
 const optText = z.preprocess(blank, z.string().trim().max(5000).optional());
 const optDate = z.preprocess(blank, z.string().refine((s) => !isNaN(new Date(s).getTime()), "Invalid date").optional());
 
-export const tradeFormSchema = z
-  .object({
-    account_id: z.string().uuid(),
+/** Every entry-form field except the account. Shared by real trades and the hypothetical backtest log so both validate identically. */
+const tradeShape = {
     symbol: z.string().trim().min(1, "Instrument is required").max(24).transform((s) => s.toUpperCase().replace(/[\s/]/g, "")),
     asset_class: z.enum(ASSET_CLASSES),
     side: z.enum(["long", "short"]),
@@ -43,8 +43,10 @@ export const tradeFormSchema = z
     mistakes: z.array(z.string().max(40)).max(12).default([]),
     followed_plan: z.preprocess((v) => (v === "yes" ? true : v === "no" ? false : undefined), z.boolean().optional()),
     discipline_score: z.preprocess(blank, z.coerce.number().int().min(1).max(5).optional()),
-  })
-  .superRefine((d, ctx) => {
+};
+type TradeFields = z.infer<z.ZodObject<typeof tradeShape>>;
+
+function refineTrade(d: TradeFields, ctx: z.RefinementCtx) {
     const add = (path: string, message: string) => ctx.addIssue({ code: "custom", path: [path], message });
     for (const n of ["1", "2"] as const) {
       const q = d[`exit${n}_qty` as "exit1_qty"], p = d[`exit${n}_price` as "exit1_price"];
@@ -55,6 +57,9 @@ export const tradeFormSchema = z
     if (exited - d.quantity > 1e-9) add("exit1_qty", "Exit sizes add up to more than the position size");
     if (exited > 0 && !d.closed_at) add("closed_at", "Add the exit time");
     if (d.closed_at && new Date(d.closed_at) < new Date(d.opened_at)) add("closed_at", "Exit time is before entry time");
+    if (d.asset_class === "future" && d.multiplier === undefined && defaultMultiplierFor("future", d.symbol) === null) {
+      add("multiplier", "We don't know this contract. Enter its point value (dollars per 1.00 price move), e.g. 50 for ES");
+    }
     if (d.stop_price !== undefined) {
       const wrongSide = d.side === "long" ? d.stop_price >= d.entry_price : d.stop_price <= d.entry_price;
       if (wrongSide) add("stop_price", d.side === "long" ? "For a long, the stop must be below entry" : "For a short, the stop must be above entry");
@@ -63,8 +68,12 @@ export const tradeFormSchema = z
       const wrongSide = d.side === "long" ? d.target_price <= d.entry_price : d.target_price >= d.entry_price;
       if (wrongSide) add("target_price", d.side === "long" ? "For a long, the target must be above entry" : "For a short, the target must be below entry");
     }
-  });
+}
+export const tradeFormSchema = z.object({ account_id: z.string().uuid(), ...tradeShape }).superRefine(refineTrade);
+/** Same fields and rules, no account (hypothetical trades belong to no account). */
+export const backtestFormSchema = z.object(tradeShape).superRefine(refineTrade);
 export type TradeForm = z.infer<typeof tradeFormSchema>;
+export type BacktestForm = z.infer<typeof backtestFormSchema>;
 
 /** Exit 1 with a price but no qty means "closed the whole position". */
 export function exitsOf(d: Pick<TradeForm, "quantity" | "exit1_qty" | "exit1_price" | "exit2_qty" | "exit2_price">) {
@@ -75,9 +84,9 @@ export function exitsOf(d: Pick<TradeForm, "quantity" | "exit1_qty" | "exit1_pri
 }
 
 /** Planned risk in ACCOUNT currency = |entry − stop| × size × multiplier × fx. Null when no stop or fx unknown. */
-export function plannedRisk(d: Pick<TradeForm, "entry_price" | "stop_price" | "quantity" | "multiplier" | "asset_class">, fx: number | null): number | null {
+export function plannedRisk(d: Pick<TradeForm, "entry_price" | "stop_price" | "quantity" | "multiplier" | "asset_class"> & { symbol?: string }, fx: number | null): number | null {
   if (d.stop_price === undefined || fx === null) return null;
-  const m = d.multiplier ?? defaultMultiplier(d.asset_class);
+  const m = d.multiplier ?? defaultMultiplier(d.asset_class, d.symbol);
   return Math.round(Math.abs(d.entry_price - d.stop_price) * d.quantity * m * fx * 100) / 100;
 }
 
