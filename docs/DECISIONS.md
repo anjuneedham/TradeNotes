@@ -21,3 +21,9 @@
 | 2026-11-10 | Auth tables renamed `tn_*`, API roles revoked, RLS on | Supabase exposes `public` via REST; avoid collisions with Agriloop |
 | 2026-11-10 | Instagram-only $50 ad; TikTok judged organically | TikTok ads floor $50/campaign/day, $20/ad group/day makes a $50 split impossible |
 | 2026-11-10 | Content visuals = Andrew Builds style config (navy/amber, Inter, 58px captions) | Founder pointed to that repo |
+
+## James, the mascot, narrator and newsletter host
+- **James** is a stickman who writes his notes (`src/components/James.tsx`, persona in `src/lib/james.ts`). He is the site mascot, the narrator of our videos (Vibloid `prompts/james.md`, TTS default instructions) and the host of **James's Daily Notes**.
+- **Daily notes** live in `src/content/notes.ts`, one per day (Jamaica time), alternating articles and made-up "story times". Future-dated notes stay hidden until their day. Merging a note is the human approval; nothing outside that file is ever sent.
+- **Newsletter**: double opt-in (`tn_subscriber`, migration `db/paste/07_newsletter.sql`, owner connection only, RLS on, no API-role grants). Daily send is `/api/cron/daily-note` (Vercel Cron 12:00 UTC = 07:00 Jamaica), protected by `CRON_SECRET`, idempotent per subscriber via `last_sent_on`. Needs `RESEND_API_KEY`, `EMAIL_FROM` on a verified domain, and `CRON_SECRET`. Without email configured, sign-ups are stored as pending and the form says so.
+- Table count is now 16 (`migrate.mjs`, `verify-db.mjs`, `expected-columns.txt` updated).

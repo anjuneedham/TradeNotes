@@ -136,3 +136,13 @@ tradenotes.trades.target_price|numeric|YES|20|8|
 tradenotes.trades.timeframe|text|YES|||
 tradenotes.trades.updated_at|timestamp with time zone|NO|||
 tradenotes.trades.user_id|uuid|NO|||
+public.tn_subscriber.confirm_sent_at|timestamp with time zone|YES|||
+public.tn_subscriber.confirmed_at|timestamp with time zone|YES|||
+public.tn_subscriber.created_at|timestamp with time zone|NO|||
+public.tn_subscriber.email|text|NO|||
+public.tn_subscriber.id|uuid|NO|||
+public.tn_subscriber.last_sent_on|date|YES|||
+public.tn_subscriber.source|text|YES|||
+public.tn_subscriber.status|text|NO|||
+public.tn_subscriber.token|uuid|NO|||
+public.tn_subscriber.unsubscribed_at|timestamp with time zone|YES|||

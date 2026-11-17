@@ -24,7 +24,7 @@ const missing = expected.filter((e) => !actual.has(e));
 ok(`all ${expected.length} expected columns present with the right types`, missing.length === 0, missing.slice(0, 5).join(" ; "));
 
 const tables = await q(`select n.nspname s, c.relname t, c.relrowsecurity rls from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and (n.nspname='tradenotes' or (n.nspname='public' and c.relname like 'tn\\_%'))`);
-ok("15 TradeNotes tables exist", tables.length === 15, String(tables.length));
+ok("16 TradeNotes tables exist", tables.length === 16, String(tables.length));
 ok("row-level security enabled on every TradeNotes table", tables.every((t) => t.rls), tables.filter((t) => !t.rls).map((t) => t.t).join(","));
 const pol = await q(`select tablename t, count(*)::int k from pg_policies where schemaname='tradenotes' group by 1`);
 const polMap = Object.fromEntries(pol.map((r) => [r.t, r.k]));
@@ -67,7 +67,7 @@ try {
   ok("self-upgrade changed 0 rows", upd === 0, String(upd));
   ok("B cannot insert a paid subscription row", await errors("insert into tradenotes.subscriptions (user_id,plan) values ($1,'pro')", [B]));
   ok("B cannot write the audit log", await errors("insert into tradenotes.audit_log (action) values ('x')"));
-  ok("app code cannot read login tables (users, sessions, accounts)", (await errors("select 1 from public.tn_user")) && (await errors("select 1 from public.tn_session")) && (await errors("select 1 from public.tn_account")));
+  ok("app code cannot read login or subscriber tables", (await errors("select 1 from public.tn_user")) && (await errors("select 1 from public.tn_session")) && (await errors("select 1 from public.tn_account")) && (await errors("select 1 from public.tn_subscriber")));
   await none();
   ok("no signed-in user => sees no trades or accounts", (await n("select count(*)::int n from tradenotes.trades")) === 0 && (await n("select count(*)::int n from tradenotes.accounts")) === 0);
   ok("ensure_user refuses without a signed-in user", await errors("select tradenotes.ensure_user()"));
@@ -76,7 +76,7 @@ try {
     await c.query("reset role");
     let can = true; try { await c.query("savepoint r"); await c.query(`set local role ${role}`); await c.query("release savepoint r"); } catch { await c.query("rollback to savepoint r"); can = false; }
     if (!can) { skipped(`${role} API role checks`, "role not present or not switchable"); continue; }
-    for (const tbl of ["public.tn_user","public.tn_session","public.tn_account","public.tn_verification","public.tn_rate_limit","tradenotes.trades","tradenotes.profiles","tradenotes.subscriptions"]) {
+    for (const tbl of ["public.tn_user","public.tn_session","public.tn_account","public.tn_verification","public.tn_rate_limit","public.tn_subscriber","tradenotes.trades","tradenotes.profiles","tradenotes.subscriptions"]) {
       await c.query("reset role"); await c.query(`set local role ${role}`);
       ok(`${role} (public API key) cannot read ${tbl}`, await errors(`select 1 from ${tbl} limit 1`));
     }
