@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { James } from "@/components/James";
+import { SubscribeForm } from "@/components/SubscribeForm";
+import { formatDay, kindLabel, publishedNotes } from "@/lib/newsletter";
+import { JAMES } from "@/lib/james";
 import { PLANS } from "@/lib/plans";
 import { pageMeta, jsonLd, SITE_URL } from "@/lib/seo";
 import { LEGAL } from "@/lib/legal";
@@ -13,6 +17,8 @@ import { PartOneScene } from "@/components/stickman/PartOneScene";
 import { PencilArrow, PencilUnderline } from "@/components/stickman/PencilArrow";
 import { Mascot, ThirtyTradesBar } from "@/components/stickman/Doodles";
 import type { Pose } from "@/components/stickman/Stickman";
+
+export const revalidate = 3600; // the latest note depends on the date
 
 const poses: Pose[] = ["point", "think", "shrug"];
 
@@ -58,6 +64,7 @@ const LD = {
 };
 
 export default function Home() {
+  const latestNote = publishedNotes()[0];
   const s = summarize(SAMPLE);
   return (
     <div>
@@ -161,6 +168,18 @@ export default function Home() {
         </div>
       </section>
 
+      <section aria-labelledby="james" className="mx-auto max-w-6xl px-4 pt-16">
+        <div className="grid items-center gap-6 rounded-lg border border-border bg-panel p-6 sm:grid-cols-[auto_1fr] sm:p-8">
+          <James pose="write" size={130} className="mx-auto text-fg" />
+          <div>
+            <p className="text-xs uppercase tracking-widest text-accent">Meet James</p>
+            <h2 id="james" className="mt-1 text-2xl font-semibold tracking-tight">{JAMES.tagline}</h2>
+            <p className="mt-2 text-muted">{JAMES.bio}</p>
+            {latestNote && <p className="mt-3 text-sm"><span className="text-muted">Latest · {formatDay(latestNote.date)} · {kindLabel(latestNote.kind)}: </span><Link href={`/notes/${latestNote.slug}`} className={linkCls}>{latestNote.title}</Link></p>}
+            <div className="mt-4"><SubscribeForm source="home" /></div>
+          </div>
+        </div>
+      </section>
       <section aria-labelledby="plans" className="mx-auto max-w-6xl px-4 py-16">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 id="plans" className="text-2xl font-semibold tracking-tight">Plans</h2>

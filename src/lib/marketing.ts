@@ -109,7 +109,7 @@ export const NOT_YET: string[] = ["Broker auto-sync (import is by file upload to
 export const HUB_LINKS: NextLink[] = [
   { href: "/prop-firm-traders", label: "For prop-firm traders" }, { href: "/features", label: "Features" }, { href: "/import", label: "Broker import" },
   { href: "/compare", label: "Compare" }, { href: "/how-it-works", label: "How it works & FAQ" }, { href: "/changelog", label: "Changelog" },
-  { href: "/learn", label: "Learn" }, { href: "/free", label: "Free tools" }, { href: "/partners", label: "Partners" },
+  { href: "/learn", label: "Learn" }, { href: "/notes", label: "James's Notes" }, { href: "/free", label: "Free tools" }, { href: "/partners", label: "Partners" },
 ];
 
 /** Every public path these pages add (sitemap + link tests read it). */

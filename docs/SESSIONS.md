@@ -4,6 +4,35 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-17: James the stickman: mascot, daily notes, newsletter (ported onto main)
+
+**Asked:** make James (a stickman who writes his notes) the recognisable mascot, narrator and host across the site and social media; daily dated articles and "story times"; people can subscribe to the daily post by email. Then "add James and merge".
+
+### Found
+- The first build was on an old base. `origin/main` was 101 commits ahead (new `(marketing)` layouts, its own stickman theme, `leads` email list, GitHub-Actions cron, 27 tables). A trial merge conflicted in ~12 files, so James was re-ported onto a fresh branch from `origin/main` instead of merging the old one.
+- `tradenotes.leads` consented only to occasional weekly tips, so the daily newsletter has its own table with double opt-in rather than reusing that list.
+- Decision (user): keep my James drawing (`src/components/James.tsx`); main's existing Stickman theme is left as it is.
+
+### Changed
+- `James.tsx` (4 poses), `JamesMark`, `lib/james.ts` persona, `lib/james-art.ts` (plain SVG for images), `public/brand/*` profile art + `scripts/brand-assets.js`, `docs/JAMES_BRAND.md`.
+- Daily notes: `src/content/notes.ts` (7 seeded, Jamaica dates, future-dated hidden), pages `/notes`, `/notes/[slug]`, `/notes/[slug]/share` (copy-ready posts per platform; nothing auto-posts), per-note OG image, confirm/unsubscribe pages, sitemap entries, nav + footer + home "Meet James", James on learn, pricing and auth.
+- Newsletter: migration `19_newsletter.sql` (`tradenotes.note_subscribers`, owner-only, RLS on, no grants; tables 27 -> 28 in migrate, verify-db, expected-columns), `lib/subscribers.ts` (double opt-in, idempotent per-subscriber send via `last_sent_on`), `POST /api/cron/daily-note` (CRON_SECRET) + `.github/workflows/daily-note.yml` (12:00 UTC = 07:00 Jamaica). Privacy policy now describes this list. Batch cap `NEWSLETTER_BATCH` (default 80) to stay inside Resend's free daily limit.
+
+### Verified
+- `tsc` clean; eslint 0 errors; vitest 358 passed / 4 skipped (new: schedule, content-safety lint, email, social limits; seo sitemap test now counts notes); migrations + verify-db 81 passed on a fresh local Postgres; `next build` passes.
+- Runtime with a fake Resend server: subscribe -> confirmation email -> confirm -> cron sent 1, second run sent 0; cron without secret 401; note page 200; 5 notes in the sitemap.
+
+### Test data left behind
+- None in production. Local scratch DBs only (`tn_new`, `tn_main`).
+
+### Open
+- Set `RESEND_API_KEY`, `EMAIL_FROM` (verified domain), `CRON_SECRET` in Vercel and repo secrets `CRON_SECRET` + `DAILY_NOTE_URL`; until then signups are stored as pending and nothing is sent. Scheduled workflows only run from the default branch.
+- The 7 seeded notes and James's drawing/voice need an owner read before promotion.
+- Site icon was not changed (main keeps its own favicon). Social accounts must be created manually.
+- `scripts/e2e.js` was not run (known failures on main, see the previous entry).
+
+---
+
 ## 2026-11-17: merge main into the stickman theme branch; theme on every page
 
 **Asked:** finish the stopped `git merge origin/main` into `ccr-7620e4ee-qf49jf`, keep all of main and the reversible stickman theme, extend the theme to the pages main added, verify, commit (no push).
