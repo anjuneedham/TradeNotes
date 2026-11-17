@@ -5,6 +5,9 @@ import { JamesMark } from "@/components/James";
 import { SubscribeForm } from "@/components/SubscribeForm";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? process.env.BETTER_AUTH_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")),
+  openGraph: { siteName: "TradeNotes · James's Daily Notes", type: "website" },
+  twitter: { card: "summary_large_image" },
   title: "TradeNotes — Trading Journal & Backtesting",
   description: "Know your trades. Understand your patterns. Improve your process.",
 };

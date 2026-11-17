@@ -34,6 +34,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
         <h2 className="font-semibold">Want tomorrow&apos;s page?</h2>
         <div className="mt-3"><SubscribeForm source="note" /></div>
       </section>
+      <p className="mt-6 text-sm"><Link href={`/notes/${note.slug}/share`} className="text-accent">Share this note →</Link></p>
       <nav className="mt-8 flex justify-between text-sm">
         {older ? <Link href={`/notes/${older.slug}`} className="text-accent">← {older.title}</Link> : <span />}
         {newer ? <Link href={`/notes/${newer.slug}`} className="text-accent">{newer.title} →</Link> : <span />}
