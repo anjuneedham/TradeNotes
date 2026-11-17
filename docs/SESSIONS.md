@@ -4,6 +4,34 @@ One entry per working session, newest first. Each entry records what was asked, 
 
 ---
 
+## 2026-11-17: merge main into the stickman theme branch; theme on every page
+
+**Asked:** finish the stopped `git merge origin/main` into `ccr-7620e4ee-qf49jf`, keep all of main and the reversible stickman theme, extend the theme to the pages main added, verify, commit (no push).
+
+### Found
+- Main moved landing/pricing to `src/app/(marketing)/`, split chrome into (marketing)/(auth)/app layouts, rewrote the dashboard (`DashboardView`), journal and `EquityCurve`, and switched to local IBM Plex fonts.
+- Main already uses `data-theme` for light/dark (tn_theme cookie on the app wrapper div). Our html-level `data-theme="stickman|classic"` does not collide with main's selectors, but `scripts/e2e.js` read the *first* `[data-theme]` element (now `<html>`); the check is now scoped to `body [data-theme]` with the same assertion.
+- Tailwind v4 utilities are layered, so unlayered theme CSS beat `hidden`; the `.sm-arrow` display rule now sits in `@layer base`.
+
+### Changed
+- Conflicts: took main's version of every file, then re-applied our edits on top (root layout: init script, `#sm-wobble` filter, Caveat `--font-hand` as a local font `src/app/fonts/caveat-latin-wght-normal.woff2` + OFL licence, since main moved off Google fonts; mood stickman + underline moved into `DashboardView`; `sm-line` on main's new equity path; signup, journal, dashboard empty state). Deleted `src/app/page.tsx` / `src/app/pricing/page.tsx` and re-applied hero PartOneScene, pencil arrows, mascots and the 10-of-30 bar to `(marketing)/page.tsx` and `(marketing)/pricing/page.tsx`.
+- globals.css: main's tokens + flat stickman block. Stickman overrides all tokens (including nested `[data-theme=light|dark]`), styles main's `bg-fg` primary buttons amber with dark text, only thickens borders that already exist, dashed section/sidebar rules. Classic = main's look (all rules scoped; decorations `sm-only`; Logo mark `sm-classic-only`).
+- Theme toggle in marketing header (sm+), auth header, app sidebar, and the mobile More page. Stickman in the Logo.
+- Extra touches: `FunnelPage`/`Cta` (features, how-it-works, compare, import, prop-firm-traders, learn hubs, changelog: underline, pointing stickman, one "start here" arrow to signup, mascot on CTA box), demo banner arrow to signup, free page underline, partners doodle, `EmptyState` shrug stickman (all app empty states: journal, analytics, backtests, etc.), 404 and app error page stickmen. Mobile PartOneScene fits 390px.
+
+### Verified
+- `npx tsc --noEmit` clean; `npx eslint src` 0 errors (main's existing PerformancePanel warning); vitest 349 passed / 4 skipped; `next build` passes; migrations + verify-db 81 passed.
+- `scripts/e2e.js`: 247 PASS, 1 FAIL ("P2 nav: bottom bar has Calendar") then a crash at the P3 quick-log limit test. Both come from main, not the theme: the bottom bar is now Dashboard/Journal/Analytics/AI Coach/More (#11), and the test seeds 49 trades for a "below limit" Free user while the Free limit is now 30 (#12). Later e2e sections did not run.
+- Playwright screenshots in both themes, 1280 and 390 px (scratchpad only): no page errors, no horizontal overflow.
+
+### Test data left behind
+Throwaway e2e/screenshot users in the local `tn_shot` database only.
+
+### Still open
+- Fix the two stale e2e checks on main. The More-page toggle was added after the last screenshot run (type-checked only).
+
+---
+
 ## 2026-11-16 (night): SEO article 2, trading expectancy formula
 
 **Asked:** finish and ship article 2 from the content calendar, then merge if CI is green.

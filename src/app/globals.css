@@ -55,3 +55,145 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); }
 .tn-dots i:nth-child(2) { animation-delay: .15s } .tn-dots i:nth-child(3) { animation-delay: .3s }
 .tn-lift { transition: transform .18s ease, border-color .18s ease; }
 .tn-lift:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+
+/* ───────────── Stickman theme (reversible) ─────────────
+   Applies unless <html data-theme="classic"> (set by the tn-theme localStorage key; see ThemeToggle).
+   Switching to classic restores main's look exactly: every rule below is scoped to the stickman state,
+   .sm-only elements are hidden in classic, .sm-classic-only elements are hidden in stickman.
+   The stickman look is a dark "notebook" page, so it overrides the light/dark tokens (including the
+   in-app tn_theme override on nested [data-theme] elements) while it is on. Keep rules flat (no nesting). */
+html[data-theme="classic"] .sm-only { display: none !important; }
+html:not([data-theme="classic"]) .sm-classic-only { display: none !important; }
+.sm-toggle { white-space: nowrap; font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; color: var(--muted); background: transparent; cursor: pointer; }
+.sm-toggle:hover { color: var(--fg); }
+
+html:root:not([data-theme="classic"]),
+html:not([data-theme="classic"]) [data-theme="light"],
+html:not([data-theme="classic"]) [data-theme="dark"] {
+  --bg: #0a0f1a; --panel: #101828; --raised: #18233a; --border: #4a5670; --border-strong: #7a869e; --field: #7a869e;
+  --fg: #f5f7fa; --muted: #a3afc3; --accent: #f2b01e; --accent-fg: #0a0f1a;
+  --win: #4ade80; --loss: #f87171; --warn: #f2b01e;
+  --cb-gain: #7ea6ff; --cb-loss: #f59a4a;
+  --pencil: #f5f7fa; --amber: #f2b01e;
+  --hand: var(--font-hand), "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  color-scheme: dark;
+}
+html:not([data-theme="classic"]) body {
+  background-color: var(--bg);
+  /* faint graph-paper grid, like a notebook page */
+  background-image: linear-gradient(rgba(245,247,250,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(245,247,250,.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+/* Let the notebook grid show through full-page wrappers (the app shell paints bg-bg). */
+html:not([data-theme="classic"]) div.bg-bg { background-color: transparent; }
+html:not([data-theme="classic"]) h1,
+html:not([data-theme="classic"]) h2,
+html:not([data-theme="classic"]) h3 { font-family: var(--hand); letter-spacing: .01em; }
+html:not([data-theme="classic"]) h1 { font-weight: 700; }
+html:not([data-theme="classic"]) h2 { font-size: 1.6rem; line-height: 1.15; }
+html:not([data-theme="classic"]) h3 { font-size: 1.3rem; }
+/* Hand-drawn wobbly boxes. Only elements that already draw a border get a heavier pencil line. */
+html:not([data-theme="classic"]) .rounded-lg,
+html:not([data-theme="classic"]) .rounded-xl,
+html:not([data-theme="classic"]) .rounded-md { border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px; }
+html:not([data-theme="classic"]) .rounded-lg.border,
+html:not([data-theme="classic"]) .rounded-xl.border { border-width: 2px; }
+html:not([data-theme="classic"]) .border-border { border-color: color-mix(in srgb, var(--pencil) 45%, transparent); }
+html:not([data-theme="classic"]) .rounded-lg.border-border,
+html:not([data-theme="classic"]) .rounded-xl.border-border { border-color: color-mix(in srgb, var(--pencil) 70%, transparent); }
+html:not([data-theme="classic"]) .rounded-lg.bg-panel,
+html:not([data-theme="classic"]) .rounded-xl.bg-panel { box-shadow: 4px 5px 0 rgba(0,0,0,.35); }
+html:not([data-theme="classic"]) .border-dashed { border-color: color-mix(in srgb, var(--pencil) 55%, transparent); }
+/* Primary buttons (bg-fg text-bg): amber with dark text, pencil offset shadow; contrast stays AA. */
+html:not([data-theme="classic"]) a.bg-fg,
+html:not([data-theme="classic"]) button.bg-fg,
+html:not([data-theme="classic"]) span.bg-fg { background-color: var(--amber); color: #0a0f1a !important; font-weight: 700; box-shadow: 3px 4px 0 rgba(245,247,250,.85); transition: transform .12s; }
+html:not([data-theme="classic"]) a.bg-fg:hover,
+html:not([data-theme="classic"]) button.bg-fg:hover { opacity: 1; transform: translate(-1px, -1px) rotate(-.6deg); }
+html:not([data-theme="classic"]) .bg-accent { color: #0a0f1a; }
+html:not([data-theme="classic"]) .text-accent { color: var(--amber); }
+html:not([data-theme="classic"]) header.border-b,
+html:not([data-theme="classic"]) footer.border-t,
+html:not([data-theme="classic"]) section.border-y,
+html:not([data-theme="classic"]) aside.border-r,
+html:not([data-theme="classic"]) nav.border-t { border-style: dashed; border-color: color-mix(in srgb, var(--pencil) 40%, transparent); }
+html:not([data-theme="classic"]) .sm-wordmark { font-family: var(--hand); font-size: 1.5rem; line-height: 1; }
+/* ── pencil strokes + wobble ── */
+  html:not([data-theme="classic"]) .sm-pencil { color: var(--pencil); overflow: visible; filter: url(#sm-wobble); }
+html:not([data-theme="classic"]) .sm-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: sm-draw .9s ease-out var(--d, .2s) forwards; }
+html:not([data-theme="classic"]) .sm-draw-head { animation-delay: calc(var(--d, .2s) + .75s); animation-duration: .35s; }
+@keyframes sm-draw { to { stroke-dashoffset: 0; } }
+/* display lives in a layer so Tailwind visibility utilities (hidden, md:inline-flex) on an arrow still win. */
+@layer base { html:not([data-theme="classic"]) .sm-arrow { display: inline-flex; } }
+html:not([data-theme="classic"]) .sm-arrow { flex-direction: column; align-items: center; color: var(--amber); pointer-events: none; }
+html:not([data-theme="classic"]) .sm-arrow .sm-pencil { color: var(--amber); width: 5.5rem; height: auto; }
+html:not([data-theme="classic"]) .sm-note { font-family: var(--hand); font-size: 1.15rem; color: var(--amber); transform: rotate(-3deg); white-space: nowrap; }
+html:not([data-theme="classic"]) .sm-underline { display: block; width: min(18rem, 70%); height: .6rem; margin: .1rem auto 0; color: var(--amber); }
+html:not([data-theme="classic"]) .sm-underline .sm-pencil,
+html:not([data-theme="classic"]) svg.sm-underline { color: var(--amber); }
+/* ── hero scene (Part 1) ── */
+  html:not([data-theme="classic"]) .sm-scene { position: relative; margin: 2.5rem auto 0; max-width: 40rem; padding: 1.25rem 1rem 1.5rem; border: 2px dashed color-mix(in srgb, var(--pencil) 60%, transparent); border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px; background: rgba(16,24,40,.7); }
+html:not([data-theme="classic"]) .sm-scene-tag { font-family: var(--hand); color: var(--amber); font-size: 1.1rem; margin-bottom: .5rem; }
+html:not([data-theme="classic"]) .sm-scene-row { display: flex; align-items: flex-end; justify-content: center; gap: .75rem; }
+html:not([data-theme="classic"]) .sm-actor { width: 4.2rem; flex: none; }
+html:not([data-theme="classic"]) .sm-actor-win { animation: sm-bob 2.4s ease-in-out infinite; }
+html:not([data-theme="classic"]) .sm-actor-lose { animation: sm-slump 3s ease-in-out 3.6s infinite; }
+@keyframes sm-bob { 50% { transform: translateY(-5px) rotate(-2deg); } }
+@keyframes sm-slump { 50% { transform: translateY(3px) rotate(3deg); } }
+html:not([data-theme="classic"]) .sm-chips { display: grid; grid-template-columns: repeat(5, auto); gap: .45rem .5rem; justify-content: center; }
+html:not([data-theme="classic"]) .sm-chip { font-family: var(--hand); font-weight: 700; font-size: 1.3rem; padding: .05rem .55rem; border: 2.5px solid; border-radius: 40% 60% 55% 45% / 60% 40% 60% 40%; opacity: 0; transform: scale(.3) rotate(-8deg); animation: sm-pop .35s cubic-bezier(.3,1.6,.5,1) forwards; }
+html:not([data-theme="classic"]) .sm-chip-win { color: #4ade80; border-color: #4ade80; background: rgba(34,197,94,.12); }
+html:not([data-theme="classic"]) .sm-chip-loss { color: #f87171; border-color: #f87171; background: rgba(239,68,68,.14); }
+@keyframes sm-pop { to { opacity: 1; transform: scale(1) rotate(var(--r, -1.5deg)); } }
+html:not([data-theme="classic"]) .sm-chip:nth-child(3n) { --r: 2deg; }
+html:not([data-theme="classic"]) .sm-sum { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; font-family: var(--hand); font-size: 1.6rem; }
+html:not([data-theme="classic"]) .sm-sum-line { opacity: 0; animation: sm-fade .5s ease-out forwards; }
+html:not([data-theme="classic"]) .sm-sum-total { font-size: 2rem; text-decoration: underline wavy var(--amber) 2px; text-underline-offset: 6px; }
+html:not([data-theme="classic"]) .sm-win { color: #4ade80; }
+html:not([data-theme="classic"]) .sm-loss { color: #f87171; }
+@keyframes sm-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+html:not([data-theme="classic"]) .sm-scene-foot { margin-top: .9rem; font-size: .65rem; letter-spacing: .12em; color: var(--muted); }
+html:not([data-theme="classic"]) .sm-scene-arrow { position: absolute; right: -8.5rem; top: 45%; }
+@media (max-width: 1180px) {
+  html:not([data-theme="classic"]) .sm-scene-arrow { display: none; }
+}
+@media (max-width: 640px) {
+  html:not([data-theme="classic"]) .sm-actor { width: 3rem; }
+  html:not([data-theme="classic"]) .sm-chip { font-size: 1.05rem; }
+}
+@media (max-width: 480px) {
+  html:not([data-theme="classic"]) .sm-scene { padding-left: .5rem; padding-right: .5rem; }
+  html:not([data-theme="classic"]) .sm-scene-row { gap: .35rem; }
+  html:not([data-theme="classic"]) .sm-actor { width: 2.2rem; }
+  html:not([data-theme="classic"]) .sm-chips { gap: .35rem .3rem; }
+  html:not([data-theme="classic"]) .sm-chip { font-size: .95rem; padding: 0 .35rem; }
+}
+/* ── 10 of 30 progress doodle (video 2) ── */
+  html:not([data-theme="classic"]) .sm-progress { margin-top: 1rem; }
+html:not([data-theme="classic"]) .sm-progress-track { height: 1.1rem; border: 2.5px solid var(--pencil); border-radius: 255px 8px 225px 8px / 8px 225px 8px 255px; overflow: hidden; }
+html:not([data-theme="classic"]) .sm-progress-fill { height: 100%; width: 0; background: repeating-linear-gradient(135deg, var(--amber) 0 6px, transparent 6px 11px); animation: sm-fill 1.6s ease-out .3s forwards; }
+@keyframes sm-fill { to { width: 33.3%; } }
+html:not([data-theme="classic"]) .sm-progress-labels { display: flex; justify-content: space-between; font-family: var(--hand); font-size: 1.05rem; margin-top: .2rem; }
+/* ── mascots on cards ── */
+  html:not([data-theme="classic"]) .sm-mascot { position: absolute; width: 2.6rem; right: .9rem; top: -1.6rem; background: var(--bg); padding: 0 .25rem; }
+html:not([data-theme="classic"]) .sm-card { position: relative; }
+html:not([data-theme="classic"]) .sm-hero-arrow { display: flex; justify-content: center; margin-top: -.4rem; }
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-theme="classic"]) .sm-draw { animation: none; stroke-dashoffset: 0; }
+  html:not([data-theme="classic"]) .sm-chip,
+html:not([data-theme="classic"]) .sm-sum-line { animation: none; opacity: 1; transform: none; }
+  html:not([data-theme="classic"]) .sm-actor,
+html:not([data-theme="classic"]) .sm-progress-fill { animation: none; }
+  html:not([data-theme="classic"]) .sm-progress-fill { width: 33.3%; }
+}
+
+
+/* Data screens (dashboard, journal, analytics): pencil equity line, hand-lettered table heads. */
+html:not([data-theme="classic"]) .sm-line { stroke: var(--amber); stroke-width: 3; filter: url(#sm-wobble); }
+html:not([data-theme="classic"]) table thead { font-family: var(--hand); font-size: 1.05rem; color: var(--amber); }
+html:not([data-theme="classic"]) tbody tr.border-t { border-top-style: dashed; }
+html:not([data-theme="classic"]) .rounded-md.border-warn\/50,
+html:not([data-theme="classic"]) .rounded-md.border-win\/50,
+html:not([data-theme="classic"]) .rounded-md.border-loss\/50 { border-style: dashed; }
+/* Small stickman beside a page title or an empty state. */
+html:not([data-theme="classic"]) .sm-aside { display: flex; align-items: flex-end; gap: .75rem; }

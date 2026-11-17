@@ -9,6 +9,8 @@ import { toTradeInputs, type TradeRow, type ExitRow } from "@/lib/trade-schema";
 import { deleteTrade } from "./actions";
 import { Notice, Badge, PageHeader, EmptyState, inputCls, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { Stickman } from "@/components/stickman/Stickman";
+import { PencilArrow } from "@/components/stickman/PencilArrow";
 import { signedMoney, signedR, pnlClass, dateTimeIn, plain } from "@/lib/format";
 
 export const metadata = { title: "Journal — TradeNotes" };
@@ -62,6 +64,7 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="space-y-5">
+      <Stickman pose="think" className="sm-only -mb-3 h-14 w-10" />
       <PageHeader title="Journal" sub={count > 0 ? `${count.toLocaleString("en-US")} trade${count === 1 ? "" : "s"}${filtered ? (count === 1 ? " matches your filters" : " match your filters") : ""} · newest first` : undefined}>
         <Link href="/app/import" className={btnGhostCls}>Import CSV</Link>
         <Link href="/app/journal/new" className={`${btnCls} hidden md:inline-flex`}>+ Log trade</Link>
@@ -78,7 +81,7 @@ export default async function Journal({ searchParams }: { searchParams: Promise<
 
       {rows.length === 0 ? (
         <EmptyState title={filtered ? "No trades match those filters." : "No trades yet"}
-          action={filtered ? <Link href={filterHref("/app/journal", NO_FILTERS)} className={btnGhostCls}>Clear filters</Link> : <Link href="/app/journal/new" className={btnCls}>Log your first trade</Link>}>
+          action={filtered ? <Link href={filterHref("/app/journal", NO_FILTERS)} className={btnGhostCls}>Clear filters</Link> : <span className="inline-flex items-center gap-3"><PencilArrow dir="right" label="start here" className="hidden sm:inline-flex" delay={0.4} /><Link href="/app/journal/new" className={btnCls}>Log your first trade</Link></span>}>
           {filtered ? "Try a wider date range or fewer filters." : "Your journal is where patterns start to show. Log your most recent trade — it takes about a minute."}
         </EmptyState>
       ) : (<>

@@ -5,6 +5,8 @@ import { downsampleCurve } from "@/lib/curve";
 import { worstResult, closedBetween, type ResultRow, type LatestRow } from "@/lib/trades-data";
 import { money, signedMoney, signedR, pct, num, pnlClass, shortDate } from "@/lib/format";
 import { Card, Notice, PageHeader, linkCls } from "./ui";
+import { Stickman, type Pose } from "./stickman/Stickman";
+import { PencilUnderline } from "./stickman/PencilArrow";
 import { Stat, Breakdown } from "./stats";
 import EquityCurve from "./EquityCurve";
 
@@ -46,9 +48,15 @@ export function DashboardView({ title = "Dashboard", sub, bar, rows, excluded, r
   const worst = worstResult(rows);
   const reviewCount = (s.excluded.open_or_partial.length ? 1 : 0) + (s.excluded.missing_fx.length ? 1 : 0) + (noStop ? 1 : 0) + (costliest ? 1 : 0) + (worst ? 1 : 0);
 
+  // Mood doodle (stickman theme) only mirrors the sign of the recorded net P&L; under 30 trades it just "thinks" (too early to tell).
+  const mood: Pose = s.tradeCount === 0 || s.smallSample ? "think" : s.netPnl > 0 ? "win" : s.netPnl < 0 ? "lose" : "stand";
+
   return (
     <div className="space-y-5">
-      <PageHeader title={title} sub={sub} />
+      <div className="flex items-end gap-3">
+        <Stickman pose={mood} className="sm-only h-16 w-11 shrink-0" />
+        <div className="min-w-0 flex-1"><PageHeader title={title} sub={sub} /><PencilUnderline className="!mx-0 !w-32" /></div>
+      </div>
       {bar}
       {topExtra}
 

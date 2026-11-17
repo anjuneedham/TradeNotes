@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getContext } from "@/lib/app-context";
 import { Card, PageHeader } from "@/components/ui";
+import { ThemeToggle } from "@/components/stickman/ThemeToggle";
 
 export const metadata = { title: "More — TradeNotes" };
 const LINKS = [
@@ -22,7 +23,7 @@ export default async function More() {
   await getContext(); // validates the session like every /app page
   return (
     <div className="mx-auto max-w-xl space-y-5">
-      <PageHeader title="More" />
+      <PageHeader title="More"><ThemeToggle /></PageHeader>
       <Card className="!p-0">
         <ul className="divide-y divide-border">
           {LINKS.map((l) => (

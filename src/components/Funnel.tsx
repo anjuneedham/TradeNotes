@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { Eyebrow, btnCls, btnGhostCls, linkCls } from "@/components/ui";
 import { OFFER, NOT_AFFILIATED, type NextLink } from "@/lib/marketing";
+import { Stickman } from "@/components/stickman/Stickman";
+import { PencilArrow, PencilUnderline } from "@/components/stickman/PencilArrow";
+import { Mascot } from "@/components/stickman/Doodles";
 
 /** Primary CTA (signup with ?src) + secondary (demo) + optional lead capture link to /free. One per page block. */
 export function Cta({ src, free = true, title = "Start your journal today" }: { src: string; free?: boolean; title?: string }) {
   return (
-    <div className="mt-12 rounded-lg border border-border-strong bg-panel px-5 py-6 sm:px-8">
+    <div className="sm-card mt-12 rounded-lg border border-border-strong bg-panel px-5 py-6 sm:px-8">
+      <Mascot pose="win" />
       <p className="text-lg font-medium tracking-tight">{title}</p>
       <p className="mt-1 text-sm text-muted">{OFFER.free} {OFFER.paid}</p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -35,9 +39,14 @@ export function FunnelPage({ eyebrow, title, intro, src, next, children, free = 
   return (
     <article className="mx-auto max-w-3xl px-4 py-14">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{title}</h1>
+      <div className="flex items-end gap-4">
+        <h1 className="mt-3 min-w-0 flex-1 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{title}</h1>
+        <Stickman pose="point" className="sm-only hidden h-20 w-14 shrink-0 sm:block" />
+      </div>
+      <PencilUnderline className="!mx-0" />
       <p className="mt-3 text-muted">{intro}</p>
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <PencilArrow dir="right" label="start here" className="hidden sm:inline-flex" delay={0.5} />
         <Link href={`/signup?src=${src}`} className={`${btnCls} !px-6`}>Start free, no card</Link>
         <Link href={`/demo?src=${src}`} className={btnGhostCls}>See the demo</Link>
       </div>

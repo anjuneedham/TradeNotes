@@ -149,7 +149,7 @@ async function logTrade(page, o) {
   await A.getByLabel('Light', { exact: true }).check();
   await A.getByRole('button', { name: 'Save preferences' }).click();
   await A.waitForURL('**/app/settings?saved=1');
-  check('settings: appearance preference is applied', (await A.locator('[data-theme]').first().getAttribute('data-theme')) === 'light');
+  check('settings: appearance preference is applied', (await A.locator('body [data-theme]').first().getAttribute('data-theme')) === 'light');
   await A.getByLabel('Match device').check();
   await A.getByRole('button', { name: 'Save preferences' }).click();
   await A.waitForURL('**/app/settings?saved=1');

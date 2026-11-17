@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge, btnCls, btnGhostCls } from "@/components/ui";
 import { demoTrades } from "@/lib/demo-data";
+import { PencilArrow } from "@/components/stickman/PencilArrow";
 
 /** Wrapper for every /demo page: the SAMPLE DATA banner is here, so no demo page can be shown without it. */
 export default function DemoLayout({ children }: { children: React.ReactNode }) {
@@ -10,9 +11,10 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
       <div role="note" aria-label="Sample data" data-testid="sample-banner" className="mb-5 rounded-lg border border-warn/60 bg-warn/10 px-4 py-3 text-sm leading-relaxed">
         <p className="flex flex-wrap items-center gap-2 font-semibold"><Badge tone="warn">Sample data</Badge>SAMPLE DATA: a fictional journal, not real trades</p>
         <p className="mt-1 text-muted">Everything on these pages is made up to show you how TradeNotes looks and what its numbers mean. It is read-only, needs no account, and is not a performance claim or financial advice.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <Link href="/signup" className={`${btnCls} !min-h-10`}>Start free with your own trades</Link>
           <Link href="/pricing" className={`${btnGhostCls} !min-h-10`}>See pricing</Link>
+          <PencilArrow dir="left" label="try it with your own trades" className="hidden md:inline-flex" delay={0.5} />
         </div>
       </div>
       <nav aria-label="Demo pages" className="mb-5 flex flex-wrap gap-2 text-sm">

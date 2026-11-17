@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { Stickman } from "./stickman/Stickman";
 
 /* Shared primitives. Every page composes these; do not restyle per page. See docs/design/TRADENOTES_DESIGN_SYSTEM.md. */
 
@@ -55,6 +56,7 @@ export function PageHeader({ title, sub, children }: { title: string; sub?: Reac
 export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="rounded-lg border border-dashed border-border-strong px-5 py-10 text-center">
+      <Stickman pose="shrug" className="sm-only mx-auto mb-2 h-16 w-11" />
       <p className="font-medium">{title}</p>
       {children && <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">{children}</p>}
       {action && <div className="mt-5">{action}</div>}

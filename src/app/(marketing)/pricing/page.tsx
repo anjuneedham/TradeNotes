@@ -6,6 +6,7 @@ import { PlanComparison } from "@/components/PlanComparison";
 import { pageMeta, jsonLd } from "@/lib/seo";
 import { foundingSeatsLeft, foundingPriceCents } from "@/lib/founding";
 import { Badge, btnCls, btnGhostCls, linkCls } from "@/components/ui";
+import { PencilArrow, PencilUnderline } from "@/components/stickman/PencilArrow";
 
 export const metadata = pageMeta({ title: "Pricing — TradeNotes", description: `TradeNotes pricing: a free trading journal for ${PLANS.free.tradeLimit} trades, Standard at $${PLANS.starter.monthly}/month and Premium at $${PLANS.pro.monthly}/month. Save 2 months with annual billing.`, path: "/pricing" });
 export const revalidate = 60; // seat count refreshes at most once a minute
@@ -27,6 +28,7 @@ export default async function Pricing() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq().map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }) }} />
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Start free. Pay when your journal outgrows it.</h1>
+        <PencilUnderline className="!mx-0" />
         <p className="mt-3 text-muted">Three plans, billed monthly or yearly in US dollars. Pay yearly and get 2 months free. No card needed for Free. Cancel any time.</p>
         <p className="mt-3 text-sm text-muted">Want to look first? <Link href="/demo" className={linkCls}>Open the demo</Link>: a fictional sample journal with the real dashboard, analytics and trade pages. No account needed.</p>
       </div>
@@ -58,6 +60,7 @@ export default async function Pricing() {
                 </div>
               )}
               <div className="mt-auto pt-6">
+                {id === "free" && <PencilArrow dir="down-right" label="most people start here" className="mb-1" delay={0.4} />}
                 <Link href={id === "free" ? "/signup" : `/app/billing?plan=${id}`} className={`${id === "starter" ? btnCls : btnGhostCls} w-full`}>
                   {id === "free" ? "Start free" : `Choose ${p.name}`}
                 </Link>

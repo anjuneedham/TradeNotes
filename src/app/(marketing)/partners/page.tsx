@@ -3,6 +3,8 @@ import { LEGAL, isFilled } from "@/lib/legal";
 import { AFFILIATE } from "@/lib/affiliate";
 import { pageMeta } from "@/lib/seo";
 import { PLANS } from "@/lib/plans";
+import { Stickman } from "@/components/stickman/Stickman";
+import { PencilArrow } from "@/components/stickman/PencilArrow";
 
 export const metadata = pageMeta({ title: "Partner program — TradeNotes", description: "Earn recurring commission by recommending TradeNotes to your trading community. 30% of what each referred customer pays for 12 months.", path: "/partners" });
 
@@ -23,6 +25,7 @@ export default function Partners() {
         <li>Paid monthly once your balance reaches {usd(AFFILIATE.minPayoutCents)}; smaller balances roll over. We pay by the method you give us (for example PayPal or bank transfer) and you cover any fees on your side.</li>
       </ul>
 
+      <div className="sm-only not-prose flex items-end gap-2" aria-hidden="true"><Stickman pose="point" className="h-16 w-11" /><PencilArrow dir="down-right" label="to join, email us" delay={0.4} /></div>
       <h2>How it works</h2>
       <ul>
         <li>Email {mail} with your name, your group or channel, and its size. We create your personal link, <code>?ref=yourcode</code>, and a private page where you can see sign-ups, paying customers and what you have earned.</li>

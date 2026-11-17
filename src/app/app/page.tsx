@@ -8,6 +8,8 @@ import { DashboardView } from "@/components/DashboardView";
 import { PerformancePanel } from "@/components/PerformancePanel";
 import { tradeScore, insights } from "@/lib/insights";
 import { PLANS } from "@/lib/plans";
+import { Stickman } from "@/components/stickman/Stickman";
+import { PencilArrow } from "@/components/stickman/PencilArrow";
 
 export const metadata = { title: "Dashboard — TradeNotes" };
 
@@ -39,6 +41,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   if (totalMatching === 0 && !filtered) {
     return (
       <div className="mx-auto max-w-3xl space-y-5">
+        <Stickman pose="point" className="sm-only -mb-3 h-20 w-14" />
         <PageHeader title={`Welcome${profile?.experience_level === "beginner" ? " — let’s get started" : ""}`} sub="Your dashboard fills in as you log trades." />
         <Card>
           <h2 className="font-medium">Start in 3 steps</h2>
@@ -52,7 +55,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               </li>
             ))}
           </ol>
-          <Link href="/app/journal/new" className={`${btnCls} mt-5`}>Log your first trade</Link>
+          <div className="mt-5 flex items-center gap-3">
+            <Link href="/app/journal/new" className={btnCls}>Log your first trade</Link>
+            <PencilArrow dir="left" label="step 1: this one" className="hidden sm:inline-flex" delay={0.5} />
+          </div>
         </Card>
         <Card>
           <Badge tone="accent">EXAMPLE — not your data</Badge>

@@ -1,3 +1,4 @@
+import { PencilUnderline } from "@/components/stickman/PencilArrow";
 import Link from "next/link";
 import { pageMeta } from "@/lib/seo";
 import LeadForm from "@/components/LeadForm";
@@ -14,6 +15,7 @@ export default function Free() {
     <div className="mx-auto max-w-3xl px-4 py-14">
       <Eyebrow>Free tools for traders</Eyebrow>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Free trading journal template and review checklist</h1>
+      <PencilUnderline className="!mx-0" />
       <p className="mt-3 text-muted">Most traders who journal start with a spreadsheet. If that&apos;s you, start with a good one. This template has the columns that matter: planned risk, R-multiple, whether you followed your plan, and a mistake tag, so your reviews show where your results really come from.</p>
       <ul className="mt-6 space-y-2 text-sm">
         <li>✓ <strong>Journal template</strong> (CSV, opens in Excel, Google Sheets or Numbers), with 2 worked example rows (forex and futures)</li>

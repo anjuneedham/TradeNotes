@@ -9,6 +9,12 @@ import { Stat } from "@/components/stats";
 import EquityCurve from "@/components/EquityCurve";
 import { NextSteps } from "@/components/Funnel";
 import { Badge, Eyebrow, btnCls, btnGhostCls, linkCls } from "@/components/ui";
+import { PartOneScene } from "@/components/stickman/PartOneScene";
+import { PencilArrow, PencilUnderline } from "@/components/stickman/PencilArrow";
+import { Mascot, ThirtyTradesBar } from "@/components/stickman/Doodles";
+import type { Pose } from "@/components/stickman/Stickman";
+
+const poses: Pose[] = ["point", "think", "shrug"];
 
 /* The preview below renders the real dashboard components and the real metrics engine over a small,
    clearly-labelled illustrative trade list. It is never presented as anyone's results. */
@@ -60,10 +66,12 @@ export default function Home() {
         <div>
           <Eyebrow>Trading journal · Performance analytics</Eyebrow>
           <h1 className="mt-4 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">Know your trades. Understand your patterns. Improve your process.</h1>
+          <PencilUnderline className="!mx-0" />
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
             Most traders repeat the same mistakes because they never measure them. TradeNotes is a trading journal where you record every decision and see, in plain numbers, what it cost or earned you.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <PencilArrow dir="right" label="start here" className="hidden sm:inline-flex" delay={0.6} />
             <Link href="/signup" className={`${btnCls} !px-6`}>Start free</Link>
             <Link href="/demo" className={`${btnGhostCls} !px-6`}>See a live demo</Link>
             <Link href="/pricing" className={`${btnGhostCls} !px-6`}>See pricing</Link>
@@ -89,6 +97,7 @@ export default function Home() {
           <p className="mt-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs leading-relaxed">Based on {s.tradeCount} closed trades. Under 30 trades, results are mostly luck — don&apos;t draw conclusions yet.</p>
         </div>
       </section>
+      <section aria-label="Sample: the win-rate trap" className="sm-only mx-auto max-w-6xl px-4 pb-16"><PartOneScene /></section>
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <Link href="/demo" className="group block overflow-hidden rounded-xl border border-border bg-panel">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -102,7 +111,8 @@ export default function Home() {
           <h2 id="how" className="text-2xl font-semibold tracking-tight">How it works</h2>
           <ol className="mt-8 grid gap-8 md:grid-cols-3">
             {works.map(([t, d], i) => (
-              <li key={t}>
+              <li key={t} className="sm-card">
+                <Mascot pose={poses[i]} />
                 <span className="fig text-sm text-muted">0{i + 1}</span>
                 <h3 className="mt-2 font-medium">{t}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted">{d}</p>
@@ -134,7 +144,11 @@ export default function Home() {
           <div>
             <h2 id="who" className="text-2xl font-semibold tracking-tight">Built for traders who are still learning</h2>
             <p className="mt-3 leading-relaxed text-muted">Every number comes with an explanation of what it means and when it is too early to trust it. Forex traders get lots and quote-currency conversion out of the box; futures, stocks, options and crypto are supported too.</p>
-            <Link href="/learn" className={`${linkCls} mt-4 inline-block text-sm`}>Read the metric guide →</Link>
+            <ThirtyTradesBar />
+            <div className="mt-4 flex items-center gap-3">
+              <Link href="/learn" className={`${linkCls} inline-block text-sm`}>Read the metric guide →</Link>
+              <PencilArrow dir="left" label="no jargon" delay={0.3} />
+            </div>
           </div>
           <div>
             <h3 className="font-medium">What TradeNotes will not do</h3>
